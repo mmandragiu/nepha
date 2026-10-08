@@ -1,0 +1,16 @@
+# parola de Wi-Fi nu se urca
+panou/secrete.h
+
+# PlatformIO / VS Code
+.pio/
+.vscode/
+build/
+
+# generate temporar de unelte/fonturi_vlw.py
+.fonturi_temp/
+
+*.bin
+*.hex
+*.elf
+.DS_Store
+Thumbs.db

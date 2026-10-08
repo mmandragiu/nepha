@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.png binary
+
+# fisiere generate de scripturile din unelte/
+panou/fonturi.h linguist-generated=true
+panou/web_pagina.h linguist-generated=true
