@@ -147,7 +147,7 @@ static float tintaSmart(uint8_t &motiv, int16_t &vine) {
   return redusa;
 }
 
-void decideIncalzire(uint32_t dt) {
+void decideIncalzire() {
   Incalzire &inc = casa.incalzire;
   float t = tempCasa();
   if (isnan(t)) { inc.pornita = false; return; }

@@ -219,7 +219,7 @@ void rutinaOraNoua();
 void rutinaTrimite(Print &p);
 
 // termostat
-void decideIncalzire(uint32_t dt);
+void decideIncalzire();
 float tempCasa();
 void detecteazaFerestre(uint32_t dt);
 void modelTermic(uint32_t dt);

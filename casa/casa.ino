@@ -124,7 +124,7 @@ void decide(uint32_t dt) {
   detecteazaFerestre(dt);
   energieVirtuala(dt);
   decideEnergie(dt);
-  decideIncalzire(dt);
+  decideIncalzire();
   decideLumini();
   decidePriza();
   decideGradina();
