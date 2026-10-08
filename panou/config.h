@@ -1,0 +1,56 @@
+// config.h - setarile panoului (ESP32 cu ecran tactil de 3.5")
+#pragma once
+#include <Arduino.h>
+
+// ---------------------------------------------------------------
+// Wi-Fi
+// ---------------------------------------------------------------
+// Reteaua se poate alege si fara sa umblam in cod: daca panoul nu se poate
+// conecta, porneste reteaua "NEPHA-casa" (parola de mai jos). Ne conectam
+// la ea cu telefonul si deschidem http://192.168.4.1/wifi
+// Daca vreti totusi sa o scrieti aici, faceti un fisier secrete.h (nu se urca
+// pe GitHub) cu:  #define WIFI_NUME "..."   si   #define WIFI_PAROLA "..."
+#if __has_include("secrete.h")
+#include "secrete.h"
+#endif
+#ifndef WIFI_NUME
+#define WIFI_NUME ""
+#define WIFI_PAROLA ""
+#endif
+#define AP_NUME   "NEPHA-casa"
+#define AP_PAROLA "casa2026"
+#define NUME_RETEA "nepha"            // http://nepha.local
+
+// unde e casa (pentru prognoza meteo) - Bucuresti; se poate schimba din pagina web
+#define LATITUDINE  44.43
+#define LONGITUDINE 26.10
+
+// ora Romaniei, cu trecerea la ora de vara
+#define FUS_ORAR "EET-2EEST,M3.5.0/3,M10.5.0/4"
+
+// ---------------------------------------------------------------
+// Legatura cu Arduino (pe conectorul P3 al placii)
+// ---------------------------------------------------------------
+#define PIN_RX_ARDUINO 35    // IO35 <- D9 de pe Arduino (prin divizor / translator de nivel)
+#define PIN_TX_ARDUINO 22    // IO22 -> D8 de pe Arduino
+#define VITEZA_ARDUINO 9600
+
+// ---------------------------------------------------------------
+// Ce mai are placa pe ea
+// ---------------------------------------------------------------
+#define PIN_LDR_PANOU 34     // fotorezistenta de langa ecran
+#define PIN_DIFUZOR   26     // amplificatorul 8002A
+#define PIN_LED_R 4          // LED-ul RGB (se aprinde pe LOW)
+#define PIN_LED_G 16
+#define PIN_LED_B 17
+
+// ---------------------------------------------------------------
+// Casa
+// ---------------------------------------------------------------
+#define NR_CAMERE 3
+const char *const NUME_CAMERE[NR_CAMERE] = {"Sufragerie", "Dormitor", "Bucătărie"};
+#define NR_SENZORI_RF 4
+const char *const NUME_SENZORI[NR_SENZORI_RF] = {"Ușa de la intrare", "Ușa spre curte", "Geam dormitor", "Geam sufragerie"};
+
+#define PRET_KWH 1.40        // lei / kWh, ca sa aratam economia in bani
+#define PM_SOLAR_MAX 2.0     // W, panoul solar al machetei in plin soare (la fel ca pe Arduino)
