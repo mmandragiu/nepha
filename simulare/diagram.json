@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "author": "Echipa NEPHA",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-uno", "id": "uno", "top": 120, "left": 20, "attrs": {} },
+
+    { "type": "wokwi-led", "id": "bec_sufragerie", "top": -60, "left": 60, "attrs": { "color": "yellow", "label": "Sufragerie" } },
+    { "type": "wokwi-led", "id": "bec_dormitor", "top": -60, "left": 130, "attrs": { "color": "yellow", "label": "Dormitor" } },
+    { "type": "wokwi-led", "id": "bec_bucatarie", "top": -60, "left": 200, "attrs": { "color": "yellow", "label": "Bucatarie" } },
+    { "type": "wokwi-led", "id": "incalzire", "top": -60, "left": 280, "attrs": { "color": "red", "label": "Incalzire" } },
+    { "type": "wokwi-led", "id": "pompa", "top": -60, "left": 350, "attrs": { "color": "blue", "label": "Pompa" } },
+    { "type": "wokwi-led", "id": "priza_tv", "top": -60, "left": 420, "attrs": { "color": "green", "label": "Priza TV" } },
+    { "type": "wokwi-buzzer", "id": "sirena", "top": -80, "left": 490, "attrs": { "volume": "0.1" } },
+
+    { "type": "wokwi-pir-motion-sensor", "id": "pir_sufragerie", "top": 380, "left": 20, "attrs": {} },
+    { "type": "wokwi-pir-motion-sensor", "id": "pir_dormitor", "top": 380, "left": 130, "attrs": {} },
+    { "type": "wokwi-pir-motion-sensor", "id": "pir_bucatarie", "top": 380, "left": 240, "attrs": {} },
+    { "type": "wokwi-photoresistor-sensor", "id": "lumina", "top": 400, "left": 380, "attrs": { "lux": "300" } },
+    { "type": "wokwi-potentiometer", "id": "sol", "top": 280, "left": 420, "attrs": {} }
+  ],
+  "connections": [
+    [ "uno:5", "bec_sufragerie:A", "gold", [] ],
+    [ "bec_sufragerie:C", "uno:GND.1", "black", [] ],
+    [ "uno:6", "bec_dormitor:A", "gold", [] ],
+    [ "bec_dormitor:C", "uno:GND.1", "black", [] ],
+    [ "uno:3", "bec_bucatarie:A", "gold", [] ],
+    [ "bec_bucatarie:C", "uno:GND.1", "black", [] ],
+    [ "uno:11", "incalzire:A", "red", [] ],
+    [ "incalzire:C", "uno:GND.1", "black", [] ],
+    [ "uno:10", "pompa:A", "blue", [] ],
+    [ "pompa:C", "uno:GND.1", "black", [] ],
+    [ "uno:5V", "priza_tv:A", "red", [] ],
+    [ "priza_tv:C", "uno:12", "green", [] ],
+    [ "uno:13", "sirena:2", "orange", [] ],
+    [ "sirena:1", "uno:GND.1", "black", [] ],
+
+    [ "pir_sufragerie:VCC", "uno:5V", "red", [] ],
+    [ "pir_sufragerie:GND", "uno:GND.2", "black", [] ],
+    [ "pir_sufragerie:OUT", "uno:7", "violet", [] ],
+    [ "pir_dormitor:VCC", "uno:5V", "red", [] ],
+    [ "pir_dormitor:GND", "uno:GND.2", "black", [] ],
+    [ "pir_dormitor:OUT", "uno:A2", "violet", [] ],
+    [ "pir_bucatarie:VCC", "uno:5V", "red", [] ],
+    [ "pir_bucatarie:GND", "uno:GND.2", "black", [] ],
+    [ "pir_bucatarie:OUT", "uno:A3", "violet", [] ],
+
+    [ "lumina:VCC", "uno:5V", "red", [] ],
+    [ "lumina:GND", "uno:GND.3", "black", [] ],
+    [ "lumina:AO", "uno:A1", "green", [] ],
+    [ "sol:VCC", "uno:5V", "red", [] ],
+    [ "sol:GND", "uno:GND.3", "black", [] ],
+    [ "sol:SIG", "uno:A0", "brown", [] ]
+  ],
+  "dependencies": {}
+}

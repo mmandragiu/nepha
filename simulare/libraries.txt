@@ -1,0 +1,4 @@
+# bibliotecile pentru simularea din Wokwi (aceleasi ca in Arduino IDE)
+rc-switch
+OneWire
+AltSoftSerial
