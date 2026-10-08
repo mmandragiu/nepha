@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6F1EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171512" media="(prefers-color-scheme: dark)">
+<title>NEPHA · Casa</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233F8F5E'/%3E%3Cpath d='M8 16l8-7 8 7v8h-5v-5h-6v5H8z' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #F6F1EA; --card: #FFFFFF; --line: #E9E2D6; --text: #2B2A28; --muted: #8A857C;
+  --green: #3F8F5E; --green-soft: #E3F0E7; --sun: #DE9428; --sun-soft: #FBEBD0;
+  --water: #3D86BD; --water-soft: #DDEBF6; --heat: #D7684B; --heat-soft: #F9E1DA;
+  --red: #CF3F3F; --red-soft: #F8DADA; --soft: #EFEAE2;
+  --ink: #26231F; --ink-text: #F4EFE6; --ink-muted: #ADA597; --ink-line: #3A352F;
+  --shadow: 0 1px 2px rgba(43, 42, 40, .04), 0 8px 24px -12px rgba(43, 42, 40, .12);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171512; --card: #211F1B; --line: #34302A; --text: #F2EDE6; --muted: #A39C91;
+    --green: #6DBE8A; --green-soft: #213428; --sun: #F0B055; --sun-soft: #3A2E1C;
+    --water: #6FAEDD; --water-soft: #1C2C3A; --heat: #EE8B70; --heat-soft: #3A241E;
+    --red: #EF6B6B; --red-soft: #3D1F1F; --soft: #2B2823;
+    --ink: #2E2A24; --ink-text: #F4EFE6; --ink-muted: #A39C91; --ink-line: #403A33;
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 15px/1.45 ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+.pagina { max-width: 1140px; margin: 0 auto; padding: 20px 16px 40px; }
+
+/* sus */
+.antet { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-bottom: 18px; }
+.salut { flex: 1 1 260px; min-width: 0; }
+.salut h1 { margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: -.02em; }
+.salut p { margin: 4px 0 0; color: var(--muted); }
+.stare-conexiune { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.punct { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.punct.viu { background: var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
+.punct.demo { background: var(--sun); box-shadow: 0 0 0 4px var(--sun-soft); }
+.segment { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--soft); border: 1px solid var(--line); }
+.segment button { border: 0; background: transparent; padding: 7px 16px; border-radius: 999px; cursor: pointer; color: var(--muted); font-weight: 600; }
+.segment button.activ { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
+
+/* grila */
+.grila { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 18px; box-shadow: var(--shadow); min-width: 0; position: relative; }
+/* desktop: 3 + 2 + 2 + 3 carduri pe rand; tableta: cate doua; telefon: unul sub altul */
+.c-ec { grid-column: span 5; } .c-in { grid-column: span 4; } .c-af { grid-column: span 3; }
+.c-en { grid-column: span 8; } .c-al { grid-column: span 4; }
+.c-ca { grid-column: span 5; } .c-ru { grid-column: span 7; }
+.c-gr { grid-column: span 3; } .c-te { grid-column: span 4; } .c-ju { grid-column: span 5; }
+@media (max-width: 960px) {
+  .c-ec, .c-en, .c-ru, .c-ju { grid-column: span 12; }
+  .c-in, .c-af, .c-al, .c-ca, .c-gr, .c-te { grid-column: span 6; }
+}
+@media (max-width: 620px) {
+  .grila { grid-template-columns: minmax(0, 1fr); }
+  .grila > .card { grid-column: auto; }
+  .salut h1 { font-size: 24px; }
+}
+
+.eticheta { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+.eticheta .dreapta { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; }
+.icon { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; flex: none; }
+.icon svg { width: 17px; height: 17px; }
+.i-verde { background: var(--green-soft); color: var(--green); }
+.i-soare { background: var(--sun-soft); color: var(--sun); }
+.i-apa { background: var(--water-soft); color: var(--water); }
+.i-cald { background: var(--heat-soft); color: var(--heat); }
+.i-rosu { background: var(--red-soft); color: var(--red); }
+.i-gri { background: var(--soft); color: var(--muted); }
+svg { stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+.mare { font-size: 46px; font-weight: 750; letter-spacing: -.035em; line-height: 1; font-variant-numeric: tabular-nums; }
+.mediu { font-size: 26px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.mic { font-size: 13px; color: var(--muted); }
+.rand { display: flex; align-items: center; gap: 10px; }
+.intre { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.cip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--muted); white-space: nowrap; }
+.cip.verde { background: var(--green-soft); color: var(--green); }
+.cip.soare { background: var(--sun-soft); color: var(--sun); }
+.cip.apa { background: var(--water-soft); color: var(--water); }
+.cip.cald { background: var(--heat-soft); color: var(--heat); }
+.cip.rosu { background: var(--red-soft); color: var(--red); }
+.motiv { margin-top: 12px; font-size: 14px; }
+.motiv b { font-weight: 700; }
+
+/* cardul inchis la culoare: economia */
+.cerneala { background: var(--ink); border-color: var(--ink); color: var(--ink-text); }
+.cerneala .eticheta, .cerneala .mic { color: var(--ink-muted); }
+.cerneala .icon { background: rgba(255, 255, 255, .08); color: #9FD8B2; }
+.compara { display: grid; gap: 8px; margin-top: 16px; }
+.compara .linie { display: grid; grid-template-columns: 74px 1fr 64px; align-items: center; gap: 10px; font-size: 13px; }
+.compara .pista { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.compara .pista i { display: block; height: 100%; border-radius: 99px; background: var(--ink-muted); transition: width .6s ease; }
+.compara .pista i.smart { background: #9FD8B2; }
+.compara .val { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* energie */
+.flux { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.flux .bucata { background: var(--soft); border-radius: 16px; padding: 12px; min-width: 0; }
+.flux .bucata .mediu { font-size: 22px; }
+.baterie { height: 8px; border-radius: 99px; background: var(--line); margin-top: 8px; overflow: hidden; }
+.baterie i { display: block; height: 100%; background: var(--green); border-radius: 99px; transition: width .6s ease; }
+.zona-grafic { position: relative; padding-bottom: 18px; }
+.grafic { width: 100%; height: 140px; display: block; }
+.ore-grafic span { position: absolute; bottom: 0; transform: translateX(-50%); font-size: 11px; color: var(--muted); }
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.legenda em { margin-left: auto; font-style: normal; }
+.legenda span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: currentColor; }
+@media (max-width: 620px) { .flux { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* camere */
+.camere { display: grid; gap: 10px; }
+.camera { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--soft); }
+.camera .nume { font-weight: 700; }
+.camera .temp { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.comutator { width: 46px; height: 28px; border-radius: 99px; border: 0; background: var(--line); position: relative; cursor: pointer; padding: 0; flex: none; }
+.comutator::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 3px rgba(0, 0, 0, .2); transition: transform .2s ease; }
+.comutator.pornit { background: var(--sun); }
+.comutator.pornit::after { transform: translateX(18px); }
+
+/* alarma */
+.senzori { list-style: none; margin: 14px 0 0; padding: 0; }
+.senzori li { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.butoane { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.buton { border: 1px solid var(--line); background: var(--card); padding: 9px 16px; border-radius: 999px; cursor: pointer; font-weight: 700; }
+.buton:hover { border-color: var(--muted); }
+.buton.principal { background: var(--green); border-color: var(--green); color: #fff; }
+.buton.principal:hover { filter: brightness(1.06); }
+.buton:disabled { opacity: .5; cursor: default; }
+.alarma-suna { border-color: var(--red); box-shadow: 0 0 0 4px var(--red-soft); }
+
+/* gradina */
+.inel { --p: 0; width: 132px; height: 132px; border-radius: 50%; margin: 4px auto 10px; display: grid; place-items: center;
+  background: conic-gradient(var(--water) calc(var(--p) * 1%), var(--soft) 0); }
+.inel > div { width: 104px; height: 104px; border-radius: 50%; background: var(--card); display: grid; place-items: center; text-align: center; }
+
+/* rutina */
+.harta { display: grid; grid-template-columns: 92px repeat(24, minmax(0, 1fr)); gap: 3px; align-items: center; }
+.harta .n { font-size: 12px; font-weight: 700; padding-right: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.harta .celula { height: 26px; border-radius: 5px; background: var(--green); }
+.harta .celula.acum { outline: 2px solid var(--text); outline-offset: 1px; }
+.harta .ora { font-size: 10px; color: var(--muted); text-align: center; }
+
+/* jurnal */
+.jurnal { list-style: none; margin: 0; padding: 0; max-height: 360px; overflow: auto; }
+.jurnal li { display: grid; grid-template-columns: 54px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.jurnal li:first-child { border-top: 0; padding-top: 0; }
+.jurnal .ora { color: var(--green); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.banda { display: none; margin-bottom: 14px; padding: 10px 14px; border-radius: 14px; background: var(--sun-soft); color: var(--text); font-size: 14px; }
+.banda.vizibil { display: block; }
+.subsol { margin-top: 26px; text-align: center; font-size: 12px; color: var(--muted); }
+
+dialog { border: 1px solid var(--line); border-radius: 22px; background: var(--card); color: var(--text); padding: 22px; width: min(320px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(23, 21, 18, .45); }
+.taste { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.taste button { padding: 14px 0; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); font-size: 18px; font-weight: 700; cursor: pointer; }
+.puncte-pin { display: flex; justify-content: center; gap: 12px; margin-top: 10px; }
+.puncte-pin i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); }
+.puncte-pin i.plin { background: var(--text); border-color: var(--text); }
+.notificare { position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 120px); background: var(--ink); color: var(--ink-text); padding: 10px 16px; border-radius: 999px; font-size: 14px; transition: transform .3s ease; max-width: calc(100vw - 32px); }
+.notificare.vizibil { transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+  <symbol id="i-soare" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-vant" viewBox="0 0 24 24"><path d="M3 8h11a3 3 0 1 0-3-3"/><path d="M3 12h16a3 3 0 1 1-3 3"/><path d="M3 16h7"/></symbol>
+  <symbol id="i-fulger" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
+  <symbol id="i-frunza" viewBox="0 0 24 24"><path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15"/><path d="M5 19l7-7"/></symbol>
+  <symbol id="i-picatura" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></symbol>
+  <symbol id="i-scut" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-termometru" viewBox="0 0 24 24"><path d="M10 4a2 2 0 1 1 4 0v10a4 4 0 1 1-4 0z"/><path d="M12 10v6"/></symbol>
+  <symbol id="i-bec" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+  <symbol id="i-sclipire" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+  <symbol id="i-balanta" viewBox="0 0 24 24"><path d="M12 4v16M5 20h14"/><path d="M5 8h14"/><path d="M5 8l-3 6a3 3 0 0 0 6 0zM19 8l-3 6a3 3 0 0 0 6 0z"/></symbol>
+</svg>
+
+<main class="pagina">
+  <header class="antet">
+    <div class="salut">
+      <h1 id="salut">Bună ziua</h1>
+      <p id="subtitlu">Casa NEPHA · se conectează...</p>
+    </div>
+    <span class="stare-conexiune"><span class="punct" id="punct"></span><span id="conexiune">conectare</span></span>
+    <div class="segment" role="group" aria-label="Modul casei">
+      <button id="mod-smart" class="activ">Smart</button>
+      <button id="mod-clasic">Clasic</button>
+    </div>
+  </header>
+
+  <div class="banda" id="banda-demo">Demo: panoul casei nu e conectat, așa că vedeți o zi simulată. Pe panou, pagina arată datele adevărate.</div>
+
+  <section class="grila">
+    <article class="card c-ec cerneala">
+      <div class="eticheta"><span class="icon"><svg><use href="#i-frunza"/></svg></span>Economie azi<span class="dreapta" id="ec-lei"></span></div>
+      <div><span class="mare" id="ec-kwh">–</span> <span class="mediu">kWh</span></div>
+      <div class="mic" id="ec-text" style="margin-top:8px">față de o casă obișnuită, în aceleași condiții</div>
+      <div class="compara">
+        <div class="linie"><span>Casă clasică</span><span class="pista"><i id="ec-pista-clasic" style="width:100%"></i></span><span class="val" id="ec-clasic">–</span></div>
+        <div class="linie"><span>NEPHA</span><span class="pista"><i class="smart" id="ec-pista-smart" style="width:0%"></i></span><span class="val" id="ec-smart">–</span></div>
+      </div>
+    </article>
+
+    <article class="card c-in">
+      <div class="eticheta"><span class="icon i-cald"><svg><use href="#i-termometru"/></svg></span>În casă<span class="dreapta" id="inc-cip"></span></div>
+      <div><span class="mare" id="t-casa">–</span></div>
+      <div class="motiv" id="inc-motiv">&nbsp;</div>
+      <div class="mic" id="inc-rata" style="margin-top:6px"></div>
+    </article>
+
+    <article class="card c-af">
+      <div class="eticheta"><span class="icon i-apa"><svg><use href="#i-soare"/></svg></span>Afară</div>
+      <div><span class="mare" id="t-afara">–</span></div>
+      <div class="motiv" id="vreme-text">&nbsp;</div>
+    </article>
+
+    <article class="card c-en">
+      <div class="eticheta"><span class="icon i-soare"><svg><use href="#i-fulger"/></svg></span>Energie<span class="dreapta"><span class="cip" id="en-mod">–</span></span></div>
+      <div class="flux">
+        <div class="bucata"><div class="mic">Soare</div><div class="mediu" id="en-solar">–</div></div>
+        <div class="bucata"><div class="mic">Vânt</div><div class="mediu" id="en-vant">–</div></div>
+        <div class="bucata"><div class="mic">Baterie</div><div class="mediu" id="en-baterie">–</div><div class="baterie"><i id="en-bara" style="width:0%"></i></div></div>
+        <div class="bucata"><div class="mic">Consum</div><div class="mediu" id="en-consum">–</div></div>
+      </div>
+      <div class="zona-grafic"><svg class="grafic" id="grafic" viewBox="0 0 600 140" preserveAspectRatio="none"></svg><div class="ore-grafic" id="ore-grafic"></div></div>
+      <div class="legenda"><span style="color:var(--sun)">producție (soare + vânt)</span><span style="color:var(--text)">consum</span><em id="en-estimat"></em></div>
+    </article>
+
+    <article class="card c-al" id="card-alarma">
+      <div class="eticheta"><span class="icon i-gri" id="al-icon"><svg><use href="#i-scut"/></svg></span>Alarmă</div>
+      <div class="mediu" id="al-stare">–</div>
+      <div class="mic" id="al-text" style="margin-top:6px"></div>
+      <div class="butoane" id="al-butoane"></div>
+      <ul class="senzori" id="al-senzori"></ul>
+    </article>
+
+    <article class="card c-ca">
+      <div class="eticheta"><span class="icon i-soare"><svg><use href="#i-bec"/></svg></span>Camere<span class="dreapta mic">atingeți becul ca să-l aprindeți</span></div>
+      <div class="camere" id="camere"></div>
+    </article>
+
+    <article class="card c-ru">
+      <div class="eticheta"><span class="icon i-verde"><svg><use href="#i-sclipire"/></svg></span>Ce a învățat casa<span class="dreapta mic" id="rutina-zile"></span></div>
+      <div class="harta" id="harta"></div>
+      <p class="mic" style="margin:12px 0 0">Cât de probabil e să fie cineva în fiecare cameră, la fiecare oră. Din asta casa știe când să pornească încălzirea mai devreme.</p>
+    </article>
+
+    <article class="card c-gr">
+      <div class="eticheta"><span class="icon i-apa"><svg><use href="#i-picatura"/></svg></span>Grădină</div>
+      <div class="inel" id="inel"><div><div><div class="mediu" id="sol">–</div><div class="mic">umiditate</div></div></div></div>
+      <div class="mic" id="gradina-text" style="text-align:center"></div>
+      <div class="butoane" style="justify-content:center"><button class="buton" id="uda">Udă acum</button></div>
+    </article>
+
+    <article class="card c-te">
+      <div class="eticheta"><span class="icon i-verde"><svg><use href="#i-balanta"/></svg></span>Ziua de test</div>
+      <p class="mic" style="margin:0 0 12px">Aceeași zi, trăită o dată ca o casă clasică și o dată ca o casă NEPHA. Aceeași familie, aceeași vreme.</p>
+      <div id="test-rezultat"></div>
+      <div class="butoane">
+        <button class="buton principal" id="test-rapid">Calculează</button>
+        <button class="buton" id="test-macheta">Pe machetă (6 min)</button>
+      </div>
+    </article>
+
+    <article class="card c-ju">
+      <div class="eticheta"><span class="icon i-gri"><svg><use href="#i-lista"/></svg></span>Jurnalul casei<span class="dreapta mic">ce a decis și de ce</span></div>
+      <ul class="jurnal" id="jurnal"></ul>
+    </article>
+  </section>
+
+  <p class="subsol" id="subsol">NEPHA · casa care se gândește singură cum să economisească energie</p>
+</main>
+
+<dialog id="dialog-pin">
+  <form method="dialog">
+    <div class="mediu">PIN-ul alarmei</div>
+    <div class="mic">Îl verifică Arduino, nu pagina.</div>
+    <div class="puncte-pin" id="puncte-pin"><i></i><i></i><i></i><i></i></div>
+    <div class="taste" id="taste"></div>
+    <div class="butoane" style="justify-content:space-between">
+      <button class="buton" value="anulat">Renunț</button>
+      <button class="buton principal" id="pin-ok" value="ok">Dezarmează</button>
+    </div>
+  </form>
+</dialog>
+<div class="notificare" id="notificare"></div>
+
+<script>
+"use strict";
+// ---------------------------------------------------------------- unelte mici
+const $ = (id) => document.getElementById(id);
+const nr = (x, z = 1) => (x === null || x === undefined || Number.isNaN(x)) ? "–" : Number(x).toLocaleString("ro-RO", { minimumFractionDigits: z, maximumFractionDigits: z });
+const grade = (x) => (x === null || x === undefined) ? "–" : nr(x, 1) + "°";
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let demo = false;
+let stare = null;
+
+function notifica(text) {
+  const n = $("notificare");
+  n.textContent = text;
+  n.classList.add("vizibil");
+  clearTimeout(notifica.t);
+  notifica.t = setTimeout(() => n.classList.remove("vizibil"), 2600);
+}
+
+async function comanda(c, mesaj) {
+  if (demo) {
+    notifica("Demo: comanda «" + c + "» ar ajunge la Arduino");
+    Demo.comanda(c);
+    return;
+  }
+  try {
+    const r = await fetch("/api/comanda", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "c=" + encodeURIComponent(c) });
+    if (!r.ok) throw new Error();
+    if (mesaj) notifica(mesaj);
+    setTimeout(actualizeaza, 600);
+  } catch (e) {
+    notifica("N-am putut trimite comanda");
+  }
+}
+
+// ---------------------------------------------------------------- desen
+
+function salut(minut) {
+  const h = Math.floor(minut / 60);
+  return h >= 5 && h < 11 ? "Bună dimineața" : h >= 11 && h < 18 ? "Bună ziua" : "Bună seara";
+}
+
+function deseneazaStare(s) {
+  stare = s;
+  const kwhAzi = Math.max(0, ((s.energie.whClasic || 0) - (s.energie.whAzi || 0)) / 1000);
+  $("salut").textContent = salut(s.minut);
+  const test = s.test === 1 ? " · ziua de test rulează" : "";
+  $("subtitlu").textContent = "Casa NEPHA · " + s.ora + test;
+  $("mod-smart").classList.toggle("activ", s.mod === "smart");
+  $("mod-clasic").classList.toggle("activ", s.mod !== "smart");
+
+  // economie
+  $("ec-kwh").textContent = s.mod === "smart" ? nr(kwhAzi, 1) : "–";
+  $("ec-lei").textContent = s.mod === "smart" ? "≈ " + nr(kwhAzi * s.pretKwh, 1) + " lei" : "mod clasic";
+  const clasic = s.energie.whClasic || 0, smart = s.energie.whAzi || 0;
+  $("ec-clasic").textContent = nr(clasic / 1000, 1) + " kWh";
+  $("ec-smart").textContent = nr(smart / 1000, 1) + " kWh";
+  $("ec-pista-smart").style.width = (clasic > 0 ? Math.min(100, smart / clasic * 100) : 0) + "%";
+
+  // in casa
+  const temps = s.camere.map((c) => c.temp).filter((t) => t !== null && t !== undefined);
+  const medie = temps.length ? temps.reduce((a, b) => a + b, 0) / temps.length : null;
+  $("t-casa").textContent = grade(medie);
+  const inc = s.incalzire;
+  $("inc-cip").innerHTML = inc.pornita ? '<span class="cip cald">încălzește</span>' : '<span class="cip">în repaus</span>';
+  $("inc-motiv").innerHTML = "Țintă <b>" + grade(inc.tinta) + "</b> · " + esc(inc.motiv || "");
+  $("inc-rata").textContent = inc.rata ? "A învățat că se încălzește cu " + nr(inc.rata, 1) + " °C pe oră." : "";
+
+  // afara
+  $("t-afara").textContent = grade(s.afara ?? (s.vreme.valida ? s.vreme.temp : null));
+  const v = s.vreme;
+  $("vreme-text").textContent = !v.valida ? "fără prognoză (internet)"
+    : v.oraPloaie !== undefined ? "Ploaie " + v.ploaie + "% pe la " + v.oraPloaie + ":00"
+    : v.soare > 40 ? "Senin în următoarele ore" : "Fără ploaie în 12 ore";
+
+  // energie
+  const en = s.energie;
+  $("en-solar").textContent = nr(en.solar, 2) + " W";
+  $("en-vant").textContent = nr(en.vant, 2) + " W";
+  $("en-baterie").textContent = en.baterie + "%";
+  $("en-bara").style.width = en.baterie + "%";
+  $("en-bara").style.background = en.modCod === 3 ? "var(--red)" : en.modCod === 2 ? "var(--sun)" : "var(--green)";
+  $("en-consum").textContent = nr(en.consum, 2) + " W";
+  const clase = ["verde", "soare", "cald", "rosu"];
+  $("en-mod").className = "cip " + clase[en.modCod || 0];
+  $("en-mod").textContent = "Mod " + en.mod.toLowerCase();
+  $("en-estimat").textContent = en.estimatSolar6h != null ? "estimez ~" + nr(en.estimatSolar6h, 1) + " Wh din soare în 6 ore" : "";
+
+  deseneazaAlarma(s.alarma);
+  deseneazaCamere(s.camere);
+
+  // gradina
+  $("sol").textContent = s.gradina.umiditate + "%";
+  $("inel").style.setProperty("--p", s.gradina.umiditate);
+  $("gradina-text").textContent = s.gradina.pompa ? "Se udă acum." : s.gradina.umiditate >= 35 ? "Pământul e destul de umed." : "Pământul e uscat: casa așteaptă momentul potrivit.";
+
+  deseneazaTest(s.rezultate, s.test);
+  $("subsol").textContent = "NEPHA · casa care se gândește singură cum să economisească energie" +
+    (s.retea && s.retea.ip && !demo ? " · " + s.retea.ip : "");
+}
+
+function deseneazaAlarma(al) {
+  const pericol = al.cod >= 4;
+  $("card-alarma").classList.toggle("alarma-suna", pericol);
+  $("al-icon").className = "icon " + (pericol ? "i-rosu" : al.cod === 0 ? "i-gri" : "i-verde");
+  $("al-stare").textContent = al.stare;
+  const texte = ["Când plecați, armați-o: casa știe sigur că e goală și economisește.",
+    "Aveți 30 de secunde să ieșiți.", "Pe noapte: păzim ușile și geamurile.",
+    "Casa e păzită și economisește: lumini stinse, încălzire redusă.", "S-a deschis ușa! Introduceți PIN-ul.", "Alarma sună!"];
+  $("al-text").textContent = texte[al.cod] || "";
+  const b = $("al-butoane");
+  const cheie = String(al.cod);
+  if (b.dataset.cheie !== cheie) {
+    b.dataset.cheie = cheie;
+    b.innerHTML = al.cod === 0
+      ? '<button class="buton principal" data-c="ALARMA PLECAT">Plec de acasă</button><button class="buton" data-c="ALARMA ACASA">Noapte</button>'
+      : '<button class="buton principal" data-pin="1">Dezarmează</button>';
+  }
+  $("al-senzori").innerHTML = al.senzori.map((x) =>
+    `<li><span>${esc(x.nume)}</span><span class="cip ${x.deschis ? "cald" : ""}">${x.deschis ? "deschis" : "închis"}</span></li>`).join("");
+}
+
+function deseneazaCamere(camere) {
+  $("camere").innerHTML = camere.map((c, i) => `
+    <div class="camera">
+      <div><div class="nume">${esc(c.nume)}</div>
+        <div class="mic">${c.prezenta ? "e cineva" : "liber"}${c.fereastra ? ' · <span style="color:var(--heat)">geam deschis</span>' : ""}${c.lumina ? " · lumină " + c.lumina + "%" : ""}</div></div>
+      <div class="temp">${grade(c.temp)}</div>
+      <button class="comutator ${c.lumina ? "pornit" : ""}" data-camera="${i}" aria-label="Lumina din ${esc(c.nume)}"></button>
+    </div>`).join("");
+}
+
+function deseneazaTest(rez, test) {
+  const el = $("test-rezultat");
+  $("test-macheta").textContent = test === 1 ? "Oprește testul" : "Pe machetă (6 min)";
+  if (!rez || !rez[0] || !rez[1] || !rez[0].valid || !rez[1].valid) {
+    el.innerHTML = '<p class="mic" style="margin:0 0 4px">Încă n-am rulat ziua de test. Apăsați «Calculează».</p>';
+    return;
+  }
+  const c = rez[0], s = rez[1];
+  const pct = (a, b) => a > 0 ? Math.round((a - b) / a * 100) : 0;
+  const randuri = [["Încălzire", c.incalzire, s.incalzire], ["Lumini", c.lumini, s.lumini], ["Priza TV (standby)", c.priza, s.priza], ["Udare", c.pompa, s.pompa]];
+  el.innerHTML = `
+    <div class="rand" style="align-items:baseline;gap:12px"><span class="mare" style="color:var(--green)">−${pct(c.total, s.total)}%</span>
+      <span class="mic">${nr(c.total / 1000, 1)} → ${nr(s.total / 1000, 1)} kWh pe zi · ${nr(c.litri, 0)} → ${nr(s.litri, 0)} litri de apă</span></div>
+    <div style="display:grid;gap:8px;margin-top:12px">
+      ${randuri.map(([n, a, b]) => `<div class="intre mic"><span>${n}</span><span><b style="color:var(--text)">−${pct(a, b)}%</b> · ${nr(a, 0)} → ${nr(b, 0)} Wh</span></div>`).join("")}
+    </div>
+    ${c.mwh > 0 ? `<p class="mic" style="margin:10px 0 0">Măsurat pe machetă (INA219): ${nr(c.mwh, 0)} → ${nr(s.mwh, 0)} mWh</p>` : ""}`;
+}
+
+function deseneazaJurnal(lista) {
+  $("jurnal").innerHTML = lista.length ? lista.map((e) => `<li><span class="ora">${esc(e.ora)}</span><span>${esc(e.text)}</span></li>`).join("")
+    : '<li><span class="ora">–</span><span class="mic">Încă nimic. Aici apar deciziile casei, cu motivul lor.</span></li>';
+}
+
+function deseneazaRutina(r) {
+  const ora = stare ? Math.floor(stare.minut / 60) : -1;
+  let html = "";
+  r.camere.forEach((nume, i) => {
+    html += `<div class="n">${esc(nume)}</div>`;
+    for (let h = 0; h < 24; h++) {
+      const p = r.p[i][h];
+      html += `<div class="celula ${h === ora ? "acum" : ""}" title="${esc(nume)}, ${h}:00 → ${p}%" style="opacity:${(0.08 + Math.max(0, p - 10) / 90 * 0.92).toFixed(2)}"></div>`;
+    }
+  });
+  html += '<div></div>';
+  for (let h = 0; h < 24; h++) html += `<div class="ora">${h % 6 === 0 ? h : ""}</div>`;
+  $("harta").innerHTML = html;
+  const zile = Math.max(...r.zile);
+  $("rutina-zile").textContent = r.valida ? "din " + zile + (zile === 1 ? " zi" : " zile") : "";
+}
+
+// media pe cateva puncte vecine: caloriferul porneste si se opreste des, iar linia "zimtata" nu se citeste
+function netezeste(arr, k = 3) {
+  return arr.map((_, i) => {
+    const bucata = arr.slice(Math.max(0, i - k), i + k + 1);
+    return bucata.reduce((a, b) => a + b, 0) / bucata.length;
+  });
+}
+
+function deseneazaGrafic(ist) {
+  const svg = $("grafic");
+  const n = ist.minut.length;
+  if (n < 2) {
+    svg.innerHTML = '<text x="300" y="70" text-anchor="middle" fill="currentColor" style="font-size:13px;opacity:.5">graficul apare după câteva minute</text>';
+    $("ore-grafic").innerHTML = "";
+    return;
+  }
+  const prod = ist.solar.map((s, i) => s + ist.vant[i]);
+  const consum = netezeste(ist.consum);
+  const max = Math.max(0.5, ...prod, ...consum) * 1.15;
+  const x = (i) => i / (n - 1) * 600, y = (v) => 136 - v / max * 128;
+  const linie = (arr) => arr.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" ");
+  svg.innerHTML = `
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sun)" stop-opacity=".35"/><stop offset="1" stop-color="var(--sun)" stop-opacity="0"/></linearGradient></defs>
+    <path d="${linie(prod)} L600 140 L0 140 Z" fill="url(#g)" stroke="none"/>
+    <path d="${linie(prod)}" stroke="var(--sun)" stroke-width="2" fill="none" vector-effect="non-scaling-stroke"/>
+    <path d="${linie(consum)}" stroke="var(--text)" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke" opacity=".8"/>`;
+  // orele de sub grafic, din 3 in 3
+  let ore = "";
+  for (let i = 0; i < n; i++) {
+    const m = ist.minut[i];
+    if (m % 180 < 5 && (i === 0 || ist.minut[i - 1] % 180 >= 5 || ist.minut[i - 1] > m)) {
+      const p = i / (n - 1) * 100;
+      if (p > 3 && p < 97) ore += `<span style="left:${p.toFixed(1)}%">${Math.floor(m / 60)}:00</span>`;
+    }
+  }
+  $("ore-grafic").innerHTML = ore;
+}
+
+// ---------------------------------------------------------------- date
+
+async function ia(url) {
+  const r = await fetch(url, { cache: "no-store" });
+  if (!r.ok) throw new Error(url);
+  return r.json();
+}
+
+let pas = 0;
+async function actualizeaza() {
+  pas++;
+  try {
+    const s = demo ? Demo.stare() : await ia("/api/stare");
+    deseneazaStare(s);
+    const viu = demo || (s.primit && s.vechime >= 0 && s.vechime < 10);
+    $("punct").className = "punct " + (demo ? "demo" : viu ? "viu" : "");
+    $("conexiune").textContent = demo ? "demo" : viu ? "conectat la casă" : "Arduino nu răspunde";
+    if (pas % 3 === 1) deseneazaJurnal(demo ? Demo.jurnal() : await ia("/api/jurnal"));
+    if (pas % 15 === 1) deseneazaGrafic(demo ? Demo.istoric() : await ia("/api/istoric"));
+    if (pas % 30 === 1) deseneazaRutina(demo ? Demo.rutina() : await ia("/api/rutina"));
+  } catch (e) {
+    if (!demo && pas < 3) {          // nu suntem pe panou: trecem pe demo
+      demo = true;
+      $("banda-demo").classList.add("vizibil");
+      pas = 0;
+      actualizeaza();
+    } else if (!demo) {
+      $("punct").className = "punct";
+      $("conexiune").textContent = "panoul nu răspunde";
+    }
+  }
+}
+
+// ---------------------------------------------------------------- butoane
+
+document.addEventListener("click", (ev) => {
+  const t = ev.target.closest("button");
+  if (!t) return;
+  if (t.dataset.c) comanda(t.dataset.c, "Trimis: " + t.textContent);
+  if (t.dataset.pin) deschidePin();
+  if (t.dataset.camera !== undefined) {
+    const c = stare.camere[+t.dataset.camera];
+    comanda(`LUMINA ${t.dataset.camera} ${c.lumina ? 0 : 100}`, (c.lumina ? "Sting" : "Aprind") + " lumina în " + c.nume);
+  }
+});
+$("mod-smart").onclick = () => comanda("MOD SMART", "Casa trece pe modul smart");
+$("mod-clasic").onclick = () => comanda("MOD CLASIC", "Casa trece pe modul clasic");
+$("uda").onclick = () => comanda("UDA", "Pornesc pompa");
+$("test-rapid").onclick = () => comanda("TEST RAPID", "Arduino calculează ziua de test...");
+$("test-macheta").onclick = () => comanda(stare && stare.test === 1 ? "TEST STOP" : "TEST SMART", "Gata, urmăriți macheta");
+
+let pin = "";
+function deschidePin() {
+  pin = "";
+  arataPin();
+  $("dialog-pin").showModal();
+}
+function arataPin() {
+  [...$("puncte-pin").children].forEach((p, i) => p.classList.toggle("plin", i < pin.length));
+}
+$("taste").innerHTML = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", ""].map((k) => k ? `<button type="button" data-tasta="${k}">${k}</button>` : "<span></span>").join("");
+$("taste").addEventListener("click", (ev) => {
+  const k = ev.target.dataset.tasta;
+  if (!k) return;
+  pin = k === "⌫" ? pin.slice(0, -1) : (pin + k).slice(0, 4);
+  arataPin();
+});
+$("dialog-pin").addEventListener("close", () => {
+  if ($("dialog-pin").returnValue === "ok" && pin.length) comanda("ALARMA OPRIT " + pin, "PIN trimis");
+});
+
+// ---------------------------------------------------------------- demo (cand pagina nu e pe panou)
+
+const Demo = (() => {
+  const t0 = Date.now();
+  let mod = "smart";
+  let alarma = 0;
+  const lumini = [80, 0, 45];
+  const minutAcum = () => (18 * 60 + 40 + Math.floor((Date.now() - t0) / 1000)) % 1440;   // un minut pe secunda
+  const p = [
+    [10, 11, 11, 11, 11, 11, 11, 88, 66, 11, 11, 11, 11, 11, 11, 11, 11, 77, 88, 88, 88, 88, 88, 11],
+    [90, 88, 88, 88, 88, 88, 88, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 77, 88],
+    [10, 11, 11, 11, 11, 11, 88, 88, 22, 11, 11, 11, 11, 11, 11, 11, 11, 11, 77, 88, 11, 11, 11, 11]];
+  const ora = (m) => String(Math.floor(m / 60) % 24).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+  return {
+    comanda(c) {
+      if (c === "MOD SMART") mod = "smart";
+      if (c === "MOD CLASIC") mod = "clasic";
+      if (c === "ALARMA PLECAT" || c === "ALARMA ACASA") alarma = c.endsWith("PLECAT") ? 3 : 2;
+      if (c.startsWith("ALARMA OPRIT")) alarma = 0;
+      const l = c.match(/^LUMINA (\d) (\d+)/);
+      if (l) lumini[+l[1]] = +l[2];
+      setTimeout(actualizeaza, 200);
+    },
+    stare() {
+      const m = minutAcum(), u = (Date.now() - t0) / 1000;
+      const st = ["Dezarmată", "Se armează...", "Armată (noapte)", "Armată (plecat)", "Introduceți PIN-ul!", "ALARMĂ!"];
+      return {
+        primit: true, vechime: 0, ora: ora(m), minut: m, mod, test: 0,
+        camere: [
+          { nume: "Sufragerie", temp: 21.4 + Math.sin(u / 20) * 0.2, lumina: lumini[0], prezenta: true, fereastra: false },
+          { nume: "Dormitor", temp: 19.6, lumina: lumini[1], prezenta: false, fereastra: false },
+          { nume: "Bucătărie", temp: 21.0, lumina: lumini[2], prezenta: true, fereastra: false }],
+        afara: 7.5, luminaNaturala: 8,
+        incalzire: { pornita: Math.sin(u / 15) > 0, tinta: 21.5, motiv: "e cineva acasă", motivCod: 1, rata: 3.4 },
+        energie: { baterie: 78, solar: 0.08, vant: 0.31 + Math.sin(u / 7) * 0.05, consum: 1.2, mod: "Normal", modCod: 0,
+                   whAzi: 5230 + u * 2, whClasic: 7480 + u * 3, mwh: 0, estimatSolar6h: 0.4, factorPanou: 0.82 },
+        alarma: { stare: st[alarma], cod: alarma, senzori: [
+          { nume: "Ușa de la intrare", deschis: false }, { nume: "Ușa spre curte", deschis: false },
+          { nume: "Geam dormitor", deschis: false }, { nume: "Geam sufragerie", deschis: false }] },
+        gradina: { umiditate: 31, pompa: false }, priza: true, senzori: 159,
+        vreme: { valida: true, temp: 7.8, ploaie: 80, oraPloaie: 21, soare: 0, nori: 90, vant: 14 },
+        rezultate: [{ valid: true, lumini: 177, incalzire: 16200, pompa: 60, priza: 397, total: 16834, mwh: 0, litri: 80 },
+                    { valid: true, lumini: 91, incalzire: 13333, pompa: 0, priza: 257, total: 13681, mwh: 0, litri: 0 }],
+        retea: { ip: "", nume: "", ap: false }, pretKwh: 1.4
+      };
+    },
+    jurnal() {
+      return [
+        { ora: "18:32", text: "Am stins lumina în Bucătărie: nu mai era nimeni." },
+        { ora: "17:32", text: "Alarma a fost dezarmată. Bine ați venit!" },
+        { ora: "15:08", text: "Pornesc încălzirea mai devreme: de obicei e cineva acasă pe la 17:00 (peste ~112 min)." },
+        { ora: "08:12", text: "Am oprit priza televizorului: stătea în standby de 16 min." },
+        { ora: "08:00", text: "Alarma e armată. Casa știe că nu e nimeni și economisește." },
+        { ora: "06:48", text: "În Bucătărie temperatura scade brusc, pare o fereastră deschisă. Opresc încălzirea 15 minute." },
+        { ora: "04:52", text: "Pornesc încălzirea mai devreme: de obicei e cineva acasă pe la 6:00 (peste ~68 min)." },
+        { ora: "00:04", text: "Nu ud grădina: vine ploaia (80% pe la ora 16)." }];
+    },
+    istoric() {
+      const minut = [], solar = [], vant = [], consum = [];
+      for (let m = 0; m < 1130; m += 5) {
+        const zi = Math.max(0, Math.sin((m / 60 - 7) / 11 * Math.PI));
+        minut.push(m);
+        solar.push(+(1.9 * zi * (m > 960 && m < 1080 ? 0.35 : 1)).toFixed(2));
+        vant.push(+(0.12 + 0.3 * Math.max(0, Math.sin(m / 190))).toFixed(2));
+        const acasa = m < 480 || m > 1050;
+        const calorifer = (acasa || m > 900) && Math.sin(m / 23) > 0.1 ? 1 : 0;   // porneste si se opreste
+        consum.push(+((acasa ? 0.45 : 0.15) + calorifer).toFixed(2));
+      }
+      return { minut, solar, vant, consum, tCasa: [], tAfara: [], baterie: [] };
+    },
+    rutina() {
+      return { valida: true, camere: ["Sufragerie", "Dormitor", "Bucătărie"], p, zile: Array(24).fill(7) };
+    }
+  };
+})();
+
+actualizeaza();
+setInterval(actualizeaza, 2000);
+</script>
+</body>
+</html>
