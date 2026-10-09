@@ -14,3 +14,6 @@ build/
 *.elf
 .DS_Store
 Thumbs.db
+
+# simulatorul din browser isi face aici o copie a panoului cand se construieste
+simulare/browser/construit/

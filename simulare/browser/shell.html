@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEPHA · casa virtuală</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233F8F5E'/%3E%3Cpath d='M8 16l8-7 8 7v8h-5v-5h-6v5H8z' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #F6F1EA; --card: #FFFFFF; --line: #E9E2D6; --text: #2B2A28; --muted: #8A857C; --soft: #EFEAE2;
+  --green: #3F8F5E; --green-soft: #E3F0E7; --sun: #DE9428; --sun-soft: #FBEBD0; --water: #3D86BD;
+  --heat: #D7684B; --heat-soft: #F9E1DA; --red: #CF3F3F;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #171512; --card: #211F1B; --line: #34302A; --text: #F2EDE6; --muted: #A39C91; --soft: #2B2823;
+    --green: #6DBE8A; --green-soft: #213428; --sun: #F0B055; --sun-soft: #3A2E1C; --water: #6FAEDD;
+    --heat: #EE8B70; --heat-soft: #3A241E; --red: #EF6B6B; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 15px/1.45 ui-rounded, "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+.pagina { max-width: 1240px; margin: 0 auto; padding: 22px 16px 40px; }
+h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; }
+.sub { margin: 4px 0 18px; color: var(--muted); max-width: 760px; }
+.grila { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 980px) { .grila { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 18px; min-width: 0; }
+.eticheta { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+.eticheta .dreapta { margin-left: auto; text-transform: none; letter-spacing: 0; }
+
+/* panoul */
+.rama { background: #1d1b18; border-radius: 22px; padding: 18px 18px 14px; box-shadow: 0 18px 40px -24px rgba(0, 0, 0, .5); }
+.rama canvas { display: block; width: 100%; aspect-ratio: 3 / 2; border-radius: 6px; background: #000; cursor: pointer; touch-action: none; }
+.sub-rama { display: flex; align-items: center; gap: 10px; margin-top: 10px; color: #9b948a; font-size: 12px; }
+.led { width: 9px; height: 9px; border-radius: 50%; background: #3a3631; }
+.sub-rama button { margin-left: auto; background: #2c2925; border: 1px solid #3a3631; color: #d8d1c6; border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+
+/* senzori */
+.grup { margin-top: 16px; }
+.grup h3 { margin: 0 0 8px; font-size: 13px; color: var(--muted); font-weight: 700; }
+.butoane { display: flex; flex-wrap: wrap; gap: 8px; }
+.comuta { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 14px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.comuta.pornit { background: var(--green); border-color: var(--green); color: #fff; }
+.comuta.deschis { background: var(--heat); border-color: var(--heat); color: #fff; }
+.glisor { display: grid; grid-template-columns: 150px 1fr 56px; align-items: center; gap: 10px; font-size: 14px; margin-top: 6px; }
+.glisor output { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+input[type=range] { accent-color: var(--green); width: 100%; }
+@media (max-width: 520px) { .glisor { grid-template-columns: 1fr 60px; } .glisor input { grid-column: 1 / -1; grid-row: 2; } }
+
+/* macheta */
+svg.casa { width: 100%; height: auto; display: block; }
+svg.casa text { font: 600 11px ui-rounded, "Nunito", system-ui, sans-serif; fill: var(--text); }
+svg.casa .mic { font-size: 10px; fill: var(--muted); }
+
+/* serial */
+.monitor { background: #1d1b18; color: #e9e3d8; border-radius: 16px; padding: 12px 14px; height: 260px; overflow: auto; font: 12.5px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
+.monitor .tu { color: #9fd8b2; }
+.monitor .spre-panou { color: #f0b055; }
+.monitor .spre-arduino { color: #7fb6e0; }
+.bifa { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.bifa input { accent-color: var(--green); }
+.linie-cmd { display: flex; gap: 8px; margin-top: 10px; }
+.linie-cmd input { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 9px 12px; font-family: ui-monospace, Consolas, monospace; }
+.buton { border: 1px solid var(--line); background: var(--card); padding: 8px 14px; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 13px; }
+.buton.principal { background: var(--green); border-color: var(--green); color: #fff; }
+.incarca { padding: 60px 0; text-align: center; color: #9b948a; font-size: 14px; }
+.subsol { margin-top: 22px; font-size: 12px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<main class="pagina">
+  <h1>NEPHA · casa virtuală</h1>
+  <p class="sub">Aici rulează codul adevărat al casei: programul lui Arduino Uno și al panoului cu ecran, aceleași fișiere ca pe plăci, compilate pentru browser. Atingeți ecranul ca pe panou și jucați-vă cu senzorii din dreapta.</p>
+
+  <div class="grila">
+    <section>
+      <div class="rama">
+        <canvas id="ecran" width="480" height="320"></canvas>
+        <div class="incarca" id="incarca">Pornește casa...</div>
+        <div class="sub-rama"><span class="led" id="led"></span><span>ESP32-3248S035 · 3,5" · 480×320</span><button id="sunet">Sunet: oprit</button></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="eticheta">Serial Monitor · Arduino Uno<span class="dreapta">115200 baud</span></div>
+        <div class="monitor" id="monitor"></div>
+        <form class="linie-cmd" id="formular">
+          <input id="comanda" placeholder="o comandă, de ex. TEST RAPID" autocomplete="off" spellcheck="false">
+          <button class="buton principal">Trimite</button>
+        </form>
+        <div class="butoane" style="margin-top:10px">
+          <button class="buton" data-cmd="TEST RAPID">TEST RAPID</button>
+          <button class="buton" data-cmd="TEST SMART">TEST SMART</button>
+          <button class="buton" data-cmd="STARE">STARE</button>
+          <button class="buton" data-cmd="RUTINA">RUTINA</button>
+          <button class="buton" data-cmd="AJUTOR">AJUTOR</button>
+        </div>
+        <label class="bifa"><input type="checkbox" id="arata-fir"> Arată și ce își spun plăcile pe fir (fără liniile <code>S</code>, care vin în fiecare secundă)</label>
+      </div>
+    </section>
+
+    <section>
+      <div class="card">
+        <div class="eticheta">Macheta<span class="dreapta" id="ora-casei"></span></div>
+        <svg class="casa" viewBox="0 0 420 330" aria-label="Macheta casei">
+          <defs>
+            <radialGradient id="lumina"><stop offset="0" stop-color="#FFE7A3"/><stop offset="1" stop-color="#FFE7A3" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect id="cer" x="0" y="0" width="420" height="330" rx="16" fill="#cfe6f7"/>
+          <circle id="soare" cx="56" cy="44" r="16" fill="#f6c453"/>
+          <text id="t-afara" x="80" y="49">–</text>
+          <!-- turbina -->
+          <line x1="372" y1="96" x2="372" y2="276" stroke="#8a857c" stroke-width="4"/>
+          <g id="turbina" transform="translate(372 86)">
+            <path d="M-10 -26 C 12 -14 -12 12 10 26" stroke="#3a3631" stroke-width="7" fill="none" stroke-linecap="round"/>
+            <path d="M10 -26 C -12 -14 12 12 -10 26" stroke="#5a554e" stroke-width="7" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- acoperis cu panou solar -->
+          <polygon points="60,128 190,48 320,128" fill="#b4664c"/>
+          <g transform="translate(205 66) rotate(31)">
+            <rect width="64" height="30" rx="3" fill="#2f5a86"/>
+            <path d="M0 10H64M0 20H64M16 0V30M32 0V30M48 0V30" stroke="#8fb5d9" stroke-width="1"/>
+          </g>
+          <circle id="sirena" cx="300" cy="118" r="7" fill="#5a2a2a"/>
+          <rect x="248" y="30" width="96" height="24" rx="12" fill="#1d1b18" opacity=".75"/>
+          <text id="baterie" x="296" y="46" text-anchor="middle" style="fill:#f4efe6">baterie –</text>
+          <!-- dormitor (sus) -->
+          <rect x="70" y="128" width="240" height="70" fill="#fdfaf5" stroke="#d6cdbf"/>
+          <circle id="bec1" cx="190" cy="160" r="46" fill="url(#lumina)" opacity="0"/>
+          <rect id="geam1" x="88" y="146" width="34" height="28" rx="3" fill="#bfe0f5" stroke="#8fa9ba"/>
+          <text x="134" y="150">Dormitor</text>
+          <text id="t1" x="134" y="166" class="mic">–</text>
+          <g id="om1" opacity="0"><circle cx="270" cy="152" r="6" fill="#3F8F5E"/><rect x="263" y="160" width="14" height="22" rx="6" fill="#3F8F5E"/></g>
+          <!-- sufragerie si bucatarie (jos) -->
+          <rect x="70" y="198" width="140" height="78" fill="#fdfaf5" stroke="#d6cdbf"/>
+          <rect x="210" y="198" width="100" height="78" fill="#fdfaf5" stroke="#d6cdbf"/>
+          <circle id="bec0" cx="140" cy="232" r="48" fill="url(#lumina)" opacity="0"/>
+          <circle id="bec2" cx="260" cy="232" r="40" fill="url(#lumina)" opacity="0"/>
+          <text x="80" y="214">Sufragerie</text>
+          <text id="t0" x="80" y="229" class="mic">–</text>
+          <text x="218" y="214">Bucătărie</text>
+          <text id="t2" x="218" y="229" class="mic">–</text>
+          <rect id="usa" x="78" y="240" width="20" height="36" rx="2" fill="#8a5a3c"/>
+          <rect id="geam2" x="270" y="240" width="30" height="24" rx="3" fill="#bfe0f5" stroke="#8fa9ba"/>
+          <g id="tv"><rect x="160" y="246" width="38" height="24" rx="3" fill="#2b2a28"/><circle id="tv-led" cx="194" cy="266" r="2" fill="#555"/></g>
+          <g id="om0" opacity="0"><circle cx="118" cy="244" r="6" fill="#3F8F5E"/><rect x="111" y="252" width="14" height="22" rx="6" fill="#3F8F5E"/></g>
+          <g id="om2" opacity="0"><circle cx="240" cy="244" r="6" fill="#3F8F5E"/><rect x="233" y="252" width="14" height="22" rx="6" fill="#3F8F5E"/></g>
+          <g id="calorifer"><rect x="214" y="262" width="22" height="12" rx="2" fill="#d9d2c7"/><path d="M219 262v12M225 262v12M231 262v12" stroke="#fff"/></g>
+          <!-- gradina -->
+          <rect x="0" y="276" width="420" height="54" rx="0" fill="#7fae6b"/>
+          <rect x="0" y="314" width="420" height="16" rx="0" fill="#6a5a46"/>
+          <g fill="#4f8a43"><circle cx="340" cy="296" r="10"/><circle cx="356" cy="300" r="8"/><circle cx="324" cy="301" r="7"/></g>
+          <g id="apa" opacity="0" fill="#3D86BD"><circle cx="330" cy="288" r="2.5"/><circle cx="342" cy="283" r="2.5"/><circle cx="354" cy="289" r="2.5"/></g>
+          <text id="sol" x="20" y="300" style="fill:#fff">sol –</text>
+        </svg>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="eticheta">Senzorii</div>
+        <div class="grup">
+          <h3>Cine e acasă (senzorii de mișcare)</h3>
+          <div class="butoane">
+            <button class="comuta" data-camera="0">Sufragerie</button>
+            <button class="comuta" data-camera="1">Dormitor</button>
+            <button class="comuta" data-camera="2">Bucătărie</button>
+          </div>
+        </div>
+        <div class="grup">
+          <h3>Uși și geamuri (senzorii wireless)</h3>
+          <div class="butoane">
+            <button class="comuta" data-usa="0">Ușa de la intrare</button>
+            <button class="comuta" data-usa="1">Ușa spre curte</button>
+            <button class="comuta" data-usa="2">Geam dormitor</button>
+            <button class="comuta" data-usa="3">Geam sufragerie</button>
+          </div>
+        </div>
+        <div class="grup">
+          <h3>Afară</h3>
+          <label class="glisor"><span>Lumina naturală</span><input type="range" id="lumina-afara" min="0" max="100" value="60"><output id="o-lumina">60%</output></label>
+          <label class="glisor"><span>Umiditatea solului</span><input type="range" id="umiditate" min="0" max="100" value="45"><output id="o-sol">45%</output></label>
+          <label class="glisor"><span>Temperatura (prognoză)</span><input type="range" id="temp" min="-10" max="30" value="9"><output id="o-temp">9°</output></label>
+          <div class="butoane" style="margin-top:10px"><button class="comuta" id="ploaie">Vine ploaia</button></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <p class="subsol">NEPHA · Competiția Națională Arduino 2026 · simulatorul compilează exact fișierele din <code>casa/</code> și <code>panou/</code></p>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+let sunet = false, audio = null, oscilator = null;
+
+// ---- sunetul panoului (difuzorul de pe placa)
+window.simTon = (frecventa, durata) => {
+  if (!sunet) return;
+  audio = audio || new AudioContext();
+  window.simTacere();
+  oscilator = audio.createOscillator();
+  const volum = audio.createGain();
+  volum.gain.value = 0.04;
+  oscilator.type = "square";
+  oscilator.frequency.value = frecventa;
+  oscilator.connect(volum).connect(audio.destination);
+  oscilator.start();
+  if (durata > 0) oscilator.stop(audio.currentTime + durata / 1000);
+};
+window.simTacere = () => {
+  if (oscilator) { try { oscilator.stop(); } catch (e) {} oscilator = null; }
+};
+$("sunet").onclick = () => {
+  sunet = !sunet;
+  $("sunet").textContent = "Sunet: " + (sunet ? "pornit" : "oprit");
+  if (!sunet) window.simTacere();
+};
+
+var Module = {
+  print: (t) => console.log(t),
+  printErr: (t) => console.warn(t),
+  onRuntimeInitialized: porneste
+};
+
+function porneste() {
+  const M = Module;
+  M._sim_porneste();
+  $("incarca").remove();
+  const canvas = $("ecran"), ctx = canvas.getContext("2d");
+  const imagine = ctx.createImageData(480, 320);
+
+  // ---- atingerea ecranului
+  // un deget sta pe ecran cel putin o zecime de secunda; un clic de mouse e mai scurt,
+  // asa ca "tinem apasat" putin, ca panoul sa apuce sa-l vada
+  let apasat = false, ridicare = null;
+  const coord = (ev) => {
+    const r = canvas.getBoundingClientRect();
+    return [Math.round((ev.clientX - r.left) / r.width * 480), Math.round((ev.clientY - r.top) / r.height * 320)];
+  };
+  const atinge = (ev) => { const [x, y] = coord(ev); M._sim_atinge(x, y); };
+  canvas.addEventListener("pointerdown", (ev) => {
+    clearTimeout(ridicare);
+    apasat = true;
+    canvas.setPointerCapture(ev.pointerId);
+    atinge(ev);
+  });
+  canvas.addEventListener("pointermove", (ev) => { if (apasat) atinge(ev); });
+  const ridica = () => {
+    apasat = false;
+    ridicare = setTimeout(() => M._sim_atinge(-1, -1), 120);
+  };
+  canvas.addEventListener("pointerup", ridica);
+  canvas.addEventListener("pointercancel", ridica);
+
+  // ---- senzorii
+  const cineva = [false, false, false];
+  document.querySelectorAll("[data-camera]").forEach((b) => b.onclick = () => {
+    const i = +b.dataset.camera;
+    cineva[i] = !cineva[i];
+    b.classList.toggle("pornit", cineva[i]);
+    if (cineva[i]) M._sim_miscare(i);
+  });
+  setInterval(() => cineva.forEach((da, i) => { if (da) M._sim_miscare(i); }), 2500);   // cine sta in camera se mai misca
+
+  document.querySelectorAll("[data-usa]").forEach((b) => b.onclick = () => {
+    const deschis = !b.classList.contains("deschis");
+    b.classList.toggle("deschis", deschis);
+    M._sim_usa(+b.dataset.usa, deschis ? 1 : 0);
+  });
+
+  const lumina = $("lumina-afara");
+  lumina.value = new Date().getHours() >= 8 && new Date().getHours() < 18 ? 70 : 4;
+  const vreme = () => {
+    const ploua = $("ploaie").classList.contains("pornit");
+    M._sim_vreme(+$("temp").value, ploua ? 80 : 10, ploua ? (new Date().getHours() + 3) % 24 : 255, Math.round(+lumina.value * 0.9));
+  };
+  const actualizeazaGlisoare = () => {
+    $("o-lumina").textContent = lumina.value + "%";
+    $("o-sol").textContent = $("umiditate").value + "%";
+    $("o-temp").textContent = $("temp").value + "°";
+  };
+  lumina.oninput = () => { M._sim_lumina(+lumina.value); actualizeazaGlisoare(); };
+  $("umiditate").oninput = () => { M._sim_sol(+$("umiditate").value); actualizeazaGlisoare(); };
+  $("temp").oninput = actualizeazaGlisoare;
+  $("temp").onchange = vreme;
+  lumina.onchange = vreme;
+  $("ploaie").onclick = () => { $("ploaie").classList.toggle("pornit"); vreme(); };
+  M._sim_lumina(+lumina.value);
+  actualizeazaGlisoare();
+
+  // ---- Serial Monitor
+  const monitor = $("monitor");
+  const scrie = (text, clasa) => {
+    const linie = document.createElement("span");
+    if (clasa) linie.className = clasa;
+    linie.textContent = text;
+    monitor.appendChild(linie);
+    while (monitor.childNodes.length > 600) monitor.removeChild(monitor.firstChild);
+    monitor.scrollTop = monitor.scrollHeight;
+  };
+  const trimite = (c) => {
+    scrie("> " + c + "\n", "tu");
+    const p = M.stringToNewUTF8 ? M.stringToNewUTF8(c) : null;
+    if (p) { M._sim_comanda(p); M._free(p); }
+  };
+  $("formular").onsubmit = (ev) => {
+    ev.preventDefault();
+    const c = $("comanda").value.trim();
+    if (c) trimite(c);
+    $("comanda").value = "";
+  };
+  document.querySelectorAll("[data-cmd]").forEach((b) => b.onclick = () => trimite(b.dataset.cmd));
+
+  // ---- macheta
+  const iesire = (i) => M._sim_iesire(i);
+  const grade = (x) => x <= -1000 ? "–" : (x / 10).toLocaleString("ro-RO", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "°";
+  let unghi = 0;
+  function macheta(t) {
+    for (let i = 0; i < 3; i++) {
+      $("bec" + i).setAttribute("opacity", Math.sqrt(iesire(i) / 255).toFixed(2));
+      $("t" + i).textContent = grade(iesire(11 + i));
+      $("om" + i).setAttribute("opacity", iesire(8 + i) ? 1 : 0);
+    }
+    const ferestre = iesire(22), usi = iesire(17);
+    $("geam1").setAttribute("fill", usi & 4 || ferestre & 2 ? "#F4B39F" : "#bfe0f5");
+    $("geam2").setAttribute("fill", usi & 8 || ferestre & 4 ? "#F4B39F" : "#bfe0f5");
+    $("usa").setAttribute("fill", usi & 1 ? "#F4B39F" : "#8a5a3c");
+    $("calorifer").querySelector("rect").setAttribute("fill", iesire(3) ? "#E07A5F" : "#d9d2c7");
+    $("apa").setAttribute("opacity", iesire(4) ? (Math.sin(t / 120) > 0 ? 1 : 0.4) : 0);
+    const priza = iesire(5), tvPornit = iesire(21);
+    $("tv").querySelector("rect").setAttribute("fill", priza && tvPornit ? "#7FB6E0" : "#2b2a28");
+    $("tv-led").setAttribute("fill", priza ? (tvPornit ? "#7FB6E0" : "#E05050") : "#555");
+    $("sirena").setAttribute("fill", iesire(6) ? "#ff3b3b" : "#5a2a2a");
+    const zi = iesire(18);
+    $("cer").setAttribute("fill", `hsl(205, ${30 + zi * 0.4}%, ${18 + zi * 0.62}%)`);
+    $("soare").setAttribute("fill", zi > 35 ? "#f6c453" : "#e8e4d8");
+    $("t-afara").textContent = "afară " + grade(iesire(14));
+    $("t-afara").style.fill = zi > 35 ? "#2b2a28" : "#f2ede6";
+    $("baterie").textContent = "baterie " + iesire(15) + "%";
+    $("sol").textContent = "sol " + iesire(16) + "%";
+    const m = iesire(23);
+    $("ora-casei").textContent = (iesire(20) === 1 ? "ziua de test · " : "") + String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+    unghi = (unghi + 4) % 360;
+    $("turbina").setAttribute("transform", `translate(372 86) rotate(${unghi} 0 0) scale(${Math.abs(Math.cos(unghi * Math.PI / 180)) * 0.6 + 0.4} 1)`);
+    const led = Module._sim_iesire(7) >= 4 ? "#ff4040" : Module._sim_iesire(7) >= 1 ? "#48c774" : "#3a3631";
+    $("led").style.background = led;
+    // dupa un minut fara atingere panoul isi scade lumina (prima atingere doar il "trezeste")
+    canvas.style.filter = `brightness(${(0.25 + 0.75 * iesire(24) / 255).toFixed(2)})`;
+  }
+
+  let cadru = 0;
+  function bucla(t) {
+    M._sim_pas(t);
+    imagine.data.set(new Uint8Array(M.HEAPU8.buffer, M._sim_ecran(), 480 * 320 * 4));
+    ctx.putImageData(imagine, 0, 0);
+    const text = M.UTF8ToString(M._sim_serial());
+    if (text) scrie(text);
+    const fir = M.UTF8ToString(M._sim_fir());     // trebuie citit mereu, altfel se aduna
+    if (fir && $("arata-fir").checked) {
+      // fiecare bucata incepe cu \x02 (de la Arduino) sau \x01 (de la panou)
+      const bucati = fir.split(/([\x01\x02])/);
+      for (let i = 1; i < bucati.length; i += 2) {
+        const dePePanou = bucati[i] === "\x01";
+        for (const linie of bucati[i + 1].split("\n")) {
+          if (!linie || linie.startsWith("S ")) continue;
+          if (dePePanou) scrie("panou → Arduino: " + linie + "\n", "spre-arduino");
+          else scrie("Arduino → panou: " + linie + "\n", "spre-panou");
+        }
+      }
+    }
+    if (cadru++ % 3 === 0) macheta(t);
+    requestAnimationFrame(bucla);
+  }
+  requestAnimationFrame(bucla);
+}
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>

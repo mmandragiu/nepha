@@ -122,7 +122,7 @@ Dacă nu are Wi-Fi, face el o rețea, `NEPHA-casa`.
 | [`casa/`](casa) | programul pentru Arduino Uno — fiecare parte în tab-ul ei (alarmă, termostat, lumini, energie, grădină, rutină...) |
 | [`panou/`](panou) | programul pentru panoul ESP32: ecranele, Wi-Fi, prognoza, pagina web |
 | [`web/`](web) | pagina casei (un singur fișier HTML; se poate deschide și direct în browser, atunci arată o zi demo) |
-| [`simulare/`](simulare) | schema pentru simulatorul Wokwi, ca programul să poată fi rulat fără componente |
+| [`simulare/`](simulare) | casa virtuală (tot proiectul, în browser) și schema pentru simulatorul Wokwi |
 | [`docs/`](docs) | [montajul](docs/montaj.md), [piesele](docs/piese.md), [mesajele dintre plăci](docs/protocol.md), [cum funcționează codul](docs/cum-functioneaza-codul.md) |
 | [`unelte/`](unelte) | scripturile cu care am făcut fonturile cu diacritice pentru ecran și am pus pagina în panou |
 
@@ -146,9 +146,11 @@ Legăturile dintre plăci și senzori sunt în [docs/montaj.md](docs/montaj.md).
 
 ## Simulare
 
-Programul pentru Arduino rulează și în [Wokwi](https://wokwi.com), fără nicio componentă:
-pașii sunt în [simulare/README.md](simulare/README.md). Senzorii care lipsesc sunt înlocuiți
-automat de un model al casei (temperaturi, baterie, producție), așa că deciziile se văd la fel.
+Tot proiectul se poate încerca fără nicio componentă: deschideți
+[`simulare/casa-virtuala.html`](simulare/casa-virtuala.html) în browser. Acolo rulează codul
+adevărat al ambelor plăci: ecranul panoului se atinge cu mouse-ul, macheta se aprinde, iar
+senzorii sunt butoane. Programul pentru Arduino merge și singur în [Wokwi](https://wokwi.com).
+Detalii în [simulare/README.md](simulare/README.md).
 
 ## Echipa
 
