@@ -158,6 +158,7 @@ static void revino() {
   casa.priza.pornita = true;
   casa.priza.standbyDin = ceasSecunde;
   casa.gradina.pompa = false;
+  casa.tempAfara = NAN;
   camereLaZero(NAN);                  // temperaturile le citim din nou de la senzori
 }
 

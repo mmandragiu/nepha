@@ -31,7 +31,10 @@ void ceasSeteaza(uint16_t minut) {
   if (ceasSincronizat && nou + 43200UL < ceasSecunde) nou += 86400UL;
   // o corectie de cateva secunde e normala; un salt mare strica ora pe care o urmarea rutina
   uint32_t diferenta = nou > ceasSecunde ? nou - ceasSecunde : ceasSecunde - nou;
-  if (diferenta > 120) rutinaOraNoua();
+  if (diferenta > 120) {
+    rutinaOraNoua();
+    casa.priza.standbyDin = nou;     // altfel ar parea ca TV-ul a stat in standby cat a sarit ceasul
+  }
   ceasSecunde = nou;
   secundaDecizie = nou;
   ceasRestMs = 0;
