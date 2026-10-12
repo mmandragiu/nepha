@@ -154,9 +154,10 @@ Detalii în [simulare/README.md](simulare/README.md).
 
 ## Echipa
 
+- David Stan
 - Mihai Mandragiu
-- *(colegul de echipă)*
-- Profesor coordonator: *(numele profesorului)*
+- Daria Stan
+- Profesor coordonator: Carmen Minca
 
 Codul e liber de folosit ([MIT](LICENSE)); fontul Nunito de pe ecran are licența lui
 ([OFL](panou/LICENTA-Nunito.txt)).
