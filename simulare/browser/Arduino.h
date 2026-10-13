@@ -198,6 +198,7 @@ class SimSerial : public Stream {
  public:
   std::string iesire;
   void begin(unsigned long, int = 0, int = -1, int = -1) {}
+  size_t setRxBufferSize(size_t n) { return n; }
   size_t write(uint8_t c) override { iesire.push_back((char)c); return 1; }
 };
 
