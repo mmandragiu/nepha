@@ -5,11 +5,13 @@
 #include "ecran.h"
 using lgfx::textdatum_t;
 
-// culori calde, de casa (RGB565)
+// culori calde, de casa (RGB565: rosu si albastru din 8 in 8, verde din 4 in 4)
 #define RGB(r, g, b) (uint16_t)((((r) & 0xF8) << 8) | (((g) & 0xFC) << 3) | ((b) >> 3))
-#define C_FUNDAL      RGB(0xF4, 0xEF, 0xE6)   // crem
+#define C_FUNDAL      RGB(0xF0, 0xF0, 0xE8)   // alb-gri cald
 #define C_CARD        RGB(0xFF, 0xFF, 0xFF)
-#define C_MARGINE     RGB(0xE6, 0xDF, 0xD3)
+#define C_MARGINE     RGB(0xE0, 0xDC, 0xD0)
+#define C_UMBRA       RGB(0xE0, 0xDC, 0xD0)   // umbra subtire de sub carduri
+#define C_UMBRA2      RGB(0xE8, 0xE8, 0xE0)
 #define C_TEXT        RGB(0x2B, 0x2A, 0x28)
 #define C_TEXT2       RGB(0x8A, 0x85, 0x7C)
 #define C_VERDE       RGB(0x4C, 0x9A, 0x6A)
@@ -55,6 +57,8 @@ void adaugaZona(int x, int y, int w, int h, uint8_t id);
 void stergeZona(uint8_t id);
 bool schimbat(uint8_t slot, const String &semnatura);
 uint16_t amesteca(uint16_t a, uint16_t b, uint8_t cat);
+float usor(float t);
+extern bool animatie;
 
 // iconite desenate din forme simple
 void iconCasa(int cx, int cy, uint16_t c, uint16_t fundal);
@@ -66,6 +70,7 @@ void iconScut(int cx, int cy, uint16_t c, uint16_t fundal);
 void iconSoare(int cx, int cy, uint16_t c, uint16_t fundal);
 void iconVant(int cx, int cy, uint16_t c);
 void iconRotita(int cx, int cy, uint16_t c, uint16_t fundal);
+void iconWifi(int cx, int cy, uint16_t c);
 
 void schimbaEcran(EcranUI e);
 void deschidePin();

@@ -144,7 +144,7 @@ Setările, PIN-ul, codurile senzorilor și rutina, în EEPROM. Scriem doar ce s-
 | [`retea.ino`](../panou/retea.ino) | Wi-Fi; dacă nu merge, rețeaua proprie `NEPHA-casa`; ora de pe internet |
 | [`web.ino`](../panou/web.ino) | pagina casei și API-ul ei (`/api/stare`, `/api/jurnal`, `/api/istoric`, `/api/rutina`, `/api/comanda`) |
 | [`istoric.ino`](../panou/istoric.ino) | câte un punct la 5 minute, pentru grafic |
-| [`ui.ino`](../panou/ui.ino) + `ui_*.ino` | ecranele; fiecare are `desen...()` și `atinge...()`; se redesenează doar cardurile care s-au schimbat |
+| [`ui.ino`](../panou/ui.ino) + `ui_*.ino` | ecranele; fiecare are `desen...()` și `atinge...()`; se redesenează doar cardurile care s-au schimbat. Animațiile (o stare nouă apare în 200 ms, bara bateriei alunecă în 0,5 s, punctul din „Smart” pulsează) sunt cadre scurte, desenate la ~30 ms, așa că nu opresc citirea mesajelor de la Arduino |
 | [`sunet.ino`](../panou/sunet.ino) | bipuri, sirena, LED-ul RGB |
 
 Fonturile cu diacritice sunt făcute din Nunito cu [`unelte/fonturi_vlw.py`](../unelte/fonturi_vlw.py).

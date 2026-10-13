@@ -12,8 +12,12 @@ EcranUI ecranCurent = E_ACASA;
 bool redesenTot = true;
 bool dateNoiUI = false;
 bool arataSugestie = false;
+bool animatie = false;          // ceva de pe ecran e in miscare: mai desenam un cadru peste ~30 ms
 uint32_t ultimaAtingere = 0;
 uint32_t ultimDesen = 0;
+uint32_t ultimCadru = 0;
+uint32_t ultimPuls = 0;
+int16_t punctX = -1, punctY = 0;   // punctul din pastila "Smart", care pulseaza
 uint8_t luminaEcran = 0;
 uint16_t minutAfisat = 0xFFFF;
 
@@ -39,6 +43,15 @@ void font(MarimeFont f) {
 }
 
 void card(int x, int y, int w, int h, uint16_t culoare) {
+  // colturile si umbra le stergem intai, altfel marginile netede se ingroasa la fiecare redesenare
+  tft.fillRect(x, y, 14, 14, C_FUNDAL);
+  tft.fillRect(x + w - 14, y, 14, 14, C_FUNDAL);
+  tft.fillRect(x, y + h - 14, 14, 16, C_FUNDAL);
+  tft.fillRect(x + w - 14, y + h - 14, 14, 16, C_FUNDAL);
+  tft.fillRect(x + 14, y + h, w - 28, 2, C_FUNDAL);
+  // umbra: doua linii, una mai inchisa si una mai deschisa, doar sub card
+  tft.fillSmoothRoundRect(x, y + h - 26, w, 28, 14, C_UMBRA2);
+  tft.fillSmoothRoundRect(x, y + h - 27, w, 28, 14, C_UMBRA);
   tft.fillSmoothRoundRect(x, y, w, h, 14, C_MARGINE);
   tft.fillSmoothRoundRect(x + 1, y + 1, w - 2, h - 2, 13, culoare);
 }
@@ -162,6 +175,21 @@ uint16_t amesteca(uint16_t a, uint16_t b, uint8_t cat) {
   return (r << 11) | (g << 5) | bl;
 }
 
+// Curba cubic-bezier(0.4, 0, 0.2, 1), aceeasi ca pe pagina web: porneste hotarat si se
+// opreste bland. t = cat a trecut din animatie (0..1), intoarce cat s-a miscat (0..1).
+float usor(float t) {
+  if (t <= 0) return 0;
+  if (t >= 1) return 1;
+  float a = 0, b = 1, u = t;
+  for (uint8_t i = 0; i < 14; i++) {      // cautam u pentru care x(u) = t, injumatatind
+    u = (a + b) / 2;
+    float x = 3 * (1 - u) * (1 - u) * u * 0.4 + 3 * (1 - u) * u * u * 0.2 + u * u * u;
+    if (x < t) a = u;
+    else b = u;
+  }
+  return 3 * (1 - u) * u * u + u * u * u;
+}
+
 // ---------------------------------------------------------------- iconite (~24 px)
 
 void iconCasa(int cx, int cy, uint16_t c, uint16_t fundal) {
@@ -223,6 +251,12 @@ void iconRotita(int cx, int cy, uint16_t c, uint16_t fundal) {
   tft.fillSmoothCircle(cx, cy, 3, fundal);
 }
 
+void iconWifi(int cx, int cy, uint16_t c) {
+  tft.fillArc(cx, cy + 7, 11, 13, 225, 315, c);
+  tft.fillArc(cx, cy + 7, 6, 8, 225, 315, c);
+  tft.fillSmoothCircle(cx, cy + 6, 2, c);
+}
+
 // ---------------------------------------------------------------- barele de sus si de jos
 
 static uint16_t minutDeAfisat() {
@@ -236,16 +270,44 @@ static void desenOra() {
   minutAfisat = m;
   tft.fillRect(330, 6, 104, 32, C_FUNDAL);
   scrie(oraText(m), 424, 22, F_TEXT, C_TEXT, C_FUNDAL, textdatum_t::middle_right);
-  // un punct: verde = internet, galben = doar reteaua NEPHA-casa, gri = nimic
-  uint16_t c = online() ? C_VERDE : (modAP() ? C_SOARE : C_MARGINE);
-  tft.fillSmoothCircle(342, 22, 4, c);
+  // Wi-Fi: inchis = internet, galben = doar reteaua NEPHA-casa, gri deschis = nimic
+  iconWifi(350, 21, online() ? C_TEXT : (modAP() ? C_SOARE : C_MARGINE));
+}
+
+// pastila cu modul casei; in modul smart are un punct verde care "respira"
+static void desenMod() {
+  punctX = -1;
+  if (casa.test) {
+    pastila("TEST", 300, 12, C_CARD, C_SOARE, textdatum_t::top_right);
+    return;
+  }
+  if (!casa.primit) return;
+  const char *t = casa.mod ? "Smart" : "Clasic";
+  uint16_t c = casa.mod ? C_VERDE : C_TEXT2, f = casa.mod ? C_VERDE_D : C_GRI_D;
+  font(F_MIC);
+  int w = tft.textWidth(t) + 30, h = tft.fontHeight() + 6, x = 300 - w;
+  tft.fillSmoothRoundRect(x, 12, w, h, h / 2, f);
+  tft.fillSmoothCircle(x + 12, 12 + h / 2, 3, c);
+  scrie(t, x + 20, 12 + h / 2 + 1, F_MIC, c, f, textdatum_t::middle_left);
+  if (casa.mod) {
+    punctX = x + 12;
+    punctY = 12 + h / 2;
+  }
+}
+
+// o data la ~2 secunde punctul se stinge aproape de tot si se aprinde la loc
+static void puls() {
+  if (punctX < 0) return;
+  float u = (millis() % 2000) / 2000.0;
+  uint8_t k = 255 - (uint8_t)(180 * (0.5 - 0.5 * cos(u * 2 * PI)));
+  tft.fillSmoothCircle(punctX, punctY, 4, C_VERDE_D);
+  tft.fillSmoothCircle(punctX, punctY, 3, amesteca(C_VERDE_D, C_VERDE, k));
 }
 
 static void desenBaraSus() {
   tft.fillRect(0, 0, 480, SUS, C_FUNDAL);
   scrie(TITLURI[ecranCurent], 16, 23, F_TITLU, C_TEXT, C_FUNDAL, textdatum_t::middle_left);
-  if (casa.test) pastila("TEST", 300, 12, C_CARD, C_SOARE, textdatum_t::top_right);
-  else if (casa.primit) pastila(casa.mod ? "Smart" : "Clasic", 300, 12, casa.mod ? C_VERDE : C_TEXT2, casa.mod ? C_VERDE_D : C_GRI_D, textdatum_t::top_right);
+  desenMod();
   desenOra();
   iconRotita(456, 22, C_TEXT2, C_FUNDAL);
   adaugaZona(436, 0, 44, SUS, 110);
@@ -257,17 +319,19 @@ static void desenFile() {
   EcranUI activ = ecranCurent == E_PIN ? E_ALARMA : ecranCurent;
   for (uint8_t i = 0; i < 6; i++) {
     int cx = 40 + i * 80;
-    uint16_t c = i == activ ? C_VERDE : C_TEXT2;
+    bool deschisa = i == activ;
+    uint16_t c = deschisa ? C_VERDE : C_TEXT2, f = deschisa ? C_VERDE_D : C_CARD;
+    // fila deschisa sta pe o pastila verde deschis, cu iconita si numele in verde
+    if (deschisa) tft.fillSmoothRoundRect(cx - 36, 274, 72, 44, 12, f);
     switch (i) {
-      case 0: iconCasa(cx, 288, c, C_CARD); break;
-      case 1: iconBec(cx, 288, c, C_CARD); break;
+      case 0: iconCasa(cx, 288, c, f); break;
+      case 1: iconBec(cx, 288, c, f); break;
       case 2: iconFulger(cx, 288, c); break;
       case 3: iconRutina(cx, 288, c); break;
       case 4: iconPicatura(cx, 288, c); break;
-      case 5: iconScut(cx, 288, c, C_CARD); break;
+      case 5: iconScut(cx, 288, c, f); break;
     }
-    scrie(NUME_FILE[i], cx, 309, F_MIC, c, C_CARD, textdatum_t::middle_center);
-    if (i == activ) tft.fillSmoothRoundRect(cx - 18, 273, 36, 3, 1, C_VERDE);
+    scrie(NUME_FILE[i], cx, 309, F_MIC, c, f, textdatum_t::middle_center);
     adaugaZona(i * 80, 272, 80, 48, 100 + i);
   }
 }
@@ -447,13 +511,27 @@ void uiPas() {
     return;
   }
   uint32_t m = millis();
-  if (dateNoiUI && m - ultimDesen > 400 && !arataSugestie) {
-    dateNoiUI = false;
-    ultimDesen = m;
+  bool date = dateNoiUI && m - ultimDesen > 400;     // a venit ceva nou de la Arduino
+  bool cadru = animatie && m - ultimCadru >= 30;     // sau e ceva in miscare pe ecran
+  if ((date || cadru) && !arataSugestie) {
+    if (date) {
+      dateNoiUI = false;
+      ultimDesen = m;
+    }
+    ultimCadru = m;
+    animatie = false;
     tft.startWrite();
     deseneaza(false);
-    if (minutDeAfisat() != minutAfisat) desenOra();
-    if (schimbat(15, String(casa.mod) + casa.test + casa.primit)) desenBaraSus();
+    if (date) {
+      if (schimbat(14, String(online()) + modAP()) || minutDeAfisat() != minutAfisat) desenOra();
+      if (schimbat(15, String(casa.mod) + casa.test + casa.primit)) desenBaraSus();
+    }
+    tft.endWrite();
+  }
+  if (m - ultimPuls >= 50) {
+    ultimPuls = m;
+    tft.startWrite();
+    puls();
     tft.endWrite();
   }
 }

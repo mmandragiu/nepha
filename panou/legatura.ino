@@ -16,6 +16,8 @@ uint32_t ultimaRutinaCeruta = 0;
 bool trebuieSincronizat = true;     // Arduino tocmai a pornit: ii trimitem ora si vremea
 
 void legaturaInit() {
+  // loc pentru ~1 s de mesaje, cat timp ecranul e ocupat cu desenatul
+  Serial2.setRxBufferSize(1024);
   Serial2.begin(VITEZA_ARDUINO, SERIAL_8N1, PIN_RX_ARDUINO, PIN_TX_ARDUINO);
 }
 

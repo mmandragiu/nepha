@@ -16,28 +16,34 @@ static void cardAcumEnergie() {
   if (!schimbat(0, semn)) return;
   card(12, 50, 232, 216);
   scrie("Acum", 28, 62, F_MIC, C_TEXT2, C_CARD);
+  uint16_t c = casa.modEnergie == 3 ? C_ROSU : (casa.modEnergie == 2 ? C_SOARE : C_VERDE);
+  uint16_t fundal = casa.modEnergie == 3 ? C_ROSU_D : (casa.modEnergie == 2 ? C_SOARE_D : C_VERDE_D);
+  pastila(String("Mod ") + textEnergie(casa.modEnergie), 228, 59, c, fundal, textdatum_t::top_right);
 
-  iconSoare(40, 92, C_SOARE, C_CARD);
-  scrie(zecimal(casa.solar, 2) + " W", 60, 92, F_TEXT, C_TEXT, C_CARD, textdatum_t::middle_left);
-  iconVant(40, 122, C_APA);
-  scrie(zecimal(casa.vant, 2) + " W", 60, 122, F_TEXT, C_TEXT, C_CARD, textdatum_t::middle_left);
-  iconCasa(40, 152, C_TEXT2, C_CARD);
-  scrie("casa consumă " + zecimal(casa.consum, 2) + " W", 60, 152, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_left);
+  iconSoare(40, 100, C_SOARE, C_CARD);
+  scrie(zecimal(casa.solar, 2) + " W", 60, 100, F_TEXT, C_TEXT, C_CARD, textdatum_t::middle_left);
+  iconVant(40, 130, C_APA);
+  scrie(zecimal(casa.vant, 2) + " W", 60, 130, F_TEXT, C_TEXT, C_CARD, textdatum_t::middle_left);
+  iconCasa(40, 160, C_TEXT2, C_CARD);
+  scrie("casa consumă " + zecimal(casa.consum, 2) + " W", 60, 160, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_left);
 
   // bateria, desenata ca o baterie
-  int bx = 140, by = 82;
-  uint16_t c = casa.modEnergie == 3 ? C_ROSU : (casa.modEnergie == 2 ? C_SOARE : C_VERDE);
+  int bx = 140, by = 95;
   uint16_t plinCuloare = amesteca(c, C_CARD, 120);
   tft.fillSmoothRoundRect(bx, by, 80, 40, 8, C_MARGINE);
   tft.fillSmoothRoundRect(bx + 2, by + 2, 76, 36, 6, C_CARD);
   tft.fillSmoothRoundRect(bx + 80, by + 13, 6, 14, 2, C_MARGINE);
   int plin = 72 * constrain(casa.baterie, 0, 100) / 100;
   if (plin > 6) tft.fillSmoothRoundRect(bx + 4, by + 4, plin, 32, 4, plinCuloare);
-  scrie(String(casa.baterie) + "%", bx + 40, by + 21, F_TEXT, C_TEXT, plin > 46 ? plinCuloare : C_CARD, textdatum_t::middle_center);
+  // procentul sta in intregime fie pe partea plina, fie pe cea goala (are fundalul ei)
+  String procent = String(casa.baterie) + "%";
+  font(F_MIC);
+  if (plin >= tft.textWidth(procent.c_str()) + 8)
+    scrie(procent, bx + 4 + plin / 2, by + 21, F_MIC, C_TEXT, plinCuloare, textdatum_t::middle_center);
+  else
+    scrie(procent, bx + 4 + plin + (72 - plin) / 2, by + 21, F_MIC, C_TEXT, C_CARD, textdatum_t::middle_center);
 
-  uint16_t fundal = casa.modEnergie == 3 ? C_ROSU_D : (casa.modEnergie == 2 ? C_SOARE_D : C_VERDE_D);
-  pastila(String("Mod ") + textEnergie(casa.modEnergie), 28, 166, c, fundal);
-  paragraf(explicatieEnergie(casa.modEnergie), 28, 192, 204, F_MIC, C_TEXT, C_CARD, 2);
+  paragraf(explicatieEnergie(casa.modEnergie), 28, 184, 204, F_MIC, C_TEXT, C_CARD, 2);
   float estimat = productieEstimata(6);
   if (!isnan(estimat))
     scrie("Soare estimat: ~" + zecimal(estimat, 1) + " Wh / 6 h", 28, 252, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_left);
