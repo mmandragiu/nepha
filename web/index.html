@@ -3,18 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F6F1EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#F7F4EF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#171512" media="(prefers-color-scheme: dark)">
 <title>NEPHA · Casa</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233F8F5E'/%3E%3Cpath d='M8 16l8-7 8 7v8h-5v-5h-6v5H8z' fill='%23fff'/%3E%3C/svg%3E">
 <style>
 :root {
-  --bg: #F6F1EA; --card: #FFFFFF; --line: #E9E2D6; --text: #2B2A28; --muted: #8A857C;
+  --bg: #F7F4EF; --card: #FFFFFF; --line: #E8E3DA; --text: #2B2A28; --muted: #8A857C;
   --green: #3F8F5E; --green-soft: #E3F0E7; --sun: #DE9428; --sun-soft: #FBEBD0;
   --water: #3D86BD; --water-soft: #DDEBF6; --heat: #D7684B; --heat-soft: #F9E1DA;
   --red: #CF3F3F; --red-soft: #F8DADA; --soft: #EFEAE2;
-  --ink: #26231F; --ink-text: #F4EFE6; --ink-muted: #ADA597; --ink-line: #3A352F;
-  --shadow: 0 1px 2px rgba(43, 42, 40, .04), 0 8px 24px -12px rgba(43, 42, 40, .12);
+  --ink: #26231F; --ink-text: #F4EFE6;
+  --shadow: 0 1px 2px rgba(43, 42, 40, .06);
+  --shadow-sus: 0 1px 2px rgba(43, 42, 40, .06), 0 6px 16px -8px rgba(43, 42, 40, .18);
+  --puls: rgba(63, 143, 94, .45);
+  --usor: cubic-bezier(.4, 0, .2, 1);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -23,8 +26,10 @@
     --green: #6DBE8A; --green-soft: #213428; --sun: #F0B055; --sun-soft: #3A2E1C;
     --water: #6FAEDD; --water-soft: #1C2C3A; --heat: #EE8B70; --heat-soft: #3A241E;
     --red: #EF6B6B; --red-soft: #3D1F1F; --soft: #2B2823;
-    --ink: #2E2A24; --ink-text: #F4EFE6; --ink-muted: #A39C91; --ink-line: #403A33;
+    --ink: #2E2A24; --ink-text: #F4EFE6;
     --shadow: none;
+    --shadow-sus: 0 6px 16px -8px rgba(0, 0, 0, .6);
+    --puls: rgba(109, 190, 138, .45);
     color-scheme: dark;
   }
 }
@@ -48,12 +53,22 @@ button { font: inherit; color: inherit; }
 .punct.viu { background: var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
 .punct.demo { background: var(--sun); box-shadow: 0 0 0 4px var(--sun-soft); }
 .segment { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--soft); border: 1px solid var(--line); }
-.segment button { border: 0; background: transparent; padding: 7px 16px; border-radius: 999px; cursor: pointer; color: var(--muted); font-weight: 600; }
+.segment button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; padding: 7px 16px; border-radius: 999px; cursor: pointer; color: var(--muted); font-weight: 600; transition: background-color .2s ease, color .2s ease, box-shadow .2s ease; }
 .segment button.activ { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
+/* in modul smart punctul verde "respira": casa e treaza si decide singura */
+.puls { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: background-color .2s ease; }
+.segment button.activ .puls { background: var(--green); animation: puls 2s var(--usor) infinite; }
+@keyframes puls {
+  0% { box-shadow: 0 0 0 0 var(--puls); }
+  70%, 100% { box-shadow: 0 0 0 6px transparent; }
+}
 
 /* grila */
 .grila { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 18px; box-shadow: var(--shadow); min-width: 0; position: relative; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); min-width: 0;
+  transition: transform .3s var(--usor), box-shadow .3s var(--usor), border-color .2s ease; }
+@media (hover: hover) { .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-sus); } }
+@media (hover: none) { .card:active { transform: translateY(-2px); box-shadow: var(--shadow-sus); } }
 /* desktop: 3 + 2 + 2 + 3 carduri pe rand; tableta: cate doua; telefon: unul sub altul */
 .c-ec { grid-column: span 5; } .c-in { grid-column: span 4; } .c-af { grid-column: span 3; }
 .c-en { grid-column: span 8; } .c-al { grid-column: span 4; }
@@ -69,16 +84,16 @@ button { font: inherit; color: inherit; }
   .salut h1 { font-size: 24px; }
 }
 
-.eticheta { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
-.eticheta .dreapta { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; }
-.icon { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; flex: none; }
-.icon svg { width: 17px; height: 17px; }
-.i-verde { background: var(--green-soft); color: var(--green); }
-.i-soare { background: var(--sun-soft); color: var(--sun); }
-.i-apa { background: var(--water-soft); color: var(--water); }
-.i-cald { background: var(--heat-soft); color: var(--heat); }
-.i-rosu { background: var(--red-soft); color: var(--red); }
-.i-gri { background: var(--soft); color: var(--muted); }
+.eticheta { display: flex; align-items: center; gap: 8px; min-height: 26px; font-size: 14px; font-weight: 700; color: var(--muted); margin-bottom: 12px; }
+.eticheta .dreapta { margin-left: auto; font-weight: 600; }
+.icon { display: grid; place-items: center; flex: none; transition: color .2s ease; }
+.icon svg { width: 18px; height: 18px; }
+.i-verde { color: var(--green); }
+.i-soare { color: var(--sun); }
+.i-apa { color: var(--water); }
+.i-cald { color: var(--heat); }
+.i-rosu { color: var(--red); }
+.i-gri { color: var(--muted); }
 svg { stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 
 .mare { font-size: 46px; font-weight: 750; letter-spacing: -.035em; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -86,7 +101,7 @@ svg { stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round
 .mic { font-size: 13px; color: var(--muted); }
 .rand { display: flex; align-items: center; gap: 10px; }
 .intre { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.cip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--muted); white-space: nowrap; }
+.cip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--muted); white-space: nowrap; transition: background-color .2s ease, color .2s ease; }
 .cip.verde { background: var(--green-soft); color: var(--green); }
 .cip.soare { background: var(--sun-soft); color: var(--sun); }
 .cip.apa { background: var(--water-soft); color: var(--water); }
@@ -95,23 +110,21 @@ svg { stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round
 .motiv { margin-top: 12px; font-size: 14px; }
 .motiv b { font-weight: 700; }
 
-/* cardul inchis la culoare: economia */
-.cerneala { background: var(--ink); border-color: var(--ink); color: var(--ink-text); }
-.cerneala .eticheta, .cerneala .mic { color: var(--ink-muted); }
-.cerneala .icon { background: rgba(255, 255, 255, .08); color: #9FD8B2; }
+/* economia */
+.c-ec .mare { color: var(--green); }
 .compara { display: grid; gap: 8px; margin-top: 16px; }
 .compara .linie { display: grid; grid-template-columns: 74px 1fr 64px; align-items: center; gap: 10px; font-size: 13px; }
-.compara .pista { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .1); overflow: hidden; }
-.compara .pista i { display: block; height: 100%; border-radius: 99px; background: var(--ink-muted); transition: width .6s ease; }
-.compara .pista i.smart { background: #9FD8B2; }
+.compara .pista { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.compara .pista i { display: block; height: 100%; border-radius: 99px; background: var(--muted); transition: width .5s var(--usor); }
+.compara .pista i.smart { background: var(--green); }
 .compara .val { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* energie */
 .flux { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
-.flux .bucata { background: var(--soft); border-radius: 16px; padding: 12px; min-width: 0; }
+.flux .bucata { background: var(--soft); border-radius: 12px; padding: 12px; min-width: 0; }
 .flux .bucata .mediu { font-size: 22px; }
 .baterie { height: 8px; border-radius: 99px; background: var(--line); margin-top: 8px; overflow: hidden; }
-.baterie i { display: block; height: 100%; background: var(--green); border-radius: 99px; transition: width .6s ease; }
+.baterie i { display: block; height: 100%; background: var(--green); border-radius: 99px; transition: width .5s cubic-bezier(0.4, 0, 0.2, 1), background-color .2s ease; }
 .zona-grafic { position: relative; padding-bottom: 18px; }
 .grafic { width: 100%; height: 140px; display: block; }
 .ore-grafic span { position: absolute; bottom: 0; transform: translateX(-50%); font-size: 11px; color: var(--muted); }
@@ -122,10 +135,10 @@ svg { stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round
 
 /* camere */
 .camere { display: grid; gap: 10px; }
-.camera { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--soft); }
+.camera { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--soft); }
 .camera .nume { font-weight: 700; }
 .camera .temp { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.comutator { width: 46px; height: 28px; border-radius: 99px; border: 0; background: var(--line); position: relative; cursor: pointer; padding: 0; flex: none; }
+.comutator { width: 46px; height: 28px; border-radius: 99px; border: 0; background: var(--line); position: relative; cursor: pointer; padding: 0; flex: none; transition: background-color .2s ease; }
 .comutator::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--card); box-shadow: 0 1px 3px rgba(0, 0, 0, .2); transition: transform .2s ease; }
 .comutator.pornit { background: var(--sun); }
 .comutator.pornit::after { transform: translateX(18px); }
@@ -134,17 +147,22 @@ svg { stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round
 .senzori { list-style: none; margin: 14px 0 0; padding: 0; }
 .senzori li { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
 .butoane { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-.buton { border: 1px solid var(--line); background: var(--card); padding: 9px 16px; border-radius: 999px; cursor: pointer; font-weight: 700; }
+.buton { border: 1px solid var(--line); background: var(--card); padding: 9px 16px; border-radius: 999px; cursor: pointer; font-weight: 700; transition: background-color .2s ease, border-color .2s ease, transform .3s var(--usor); }
+.buton:active { transform: translateY(1px); }
 .buton:hover { border-color: var(--muted); }
 .buton.principal { background: var(--green); border-color: var(--green); color: #fff; }
-.buton.principal:hover { filter: brightness(1.06); }
+.buton.principal:hover { background: #3A8356; border-color: #3A8356; }
 .buton:disabled { opacity: .5; cursor: default; }
-.alarma-suna { border-color: var(--red); box-shadow: 0 0 0 4px var(--red-soft); }
+.card.alarma-suna { border-color: var(--red); box-shadow: 0 0 0 4px var(--red-soft); }
 
 /* gradina */
-.inel { --p: 0; width: 132px; height: 132px; border-radius: 50%; margin: 4px auto 10px; display: grid; place-items: center;
-  background: conic-gradient(var(--water) calc(var(--p) * 1%), var(--soft) 0); }
-.inel > div { width: 104px; height: 104px; border-radius: 50%; background: var(--card); display: grid; place-items: center; text-align: center; }
+.inel { width: 132px; height: 132px; margin: 4px auto 10px; display: grid; }
+.inel > * { grid-area: 1 / 1; }
+.inel svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.inel circle { fill: none; stroke-width: 14; stroke-linecap: butt; }
+.inel .pista { stroke: var(--soft); }
+.inel .plin { stroke: var(--water); transition: stroke-dasharray .5s var(--usor); }
+.inel .mijloc { display: grid; place-content: center; text-align: center; }
 
 /* rutina */
 .harta { display: grid; grid-template-columns: 92px repeat(24, minmax(0, 1fr)); gap: 3px; align-items: center; }
@@ -163,15 +181,19 @@ svg { stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round
 .banda.vizibil { display: block; }
 .subsol { margin-top: 26px; text-align: center; font-size: 12px; color: var(--muted); }
 
-dialog { border: 1px solid var(--line); border-radius: 22px; background: var(--card); color: var(--text); padding: 22px; width: min(320px, calc(100vw - 32px)); }
+dialog { border: 1px solid var(--line); border-radius: 16px; background: var(--card); color: var(--text); padding: 22px; width: min(320px, calc(100vw - 32px)); }
 dialog::backdrop { background: rgba(23, 21, 18, .45); }
 .taste { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
-.taste button { padding: 14px 0; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); font-size: 18px; font-weight: 700; cursor: pointer; }
+.taste button { padding: 14px 0; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); font-size: 18px; font-weight: 700; cursor: pointer; }
 .puncte-pin { display: flex; justify-content: center; gap: 12px; margin-top: 10px; }
 .puncte-pin i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); }
 .puncte-pin i.plin { background: var(--text); border-color: var(--text); }
 .notificare { position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, 120px); background: var(--ink); color: var(--ink-text); padding: 10px 16px; border-radius: 999px; font-size: 14px; transition: transform .3s ease; max-width: calc(100vw - 32px); }
 .notificare.vizibil { transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation: none !important; }
+}
 </style>
 </head>
 <body>
@@ -185,7 +207,7 @@ dialog::backdrop { background: rgba(23, 21, 18, .45); }
   <symbol id="i-scut" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></symbol>
   <symbol id="i-termometru" viewBox="0 0 24 24"><path d="M10 4a2 2 0 1 1 4 0v10a4 4 0 1 1-4 0z"/><path d="M12 10v6"/></symbol>
   <symbol id="i-bec" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
-  <symbol id="i-sclipire" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+  <symbol id="i-grila" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></symbol>
   <symbol id="i-lista" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
   <symbol id="i-balanta" viewBox="0 0 24 24"><path d="M12 4v16M5 20h14"/><path d="M5 8h14"/><path d="M5 8l-3 6a3 3 0 0 0 6 0zM19 8l-3 6a3 3 0 0 0 6 0z"/></symbol>
 </svg>
@@ -198,7 +220,7 @@ dialog::backdrop { background: rgba(23, 21, 18, .45); }
     </div>
     <span class="stare-conexiune"><span class="punct" id="punct"></span><span id="conexiune">conectare</span></span>
     <div class="segment" role="group" aria-label="Modul casei">
-      <button id="mod-smart" class="activ">Smart</button>
+      <button id="mod-smart" class="activ"><span class="puls" aria-hidden="true"></span>Smart</button>
       <button id="mod-clasic">Clasic</button>
     </div>
   </header>
@@ -206,8 +228,8 @@ dialog::backdrop { background: rgba(23, 21, 18, .45); }
   <div class="banda" id="banda-demo">Demo: panoul casei nu e conectat, așa că vedeți o zi simulată. Pe panou, pagina arată datele adevărate.</div>
 
   <section class="grila">
-    <article class="card c-ec cerneala">
-      <div class="eticheta"><span class="icon"><svg><use href="#i-frunza"/></svg></span>Economie azi<span class="dreapta" id="ec-lei"></span></div>
+    <article class="card c-ec">
+      <div class="eticheta"><span class="icon i-verde"><svg><use href="#i-frunza"/></svg></span>Economie azi<span class="dreapta mic" id="ec-lei"></span></div>
       <div><span class="mare" id="ec-kwh">–</span> <span class="mediu">kWh</span></div>
       <div class="mic" id="ec-text" style="margin-top:8px">față de o casă obișnuită, în aceleași condiții</div>
       <div class="compara">
@@ -217,7 +239,7 @@ dialog::backdrop { background: rgba(23, 21, 18, .45); }
     </article>
 
     <article class="card c-in">
-      <div class="eticheta"><span class="icon i-cald"><svg><use href="#i-termometru"/></svg></span>În casă<span class="dreapta" id="inc-cip"></span></div>
+      <div class="eticheta"><span class="icon i-cald"><svg><use href="#i-termometru"/></svg></span>În casă<span class="dreapta"><span class="cip" id="inc-cip">–</span></span></div>
       <div><span class="mare" id="t-casa">–</span></div>
       <div class="motiv" id="inc-motiv">&nbsp;</div>
       <div class="mic" id="inc-rata" style="margin-top:6px"></div>
@@ -255,14 +277,14 @@ dialog::backdrop { background: rgba(23, 21, 18, .45); }
     </article>
 
     <article class="card c-ru">
-      <div class="eticheta"><span class="icon i-verde"><svg><use href="#i-sclipire"/></svg></span>Ce a învățat casa<span class="dreapta mic" id="rutina-zile"></span></div>
+      <div class="eticheta"><span class="icon i-verde"><svg><use href="#i-grila"/></svg></span>Ce a învățat casa<span class="dreapta mic" id="rutina-zile"></span></div>
       <div class="harta" id="harta"></div>
       <p class="mic" style="margin:12px 0 0">Cât de probabil e să fie cineva în fiecare cameră, la fiecare oră. Din asta casa știe când să pornească încălzirea mai devreme.</p>
     </article>
 
     <article class="card c-gr">
       <div class="eticheta"><span class="icon i-apa"><svg><use href="#i-picatura"/></svg></span>Grădină</div>
-      <div class="inel" id="inel"><div><div><div class="mediu" id="sol">–</div><div class="mic">umiditate</div></div></div></div>
+      <div class="inel"><svg viewBox="0 0 132 132" aria-hidden="true"><circle class="pista" cx="66" cy="66" r="58"/><circle class="plin" id="inel-plin" cx="66" cy="66" r="58" pathLength="100" stroke-dasharray="0 100"/></svg><div class="mijloc"><div class="mediu" id="sol">–</div><div class="mic">umiditate</div></div></div>
       <div class="mic" id="gradina-text" style="text-align:center"></div>
       <div class="butoane" style="justify-content:center"><button class="buton" id="uda">Udă acum</button></div>
     </article>
@@ -307,6 +329,20 @@ const $ = (id) => document.getElementById(id);
 const nr = (x, z = 1) => (x === null || x === undefined || Number.isNaN(x)) ? "–" : Number(x).toLocaleString("ro-RO", { minimumFractionDigits: z, maximumFractionDigits: z });
 const grade = (x) => (x === null || x === undefined) ? "–" : nr(x, 1) + "°";
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const faraMiscare = matchMedia("(prefers-reduced-motion: reduce)");
+
+// cand se schimba o stare (alarma, incalzirea, vremea), textul nou apare treptat, in 200 ms
+function apare(el) {
+  if (el.animate && !faraMiscare.matches) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: "ease-out" });
+}
+function schimba(el, text, html = false) {
+  if (el.dataset.v === text) return;
+  const prima = el.dataset.v === undefined;
+  el.dataset.v = text;
+  if (html) el.innerHTML = text;
+  else el.textContent = text;
+  if (!prima) apare(el);
+}
 
 let demo = false;
 let stare = null;
@@ -353,7 +389,7 @@ function deseneazaStare(s) {
 
   // economie
   $("ec-kwh").textContent = s.mod === "smart" ? nr(kwhAzi, 1) : "–";
-  $("ec-lei").textContent = s.mod === "smart" ? "≈ " + nr(kwhAzi * s.pretKwh, 1) + " lei" : "mod clasic";
+  schimba($("ec-lei"), s.mod === "smart" ? "≈ " + nr(kwhAzi * s.pretKwh, 1) + " lei" : "mod clasic");
   const clasic = s.energie.whClasic || 0, smart = s.energie.whAzi || 0;
   $("ec-clasic").textContent = nr(clasic / 1000, 1) + " kWh";
   $("ec-smart").textContent = nr(smart / 1000, 1) + " kWh";
@@ -364,16 +400,17 @@ function deseneazaStare(s) {
   const medie = temps.length ? temps.reduce((a, b) => a + b, 0) / temps.length : null;
   $("t-casa").textContent = grade(medie);
   const inc = s.incalzire;
-  $("inc-cip").innerHTML = inc.pornita ? '<span class="cip cald">încălzește</span>' : '<span class="cip">în repaus</span>';
-  $("inc-motiv").innerHTML = "Țintă <b>" + grade(inc.tinta) + "</b> · " + esc(inc.motiv || "");
+  $("inc-cip").className = "cip" + (inc.pornita ? " cald" : "");
+  schimba($("inc-cip"), inc.pornita ? "încălzește" : "în repaus");
+  schimba($("inc-motiv"), "Țintă <b>" + grade(inc.tinta) + "</b> · " + esc(inc.motiv || ""), true);
   $("inc-rata").textContent = inc.rata ? "A învățat că se încălzește cu " + nr(inc.rata, 1) + " °C pe oră." : "";
 
   // afara
   $("t-afara").textContent = grade(s.afara ?? (s.vreme.valida ? s.vreme.temp : null));
   const v = s.vreme;
-  $("vreme-text").textContent = !v.valida ? "fără prognoză (internet)"
+  schimba($("vreme-text"), !v.valida ? "fără prognoză (internet)"
     : v.oraPloaie !== undefined ? "Ploaie " + v.ploaie + "% pe la " + v.oraPloaie + ":00"
-    : v.soare > 40 ? "Senin în următoarele ore" : "Fără ploaie în 12 ore";
+    : v.soare > 40 ? "Senin în următoarele ore" : "Fără ploaie în 12 ore");
 
   // energie
   const en = s.energie;
@@ -385,7 +422,7 @@ function deseneazaStare(s) {
   $("en-consum").textContent = nr(en.consum, 2) + " W";
   const clase = ["verde", "soare", "cald", "rosu"];
   $("en-mod").className = "cip " + clase[en.modCod || 0];
-  $("en-mod").textContent = "Mod " + en.mod.toLowerCase();
+  schimba($("en-mod"), "Mod " + en.mod.toLowerCase());
   $("en-estimat").textContent = en.estimatSolar6h != null ? "estimez ~" + nr(en.estimatSolar6h, 1) + " Wh din soare în 6 ore" : "";
 
   deseneazaAlarma(s.alarma);
@@ -393,8 +430,8 @@ function deseneazaStare(s) {
 
   // gradina
   $("sol").textContent = s.gradina.umiditate + "%";
-  $("inel").style.setProperty("--p", s.gradina.umiditate);
-  $("gradina-text").textContent = s.gradina.pompa ? "Se udă acum." : s.gradina.umiditate >= 35 ? "Pământul e destul de umed." : "Pământul e uscat: casa așteaptă momentul potrivit.";
+  $("inel-plin").setAttribute("stroke-dasharray", Math.max(0, Math.min(100, s.gradina.umiditate)) + " 100");
+  schimba($("gradina-text"), s.gradina.pompa ? "Se udă acum." : s.gradina.umiditate >= 35 ? "Pământul e destul de umed." : "Pământul e uscat: casa așteaptă momentul potrivit.");
 
   deseneazaTest(s.rezultate, s.test);
   $("subsol").textContent = "NEPHA · casa care se gândește singură cum să economisească energie" +
@@ -405,11 +442,11 @@ function deseneazaAlarma(al) {
   const pericol = al.cod >= 4;
   $("card-alarma").classList.toggle("alarma-suna", pericol);
   $("al-icon").className = "icon " + (pericol ? "i-rosu" : al.cod === 0 ? "i-gri" : "i-verde");
-  $("al-stare").textContent = al.stare;
+  schimba($("al-stare"), al.stare);
   const texte = ["Când plecați, armați-o: casa știe sigur că e goală și economisește.",
     "Aveți 30 de secunde să ieșiți.", "Pe noapte: păzim ușile și geamurile.",
     "Casa e păzită și economisește: lumini stinse, încălzire redusă.", "S-a deschis ușa! Introduceți PIN-ul.", "Alarma sună!"];
-  $("al-text").textContent = texte[al.cod] || "";
+  schimba($("al-text"), texte[al.cod] || "");
   const b = $("al-butoane");
   const cheie = String(al.cod);
   if (b.dataset.cheie !== cheie) {
@@ -417,19 +454,41 @@ function deseneazaAlarma(al) {
     b.innerHTML = al.cod === 0
       ? '<button class="buton principal" data-c="ALARMA PLECAT">Plec de acasă</button><button class="buton" data-c="ALARMA ACASA">Noapte</button>'
       : '<button class="buton principal" data-pin="1">Dezarmează</button>';
+    apare(b);
   }
-  $("al-senzori").innerHTML = al.senzori.map((x) =>
-    `<li><span>${esc(x.nume)}</span><span class="cip ${x.deschis ? "cald" : ""}">${x.deschis ? "deschis" : "închis"}</span></li>`).join("");
+  // lista o facem o singura data; dupa aceea doar schimbam ce scrie, ca sa se vada trecerea de culoare
+  const ul = $("al-senzori");
+  if (ul.children.length !== al.senzori.length)
+    ul.innerHTML = al.senzori.map(() => '<li><span></span><span class="cip"></span></li>').join("");
+  al.senzori.forEach((x, i) => {
+    const [nume, cip] = ul.children[i].children;
+    nume.textContent = x.nume;
+    cip.className = "cip" + (x.deschis ? " cald" : "");
+    schimba(cip, x.deschis ? "deschis" : "închis");
+  });
 }
 
 function deseneazaCamere(camere) {
-  $("camere").innerHTML = camere.map((c, i) => `
-    <div class="camera">
-      <div><div class="nume">${esc(c.nume)}</div>
-        <div class="mic">${c.prezenta ? "e cineva" : "liber"}${c.fereastra ? ' · <span style="color:var(--heat)">geam deschis</span>' : ""}${c.lumina ? " · lumină " + c.lumina + "%" : ""}</div></div>
-      <div class="temp">${grade(c.temp)}</div>
-      <button class="comutator ${c.lumina ? "pornit" : ""}" data-camera="${i}" aria-label="Lumina din ${esc(c.nume)}"></button>
-    </div>`).join("");
+  const cutie = $("camere");
+  if (cutie.children.length !== camere.length) {
+    cutie.innerHTML = camere.map((c, i) => `
+      <div class="camera">
+        <div><div class="nume"></div><div class="mic"></div></div>
+        <div class="temp"></div>
+        <button class="comutator" data-camera="${i}"></button>
+      </div>`).join("");
+  }
+  camere.forEach((c, i) => {
+    const r = cutie.children[i];
+    r.querySelector(".nume").textContent = c.nume;
+    schimba(r.querySelector(".mic"), (c.prezenta ? "e cineva" : "liber") +
+      (c.fereastra ? ' · <span style="color:var(--heat)">geam deschis</span>' : "") +
+      (c.lumina ? " · lumină " + c.lumina + "%" : ""), true);
+    r.querySelector(".temp").textContent = grade(c.temp);
+    const b = r.querySelector(".comutator");
+    b.classList.toggle("pornit", !!c.lumina);
+    b.setAttribute("aria-label", "Lumina din " + c.nume);
+  });
 }
 
 function deseneazaTest(rez, test) {
@@ -452,8 +511,13 @@ function deseneazaTest(rez, test) {
 }
 
 function deseneazaJurnal(lista) {
-  $("jurnal").innerHTML = lista.length ? lista.map((e) => `<li><span class="ora">${esc(e.ora)}</span><span>${esc(e.text)}</span></li>`).join("")
+  const ul = $("jurnal");
+  const cheie = lista.length ? lista[0].ora + lista[0].text : "";
+  const nou = ul.dataset.cheie !== undefined && ul.dataset.cheie !== cheie;
+  ul.dataset.cheie = cheie;
+  ul.innerHTML = lista.length ? lista.map((e) => `<li><span class="ora">${esc(e.ora)}</span><span>${esc(e.text)}</span></li>`).join("")
     : '<li><span class="ora">–</span><span class="mic">Încă nimic. Aici apar deciziile casei, cu motivul lor.</span></li>';
+  if (nou && lista.length) apare(ul.firstElementChild);     // decizia noua apare treptat
 }
 
 function deseneazaRutina(r) {
@@ -495,8 +559,7 @@ function deseneazaGrafic(ist) {
   const x = (i) => i / (n - 1) * 600, y = (v) => 136 - v / max * 128;
   const linie = (arr) => arr.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" ");
   svg.innerHTML = `
-    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sun)" stop-opacity=".35"/><stop offset="1" stop-color="var(--sun)" stop-opacity="0"/></linearGradient></defs>
-    <path d="${linie(prod)} L600 140 L0 140 Z" fill="url(#g)" stroke="none"/>
+    <path d="${linie(prod)} L600 140 L0 140 Z" style="fill:var(--sun);fill-opacity:.12;stroke:none"/>
     <path d="${linie(prod)}" stroke="var(--sun)" stroke-width="2" fill="none" vector-effect="non-scaling-stroke"/>
     <path d="${linie(consum)}" stroke="var(--text)" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke" opacity=".8"/>`;
   // orele de sub grafic, din 3 in 3
