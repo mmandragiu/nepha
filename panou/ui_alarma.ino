@@ -49,7 +49,8 @@ static void cardSenzori() {
     if (slotInvatat == i) pastila("ascult...", 452, y + 8, C_SOARE, C_SOARE_D, textdatum_t::top_right);
     else if (casa.usi & (1 << i)) pastila("deschis", 452, y + 8, C_CALD, C_CALD_D, textdatum_t::top_right);
     else pastila("închis", 452, y + 8, C_TEXT2, C_GRI_D, textdatum_t::top_right);
-    adaugaZona(240, y, 228, 40, 70 + i);
+    adaugaZona(240, y, 128, 40, 70 + i);    // numele: invatam senzorul
+    adaugaZona(368, y, 100, 40, 74 + i);    // starea: o schimbam de mana
   }
 }
 
@@ -69,6 +70,16 @@ void atingeAlarma(uint8_t id) {
     char cmd[12];
     snprintf(cmd, sizeof(cmd), "INVATA %d", slotInvatat);
     trimiteArduino(cmd);
+    dateNoiUI = true;
+  }
+  if (id >= 74 && id < 74 + NR_SENZORI_RF) {
+    // telecomanda de pe usa se mai opreste singura: aici ii spunem casei cum e de fapt
+    uint8_t slot = id - 74;
+    bool deschis = !(casa.usi & (1 << slot));
+    char cmd[12];
+    snprintf(cmd, sizeof(cmd), "USA %d %d", slot, deschis);
+    trimiteArduino(cmd);
+    casa.usi ^= 1 << slot;
     dateNoiUI = true;
   }
 }

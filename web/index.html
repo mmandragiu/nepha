@@ -101,6 +101,7 @@ svg { stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round
 .mic { font-size: 13px; color: var(--muted); }
 .rand { display: flex; align-items: center; gap: 10px; }
 .intre { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+button.cip { border: 0; cursor: pointer; font-family: inherit; }
 .cip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--muted); white-space: nowrap; transition: background-color .2s ease, color .2s ease; }
 .cip.verde { background: var(--green-soft); color: var(--green); }
 .cip.soare { background: var(--sun-soft); color: var(--sun); }
@@ -457,13 +458,16 @@ function deseneazaAlarma(al) {
     apare(b);
   }
   // lista o facem o singura data; dupa aceea doar schimbam ce scrie, ca sa se vada trecerea de culoare
+  // atingand starea o schimbam de mana (telecomanda de pe usa se mai opreste singura)
   const ul = $("al-senzori");
   if (ul.children.length !== al.senzori.length)
-    ul.innerHTML = al.senzori.map(() => '<li><span></span><span class="cip"></span></li>').join("");
+    ul.innerHTML = al.senzori.map((_, i) => `<li><span></span><button class="cip" data-usa="${i}"></button></li>`).join("");
   al.senzori.forEach((x, i) => {
     const [nume, cip] = ul.children[i].children;
     nume.textContent = x.nume;
     cip.className = "cip" + (x.deschis ? " cald" : "");
+    cip.dataset.deschis = x.deschis ? "1" : "0";
+    cip.title = x.deschis ? "Atingeți dacă de fapt e închis" : "Atingeți dacă de fapt e deschis";
     schimba(cip, x.deschis ? "deschis" : "închis");
   });
 }
@@ -614,6 +618,10 @@ document.addEventListener("click", (ev) => {
   if (!t) return;
   if (t.dataset.c) comanda(t.dataset.c, "Trimis: " + t.textContent);
   if (t.dataset.pin) deschidePin();
+  if (t.dataset.usa !== undefined) {
+    const deschis = t.dataset.deschis === "1" ? 0 : 1;
+    comanda(`USA ${t.dataset.usa} ${deschis}`, (deschis ? "Marchez deschis: " : "Marchez închis: ") + t.previousElementSibling.textContent);
+  }
   if (t.dataset.camera !== undefined) {
     const c = stare.camere[+t.dataset.camera];
     comanda(`LUMINA ${t.dataset.camera} ${c.lumina ? 0 : 100}`, (c.lumina ? "Sting" : "Aprind") + " lumina în " + c.nume);
@@ -652,6 +660,7 @@ const Demo = (() => {
   let mod = "smart";
   let alarma = 0;
   const lumini = [80, 0, 45];
+  const usi = [false, false, false, false];
   const minutAcum = () => (18 * 60 + 40 + Math.floor((Date.now() - t0) / 1000)) % 1440;   // un minut pe secunda
   const p = [
     [10, 11, 11, 11, 11, 11, 11, 88, 66, 11, 11, 11, 11, 11, 11, 11, 11, 77, 88, 88, 88, 88, 88, 11],
@@ -666,6 +675,8 @@ const Demo = (() => {
       if (c.startsWith("ALARMA OPRIT")) alarma = 0;
       const l = c.match(/^LUMINA (\d) (\d+)/);
       if (l) lumini[+l[1]] = +l[2];
+      const u = c.match(/^USA (\d) (\d)/);
+      if (u) usi[+u[1]] = u[2] === "1";
       setTimeout(actualizeaza, 200);
     },
     stare() {
@@ -682,8 +693,8 @@ const Demo = (() => {
         energie: { baterie: 78, solar: 0.08, vant: 0.31 + Math.sin(u / 7) * 0.05, consum: 1.2, mod: "Normal", modCod: 0,
                    whAzi: 5230 + u * 2, whClasic: 7480 + u * 3, mwh: 0, estimatSolar6h: 0.4, factorPanou: 0.82 },
         alarma: { stare: st[alarma], cod: alarma, senzori: [
-          { nume: "Ușa de la intrare", deschis: false }, { nume: "Ușa spre curte", deschis: false },
-          { nume: "Geam dormitor", deschis: false }, { nume: "Geam sufragerie", deschis: false }] },
+          { nume: "Ușa de la intrare", deschis: usi[0] }, { nume: "Ușa spre curte", deschis: usi[1] },
+          { nume: "Geam dormitor", deschis: usi[2] }, { nume: "Geam sufragerie", deschis: usi[3] }] },
         gradina: { umiditate: 31, pompa: false }, priza: true, senzori: 159,
         vreme: { valida: true, temp: 7.8, ploaie: 80, oraPloaie: 21, soare: 0, nori: 90, vant: 14 },
         rezultate: [{ valid: true, lumini: 177, incalzire: 16200, pompa: 60, priza: 397, total: 16834, mwh: 0, litri: 80 },

@@ -7,6 +7,13 @@
 //   R / Z        rutina invatata
 //   # ...        mesaje pentru oameni (le scriem doar pe Serial)
 // Noi trimitem comenzi text: ORA, VREME, ALARMA ..., MOD ..., etc.
+//
+// Pe fir e I2C (prin translatorul de nivel): noi suntem "seful", Arduino e la
+// adresa 8. Il intrebam des ce are de spus (ne da mereu 32 de octeti, iar unde
+// n-are nimic pune 0) si ii scriem comenzile in bucati de cel mult 32 de octeti
+// (atat incape odata in Arduino).
+
+#include <Wire.h>
 
 char linieArduino[256];
 uint16_t lungArduino = 0;
@@ -15,14 +22,19 @@ uint32_t ultimaVremeTrimisa = 0;
 uint32_t ultimaRutinaCeruta = 0;
 bool trebuieSincronizat = true;     // Arduino tocmai a pornit: ii trimitem ora si vremea
 
+String deTrimis;                    // comenzile care inca n-au plecat spre Arduino
+uint32_t ultimaIntrebare = 0;
+
 void legaturaInit() {
-  // loc pentru ~1 s de mesaje, cat timp ecranul e ocupat cu desenatul
-  Serial2.setRxBufferSize(1024);
-  Serial2.begin(VITEZA_ARDUINO, SERIAL_8N1, PIN_RX_ARDUINO, PIN_TX_ARDUINO);
+  Wire.begin(PIN_SDA_ARDUINO, PIN_SCL_ARDUINO, 100000);
+  Wire.setTimeOut(30);
 }
 
 void trimiteArduino(const char *comanda) {
-  Serial2.println(comanda);
+  if (deTrimis.length() < 1024) {      // Arduino nu raspunde de mult: nu adunam la nesfarsit
+    deTrimis += comanda;
+    deTrimis += '\n';
+  }
   Serial.print("-> ");
   Serial.println(comanda);
 }
@@ -169,17 +181,43 @@ static void trimiteVreme() {
   trimiteArduino(cmd);
 }
 
-void legaturaPas() {
-  while (Serial2.available()) {
-    char ch = Serial2.read();
-    if (ch == '\r') continue;
-    if (ch == '\n') {
-      linieArduino[lungArduino] = 0;
-      if (lungArduino) citesteLinie(linieArduino);
-      lungArduino = 0;
-    } else if (lungArduino < sizeof(linieArduino) - 1) {
-      linieArduino[lungArduino++] = ch;
+static void literaDeLaArduino(char ch) {
+  if (ch == '\r') return;
+  if (ch == '\n') {
+    linieArduino[lungArduino] = 0;
+    if (lungArduino) citesteLinie(linieArduino);
+    lungArduino = 0;
+  } else if (lungArduino < sizeof(linieArduino) - 1) {
+    linieArduino[lungArduino++] = ch;
+  }
+}
+
+// o runda pe fir: luam ce are Arduino de spus, apoi ii dam o bucata din comenzi
+static void vorbesteCuArduino() {
+  for (uint8_t runde = 0; runde < 8; runde++) {      // cat timp vine plin, mai cerem
+    uint8_t n = Wire.requestFrom((int)ADRESA_ARDUINO, (int)32);
+    uint8_t text = 0;
+    while (Wire.available()) {
+      uint8_t c = Wire.read();
+      if (c == 0 || c == 0xFF) continue;   // 0 = nimic; 0xFF = Arduino era ocupat cu INA219
+      literaDeLaArduino((char)c);
+      text++;
     }
+    if (n < 32 || text < 32) break;
+  }
+  if (deTrimis.length()) {
+    size_t cat = deTrimis.length() < 32 ? deTrimis.length() : 32;
+    Wire.beginTransmission(ADRESA_ARDUINO);
+    Wire.write((const uint8_t *)deTrimis.c_str(), cat);
+    if (Wire.endTransmission() == 0) deTrimis.remove(0, cat);
+  }
+}
+
+void legaturaPas() {
+  uint32_t acum = millis();
+  if (acum - ultimaIntrebare >= 25) {
+    ultimaIntrebare = acum;
+    vorbesteCuArduino();
   }
 
   // nu-i trimitem nimic lui Arduino in timpul zilei de test (are ceasul lui)

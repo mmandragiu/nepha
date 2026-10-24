@@ -29,11 +29,11 @@
 #define FUS_ORAR "EET-2EEST,M3.5.0/3,M10.5.0/4"
 
 // ---------------------------------------------------------------
-// Legatura cu Arduino (pe conectorul P3 al placii)
+// Legatura cu Arduino: I2C, prin translatorul de nivel (conectorul cu IO21 / IO22)
 // ---------------------------------------------------------------
-#define PIN_RX_ARDUINO 35    // IO35 <- D9 de pe Arduino (prin divizor / translator de nivel)
-#define PIN_TX_ARDUINO 22    // IO22 -> D8 de pe Arduino
-#define VITEZA_ARDUINO 9600
+#define PIN_SDA_ARDUINO 21   // IO21 -> LV1 pe translator -> HV1 -> A4 (SDA) pe Arduino
+#define PIN_SCL_ARDUINO 22   // IO22 -> LV2 pe translator -> HV2 -> A5 (SCL) pe Arduino
+#define ADRESA_ARDUINO 8     // la fel ca ADRESA_ARDUINO din casa/config.h
 
 // ---------------------------------------------------------------
 // Ce mai are placa pe ea

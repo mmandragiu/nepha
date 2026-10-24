@@ -167,7 +167,7 @@ static void apiComanda() {
   String c = server.arg("c");
   c.trim();
   c.toUpperCase();
-  const char *permise[] = {"MOD ", "ALARMA ", "LUMINA ", "PRIZA ", "UDA", "TEST ", "TEMP ", "RUTINA", "INVATA ", "STERGE "};
+  const char *permise[] = {"MOD ", "ALARMA ", "LUMINA ", "PRIZA ", "UDA", "TEST ", "TEMP ", "RUTINA", "INVATA ", "STERGE ", "USA "};
   bool ok = false;
   for (const char *p : permise) ok |= c.startsWith(p);
   if (!ok || c.length() > 38) {
