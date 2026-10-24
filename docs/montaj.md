@@ -13,8 +13,6 @@ Dacă mutați un fir, schimbați acolo și atât.
 | D5 | bec Sufragerie | PWM |
 | D6 | bec Dormitor | PWM |
 | D7 | PIR Sufragerie | |
-| D8 | ← TX de la panou (IO22) | AltSoftSerial, pin fix |
-| D9 | → RX la panou (IO35) | AltSoftSerial, pin fix; **prin divizor sau translator de nivel** |
 | D10 | MOSFET pompă | |
 | D11 | MOSFET încălzire (rezistența) | |
 | D12 | releu priza TV | releele chinezești se activează pe LOW (`RELEU_PORNIT`) |
@@ -23,11 +21,11 @@ Dacă mutați un fir, schimbați acolo și atât.
 | A1 | fotorezistența (modul, ieșirea AO) | |
 | A2 | PIR Dormitor | |
 | A3 | PIR Bucătărie | |
-| A4 / A5 | SDA / SCL pentru INA219 | toate modulele pe aceleași două fire |
+| A4 / A5 | SDA / SCL: panoul (prin translator) și modulele INA219 | toate pe aceleași două fire |
 | D0 / D1 | USB | rămân libere, ca să putem urca programul și citi Serial Monitor fără să scoatem fire |
 
-Toți pinii lui Uno sunt folosiți. Dacă vreți încă ceva (de exemplu o lumină afară), cel mai simplu
-e un senzor de lumină BH1750 pe I2C în loc de fotorezistență: eliberează A1.
+Mai sunt liberi D8 și D9. Pentru încă un senzor, cel mai simplu e unul pe I2C (de exemplu un
+senzor de lumină BH1750): se leagă tot pe A4 / A5.
 
 ### Consumatorii mari: prin MOSFET, nu direct din pin
 
@@ -100,27 +98,45 @@ La turbină, nu vă speriați de cifre: o turbină Savonius de balcon printată 
 mW la vânt bun. Pentru demonstrație, un ventilator în fața ei. Important e că sistemul o
 măsoară și o folosește în decizii.
 
-## Legătura Arduino ↔ panou (conectorul P3 de pe placa ESP32)
+## Legătura Arduino ↔ panou (I2C, prin translatorul de nivel)
 
-| Panou (P3) | Arduino | |
+Arduino lucrează la 5 V, panoul la 3,3 V, așa că firele trec prin translatorul de nivel cu
+4 canale (BSS138). Pe el scrie „I2C”, dar e doar un exemplu de folosire: fiecare canal duce
+un semnal în ambele sensuri.
+
+| Panou (conectorul cu IO21 / IO22) | Translator | Arduino |
 |---|---|---|
-| IO22 (TX) | D8 (RX) | 3,3 V intră direct în Arduino, merge |
-| IO35 (RX) | D9 (TX) | **5 V nu au voie să intre în ESP32**: translator de nivel sau divizor 1 kΩ / 2 kΩ |
-| GND | GND | masa comună, obligatoriu |
+| 3,3 V | LV | |
+| 5 V | HV | 5 V |
+| GND | GND | GND (masa comună, obligatoriu) |
+| IO21 (SDA) | LV1 ↔ HV1 | A4 (SDA) |
+| IO22 (SCL) | LV2 ↔ HV2 | A5 (SCL) |
 
-Divizorul: D9 ── 1 kΩ ── IO35 ── 2 kΩ ── GND. Cu translatorul de nivel (cel cu 4 canale, BSS138):
-LV la 3,3 V de pe panou, HV la 5 V de pe Arduino, și treceți ambele fire prin el.
+Panoul e „șeful” pe fir: de vreo 40 de ori pe secundă îl întreabă pe Arduino ce are de spus și
+îi trimite comenzile. Arduino răspunde la adresa **8**. Modulele INA219 stau tot pe A4 / A5,
+de partea lui Arduino (HV), la adresele lor (0x40, 0x41, 0x44, 0x45).
 
-Viteza: 9600 baud. Pe Uno folosim AltSoftSerial (D8/D9) și nu pinii 0/1, ca să putem urca
-programul și să vedem Serial Monitor fără să deconectăm panoul.
+Pe Uno nu folosim pinii 0/1, așa că putem urca programul și vedea Serial Monitor fără să
+deconectăm panoul.
+
+Alimentarea: tot ansamblul pornește din USB-C-ul panoului (un încărcător de telefon de 2 A).
+Din 5 V-ul panoului se alimentează Arduino (pinul 5 V) și partea HV a translatorului.
 
 ## Senzorii wireless de pe uși și geamuri (433 MHz)
 
 Receptorul **SYN480R** stă lângă Arduino (VCC 5 V, GND, DATA la D2). Pe receptor și pe fiecare
 emițător, câte o antenă: un fir de 17,3 cm.
 
-Pe fiecare ușă / geam, un emițător care trimite un cod unic cât timp ușa e deschisă. Variante,
-de la cea mai simplă:
+Pe fiecare ușă / geam, un emițător care trimite un cod unic cât timp ușa e deschisă.
+
+**La noi:** câte o telecomandă cu 4 canale (433 MHz, EV1527) pentru fiecare ușă, cu contactul
+magnetic MC-38 și un tranzistor lipite pe butonul din stânga-sus. Cât ușa e deschisă,
+telecomanda transmite; când se închide, tace. Arduino socotește ușa închisă după 2 secunde fără
+semnal (`TIMP_INCHIDERE_MS`). Telecomanda se mai oprește singură după o vreme chiar dacă ușa a
+rămas deschisă: atunci ușa apare închisă, iar pe panou (sau pe telefon) atingeți starea ei ca să
+o puneți cum e de fapt. Starea pusă de mână rămâne așa până când senzorul transmite din nou.
+
+Alte variante, de la cea mai simplă:
 
 1. **Senzori de ușă gata făcuți, 433 MHz** (15-30 lei). Merg direct.
 2. **Telecomandă 433 MHz cu EV1527** (de tip breloc), desfăcută, cu contactul magnetic lipit pe
@@ -133,12 +149,13 @@ de la cea mai simplă:
 
 SYN115 (emițătorul) merge între 1,8 și 3,6 V: CR2032 e bun, o celulă 18650 (4,2 V) l-ar arde.
 
-Codurile nu se scriu în program: pe panou, la Alarmă, atingeți senzorul din listă și în 20 de
-secunde deschideți ușa respectivă. Arduino învață codul și îl ține în EEPROM.
+Codurile nu se scriu în program: pe panou, la Alarmă, atingeți numele senzorului din listă și în
+20 de secunde deschideți ușa respectivă. Arduino învață codul și îl ține în EEPROM. (Atingerea
+pe starea din dreapta, „deschis” / „închis”, o schimbă de mână.)
 
 ## Panoul ESP32 (ESP32-3248S035)
 
 Totul e deja pe placă: ecran ST7796, touch XPT2046, difuzor (IO26), LED RGB (IO4/16/17),
-fotorezistență (IO34). Se alimentează prin USB sau prin conectorul P1 (5 V). Folosim conectorul
-P3 pentru Arduino. Dacă la voi culorile ies inversate, în [`panou/ecran.h`](../panou/ecran.h)
+fotorezistență (IO34). Se alimentează prin USB-C sau prin conectorul P1 (5 V). Pentru Arduino
+folosim conectorul cu IO21 / IO22 (vezi mai sus). Dacă la voi culorile ies inversate, în [`panou/ecran.h`](../panou/ecran.h)
 schimbați `cfg.invert`.

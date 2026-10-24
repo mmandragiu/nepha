@@ -1,7 +1,7 @@
 // sim.cpp - casa virtuala: programul lui Arduino (casa/) si al panoului (panou/),
 // neschimbate, compilate impreuna pentru browser (Emscripten).
 //
-// Ca pe macheta: Arduino si panoul vorbesc pe "fir" cu aceleasi mesaje (S, E, ORA...).
+// Ca pe macheta: Arduino si panoul vorbesc pe firul I2C cu aceleasi mesaje (S, E, ORA...).
 // Pagina (shell.html) arata ecranul panoului si casa, si are butoane in loc de senzori.
 // Se construieste cu: node simulare/browser/construieste.mjs
 
@@ -35,7 +35,7 @@ SimSerial Serial;
 
 // ---------------------------------------------------------------- panoul ESP32
 namespace panou {
-SimSerial Serial, Serial2;
+SimSerial Serial;
 int pini[40];
 inline void pinMode(int, int) {}
 inline void digitalWrite(int p, int v) {
@@ -114,18 +114,20 @@ static const uint8_t RUTINA_INVATATA[3][24] = {
 static int luminaBruta(int procent) { return LDR_INTUNERIC + (LDR_SOARE - LDR_INTUNERIC) * procent / 100; }
 static int solBrut(int procent) { return SOL_USCAT + (SOL_UD - SOL_USCAT) * procent / 100; }
 
-// ce scrie fiecare placa pe fir ajunge la cealalta (si o copie pentru pagina, ca sa se vada)
+// ce a trecut pe firul I2C, pentru pagina (placile isi dau mesajele singure, prin Wire)
 static void muta() {
-  std::string &spreP = uno::legaturaPanou.iesire;
-  for (char c : spreP) panou::Serial2.in.push_back(c);
-  if (!spreP.empty()) fir += "\x02" + spreP;    // \x02 = de la Arduino spre panou
-  spreP.clear();
-  std::string &spreU = panou::Serial2.iesire;
-  for (char c : spreU) uno::legaturaPanou.in.push_back(c);
-  if (!spreU.empty()) fir += "\x01" + spreU;    // \x01 = de la panou spre Arduino
-  spreU.clear();
+  if (!Wire.deLaArduino.empty()) fir += "\x02" + Wire.deLaArduino;    // \x02 = de la Arduino spre panou
+  Wire.deLaArduino.clear();
+  if (!Wire.deLaPanou.empty()) fir += "\x01" + Wire.deLaPanou;        // \x01 = de la panou spre Arduino
+  Wire.deLaPanou.clear();
   serialNou += uno::Serial.iesire;
   uno::Serial.iesire.clear();
+}
+
+// Arduino asteapta sa-i ia panoul ce are de spus: lasam timpul sa curga, iar panoul intreaba
+void yield() {
+  simMillis++;
+  panou::legaturaPas();
 }
 
 extern "C" {

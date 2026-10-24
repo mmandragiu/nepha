@@ -1,7 +1,17 @@
 # Ce își spun Arduino și panoul
 
-Legătura e serială, 9600 baud, text simplu: o linie = un mesaj. Am ales text (nu bytes) ca să
-putem citi totul în Serial Monitor și să scriem comenzile de mână când testăm.
+Mesajele sunt text simplu: o linie = un mesaj. Am ales text (nu bytes) ca să putem citi totul
+în Serial Monitor și să scriem comenzile de mână când testăm.
+
+Pe fir, textul merge pe **I2C** (prin translatorul de nivel). Panoul e „șeful”, Arduino e la
+adresa 8:
+
+- de vreo 40 de ori pe secundă panoul cere 32 de octeți: Arduino îi dă ce are de trimis, iar
+  unde nu mai are nimic pune `0` (dacă tocmai citea un INA219, nu dă nimic și panoul vede `0xFF`);
+- comenzile panoului pleacă în bucăți de cel mult 32 de octeți (atât încape odată în Arduino).
+
+Așa, de o parte și de alta, programul citește și scrie linii ca pe un port serial
+([`casa/legatura.h`](../casa/legatura.h), [`panou/legatura.ino`](../panou/legatura.ino)).
 
 ## De la Arduino spre panou
 
@@ -90,6 +100,7 @@ Linii care încep cu `#` (de exemplu tabelul de la `TEST RAPID`). Panoul doar le
 | `PRIZA 1` / `PRIZA 0` / `PRIZA AUTO` | priza TV |
 | `UDA` | pornește pompa acum |
 | `INVATA <senzor>` / `STERGE <senzor>` | învață / uită codul radio al unui senzor de ușă/geam |
+| `USA <senzor> <0\|1>` | „ușa e de fapt închisă / deschisă”: o punem de mână (nu pornește alarma); rămâne așa până transmite senzorul din nou |
 | `TEST RAPID` | ziua de test, calculată pe loc, cu tabelul de rezultate |
 | `TEST CLASIC` / `TEST SMART` / `TEST STOP` | ziua de test pe machetă (~6 minute) |
 | `RUTINA` / `RUTINA STERGE` | trimite rutina / o uită |

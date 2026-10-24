@@ -111,11 +111,17 @@ Codurile se învață cu `INVATA 0` (apoi deschizi ușa) și stau în EEPROM.
 *Cum îl arătăm:* `ALARMA ACASA`, deschidem un geam învățat → `alarma 5 2` și sirena;
 `ALARMA OPRIT 1234` o oprește.
 
-### 10. Legătura cu panoul — [`panou.ino`](../casa/panou.ino)
+### 10. Legătura cu panoul — [`panou.ino`](../casa/panou.ino), [`legatura.h`](../casa/legatura.h)
 
 Trimite linia de stare o dată pe secundă și câte o linie pentru fiecare eveniment. Citește
 comenzi și de la panou, și din Serial Monitor (aceeași funcție, `executaComanda()`).
 Totul e descris în [protocol.md](protocol.md).
+
+Pe fir e I2C: panoul îl întreabă pe Arduino, iar `legatura.h` ține textul într-o coadă de
+256 de octeți pe care panoul o golește de câteva zeci de ori pe secundă. Pentru restul
+programului, legătura arată ca un port serial (`LEGATURA.print(...)`). Dacă panoul e ocupat
+mai mult de 40 ms, Arduino nu-l așteaptă: aruncă linia și merge mai departe, pentru că
+alarma și senzorii sunt mai importanți decât un mesaj pe ecran.
 
 ### 11. Ziua de test — [`scenariu.ino`](../casa/scenariu.ino)
 

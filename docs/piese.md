@@ -51,7 +51,7 @@ folosesc”). Prețurile sunt orientative (sigmanortec, drot, optimus).
 
 | Componentă | Buc. | La ce folosește |
 |---|:---:|---|
-| Translator de nivel 4 canale (BSS138) sau rezistențe 1 kΩ + 2 kΩ | 1 | legătura serială dintre Arduino (5 V) și ESP32 (3,3 V) |
+| Translator de nivel 4 canale (BSS138) | 1 | legătura I2C dintre Arduino (5 V) și ESP32 (3,3 V) |
 | Rezistență 4,7 kΩ | 1 | firul senzorilor DS18B20 |
 | Breadboard / plăcuță de test, fire Dupont, conectori JST | | |
 | Condensatori 100 nF și 100 µF | câțiva | lângă modulele care trag curent (pompa, releul) |

@@ -13,6 +13,7 @@
 #include <ctime>
 #include <string>
 #include <deque>
+#include <vector>
 #include <algorithm>
 #include <type_traits>
 
@@ -69,6 +70,10 @@ extern uint32_t simMillis;
 inline uint32_t millis() { return simMillis; }
 inline uint32_t micros() { return simMillis * 1000; }
 inline void delay(uint32_t) {}
+inline void noInterrupts() {}
+inline void interrupts() {}
+// cand Arduino asteapta ceva (de ex. sa ia panoul ce are de spus), sim.cpp lasa timpul sa curga
+void yield();
 
 // pinii lui Arduino Uno (panoul are pinii lui, in sim.cpp)
 extern int simIntrari[32];
@@ -190,6 +195,7 @@ class Stream : public Print {
     in.pop_front();
     return c;
   }
+  virtual int peek() { return in.empty() ? -1 : in.front(); }
   void primeste(const char *s) { while (*s) in.push_back(*s++); }
 };
 
@@ -203,14 +209,73 @@ class SimSerial : public Stream {
 };
 
 // ---------------------------------------------------------------- bibliotecile lui Uno
+// Firul I2C dintre placi. Arduino e "sclavul" (begin(adresa)), panoul e "seful"
+// (begin(sda, scl, frecventa)) - acelasi obiect Wire pentru amandoi.
+// Alte module (INA219) nu sunt pe fir: nu raspunde nimeni la adresele lor.
 class TwoWire {
  public:
+  std::string deLaArduino, deLaPanou;   // ce a trecut pe fir, ca sa-l arate pagina
+
   void begin() {}
-  void beginTransmission(uint8_t) {}
-  uint8_t endTransmission(bool = true) { return 2; }   // niciun INA219 pe fir
-  uint8_t requestFrom(uint8_t, uint8_t) { return 0; }
-  size_t write(uint8_t) { return 1; }
-  int read() { return 0; }
+  void begin(uint8_t adresa) { adresaArduino = adresa; }
+  bool begin(int, int, uint32_t = 0) { return true; }
+  void setTimeOut(uint16_t) {}
+  void onReceive(void (*f)(int)) { laPrimire = f; }
+  void onRequest(void (*f)()) { laCerere = f; }
+
+  void beginTransmission(int a) {
+    adresa = a;
+    tx.clear();
+  }
+  size_t write(uint8_t c) {
+    if (raspundem) raspuns.push_back(c);
+    else tx.push_back(c);
+    return 1;
+  }
+  size_t write(const uint8_t *b, size_t n) {
+    for (size_t i = 0; i < n; i++) write(b[i]);
+    return n;
+  }
+  // panoul scrie o comanda: Arduino o primeste ca pe placa, in onReceive
+  uint8_t endTransmission(bool = true) {
+    if (adresa != adresaArduino || !laPrimire) return 2;
+    deLaPanou.append(tx.begin(), tx.end());
+    rx.assign(tx.begin(), tx.end());
+    laPrimire((int)rx.size());
+    rx.clear();
+    return 0;
+  }
+  // panoul intreaba: Arduino raspunde in onRequest; ce lipseste vine 0xFF, ca pe fir
+  uint8_t requestFrom(int a, int n) {
+    rx.clear();
+    if (a != adresaArduino || !laCerere) return 0;
+    raspuns.clear();
+    raspundem = true;
+    laCerere();
+    raspundem = false;
+    if (raspuns.empty()) raspuns.push_back(0);
+    raspuns.resize(std::max<size_t>(raspuns.size(), n), 0xFF);
+    rx.assign(raspuns.begin(), raspuns.begin() + n);
+    for (uint8_t c : rx)
+      if (c && c != 0xFF) deLaArduino.push_back((char)c);
+    return n;
+  }
+  uint8_t requestFrom(uint8_t a, uint8_t n) { return requestFrom((int)a, (int)n); }
+  int available() { return (int)rx.size(); }
+  int read() {
+    if (rx.empty()) return -1;
+    uint8_t c = rx.front();
+    rx.pop_front();
+    return c;
+  }
+
+ private:
+  int adresaArduino = -1, adresa = -1;
+  bool raspundem = false;
+  std::deque<uint8_t> rx;
+  std::vector<uint8_t> tx, raspuns;
+  void (*laPrimire)(int) = nullptr;
+  void (*laCerere)() = nullptr;
 };
 extern TwoWire Wire;
 
@@ -252,7 +317,6 @@ class RCSwitch {
   void resetAvailable() { if (!coada.empty()) coada.pop_front(); }
 };
 
-class AltSoftSerial : public SimSerial {};
 
 class Preferences {   // panoul: nu tinem nimic minte intre rulari
  public:

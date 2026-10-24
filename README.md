@@ -100,7 +100,7 @@ machetei.
                     │   Arduino Uno    │◄─────────┘
                     │ "creierul" casei │──► becuri (PWM), încălzire, pompă,
                     └────────┬─────────┘    priza TV, sirenă
-                             │ serial (D8/D9)
+                             │ I2C (A4/A5)
                     ┌────────▼─────────┐
                     │ ESP32 + ecran 3,5"│──► Wi-Fi: oră, prognoză, pagina web
                     │     (panoul)      │
@@ -131,7 +131,7 @@ Dacă nu are Wi-Fi, face el o rețea, `NEPHA-casa`.
 Avem nevoie de Arduino IDE 2.
 
 **Arduino Uno** (`casa/casa.ino`)
-1. Library Manager: instalăm `rc-switch`, `OneWire`, `AltSoftSerial`.
+1. Library Manager: instalăm `rc-switch`, `OneWire`.
 2. Placa: *Arduino Uno*. Upload.
 3. Serial Monitor la 115200, cu „Newline”. Scriem `AJUTOR`, `SCAN` sau `TEST RAPID`.
 
