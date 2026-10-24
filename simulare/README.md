@@ -77,5 +77,5 @@ PIR, fotorezistență și un potențiometru pentru umiditatea solului.
 | `RUTINA` | ce a învățat (după o zi de test, rutina se resetează la cea din EEPROM) |
 
 Cu fotorezistența pe puțină lumină (sub ~20 lux) și un PIR apăsat, becul camerei se aprinde;
-după câteva minute fără mișcare se stinge singur și în Serial apare `lumina stinsa`.
+după câteva minute fără mișcare se stinge singur și în Serial apare `E 7 ...` (evenimentul „lumina stinsă”, pe panou în cuvinte).
 Potențiometrul de sol sub 35% + `UDA` sau o oră bună de udat → LED-ul albastru (pompa).

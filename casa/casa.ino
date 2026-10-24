@@ -23,6 +23,10 @@
     usi       - senzorii wireless 433 MHz de pe usi si geamuri
 
   Biblioteci (Library Manager): rc-switch, OneWire
+
+  Memoria: unele placi Uno (clone, bootloader vechi) primesc doar 30720 de
+  octeti de program, nu 32256 cat zice Arduino IDE. Daca la urcare apare
+  "verification error ... at byte 0x7800", programul a trecut de 30720.
 */
 
 #include "config.h"
@@ -43,7 +47,7 @@ uint32_t secundaDecizie = 0;   // ceasul casei la ultima decizie
 
 void setup() {
   Serial.begin(115200);
-  Serial.println(F("\nNEPHA - creierul casei porneste..."));
+  Serial.println(F("\nNEPHA porneste"));
 
   memorieIncarca();
   casa.mod = (ModCasa)setari.mod;
@@ -76,7 +80,7 @@ void setup() {
 
   secundaDecizie = acum();
   casa.priza.standbyDin = acum();
-  Serial.println(F("Gata. Comenzi: AJUTOR"));
+  Serial.println(F("Gata"));
   trimiteEveniment(EV_PORNIT, casa.mod, 0);
 }
 

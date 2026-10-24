@@ -251,7 +251,7 @@ static void scrieRand(Print &p, const __FlashStringHelper *nume, float clasic, f
 
 void testRapid(Print &p) {
   if (inScenariu()) return;
-  p.println(F("# Ziua de test: invat rutina din 7 zile, apoi traiesc aceeasi zi clasic si smart..."));
+  p.println(F("# Ziua de test: clasic si smart..."));
   tineMinte();
   stareTest = 2;
   for (uint8_t mod = 0; mod < 2; mod++) {
@@ -268,7 +268,7 @@ void testRapid(Print &p) {
 
   RezultatTest &c = rezultate[0];
   RezultatTest &s = rezultate[1];
-  p.println(F("#\t\tClasic\tSmart\tEconomie  (Wh, casa adevarata)"));
+  p.println(F("#\t\tClasic\tSmart\tEconomie (Wh)"));
   scrieRand(p, F("# Lumini\t"), c.lumini, s.lumini);
   scrieRand(p, F("# Incalzire"), c.incalzire, s.incalzire);
   scrieRand(p, F("# Udare\t"), c.pompa, s.pompa);

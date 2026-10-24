@@ -79,7 +79,7 @@ deschisa 2 1` (bucătăria, dedusă din temperatură), `[08:03] incalzire redusa
   de economie, maximum 60%.
 
 *Cum îl arătăm:* în Wokwi, apăsăm pe senzorul PIR al unei camere cu fotorezistența pe puțină
-lumină: LED-ul se aprinde; după câteva minute fără mișcare se stinge și apare `lumina stinsa`.
+lumină: LED-ul se aprinde; după câteva minute fără mișcare se stinge și în Serial apare `E 7 ...` (evenimentul 7, „lumina stinsă”; pe panou apare în cuvinte).
 
 ### 7. Energia și priza TV — [`energie.ino`](../casa/energie.ino)
 

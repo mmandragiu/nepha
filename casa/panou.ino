@@ -22,12 +22,6 @@ uint8_t lungSerial = 0;
 #endif
 uint32_t ultimaStare = 0;
 
-// numele evenimentelor, doar pentru Serial Monitor (in ordinea din stare.h)
-const char NUME_EVENIMENTE[] PROGMEM =
-  "pornit|mod|preincalzire|incalzire redusa|fereastra deschisa|fereastra rezolvata|"
-  "lumina stinsa|priza oprita|priza pornita|udare|udare amanata|energie|alarma|"
-  "usa/geam|sugestie armare|PIN gresit|senzor invatat|test";
-
 void panouInit() {
 #if defined(FARA_PANOU)
   Wire.begin();
@@ -133,17 +127,12 @@ void trimiteEveniment(uint8_t cod, uint8_t a, uint8_t b) {
   LEGATURA.println(b);
 #endif
 
-  // si pe Serial, in cuvinte, ca sa vedem ce face casa
+  // si pe Serial, cu ora (ce inseamna fiecare cod: docs/protocol.md, in cuvinte pe panou).
+  // Numele evenimentelor nu mai incap: pe unele placi Uno raman doar 30 KB pentru program.
   Serial.print('[');
   scrieOra(Serial);
-  Serial.print(F("] "));
-  uint8_t n = 1;
-  for (uint16_t k = 0; k < sizeof(NUME_EVENIMENTE) - 1; k++) {
-    char ch = pgm_read_byte(&NUME_EVENIMENTE[k]);
-    if (ch == '|') { n++; continue; }
-    if (n == cod) Serial.print(ch);
-    if (n > cod) break;
-  }
+  Serial.print(F("] E "));
+  Serial.print(cod);
   Serial.print(' ');
   Serial.print(a);
   Serial.print(' ');
@@ -202,7 +191,7 @@ void executaComanda(char *linie, Print &raspuns) {
     if (a2 && (uint16_t)atoi(a1) == setari.pin) {
       setari.pin = atoi(a2);
       salveazaSetari();
-      raspuns.println(F("# PIN schimbat"));
+      raspuns.println(F("# ok"));
     }
   } else if (este(cmd, PSTR("TEMP"))) {
     if (a2) {
@@ -247,9 +236,9 @@ void executaComanda(char *linie, Print &raspuns) {
   } else if (este(cmd, PSTR("STARE"))) {
     trimiteStare(Serial);
   } else if (este(cmd, PSTR("AJUTOR"))) {
-    Serial.println(F("STARE MOD ALARMA TEMP LUMINA PRIZA UDA INVATA STERGE USA TEST RUTINA SCAN ORA VREME - vezi docs/protocol.md"));
+    Serial.println(F("vezi docs/protocol.md"));
   } else {
-    raspuns.print(F("# nu stiu comanda: "));
+    raspuns.print(F("# ? "));
     raspuns.println(cmd);
   }
 }

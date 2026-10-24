@@ -40,7 +40,7 @@ void usiInvata(uint8_t slot) {
   if (slot >= NR_SENZORI_RF) return;
   slotDeInvatat = slot;
   invatPanaLa = millis() + 20000UL;
-  Serial.print(F("Deschide usa / geamul cu senzorul "));
+  Serial.print(F("Deschide senzorul "));
   Serial.println(slot);
 }
 
@@ -71,7 +71,7 @@ void usiVerifica() {
           coduriRF[slotDeInvatat] = cod;
           salveazaCodRF(slotDeInvatat, cod);
           trimiteEveniment(EV_SENZOR_INVATAT, slotDeInvatat, 1);
-          Serial.print(F("Senzor invatat, cod "));
+          Serial.print(F("Invatat "));
           Serial.println(cod);
           slotDeInvatat = -1;
           return;
@@ -87,7 +87,7 @@ void usiVerifica() {
         }
       }
       if (!cunoscut) {
-        Serial.print(F("Cod radio necunoscut: "));
+        Serial.print(F("Cod nou "));
         Serial.print(cod);
         Serial.print(F(" ("));
         Serial.print(biti);

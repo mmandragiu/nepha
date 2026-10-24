@@ -21,7 +21,7 @@ void memorieIncarca() {
     return;
   }
   // prima pornire (sau am schimbat structura): luam valorile din config.h
-  Serial.println(F("EEPROM gol - pun setarile implicite"));
+  Serial.println(F("EEPROM gol"));
   setari.semn = SEMN_EEPROM;
   setari.confort = T_CONFORT * 10;
   setari.noapte = T_NOAPTE * 10;
