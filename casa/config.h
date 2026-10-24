@@ -66,7 +66,7 @@ const uint8_t TIP_SENZOR[NR_SENZORI_RF]   = {USA_INTRARE, USA, FEREASTRA, FEREAS
 const int8_t  CAMERA_SENZOR[NR_SENZORI_RF] = {0, 2, 1, 0};   // -1 daca nu tine de o camera
 // emitatorul trimite codul cat timp usa e deschisa; daca nu-l mai auzim
 // atata timp, consideram ca s-a inchis
-#define TIMP_INCHIDERE_MS 3000
+#define TIMP_INCHIDERE_MS 2000
 
 // ---------------------------------------------------------------
 // Termostat (grade C) - valorile de pornire, se schimba din panou
@@ -121,20 +121,18 @@ const int8_t  CAMERA_SENZOR[NR_SENZORI_RF] = {0, 2, 1, 0};   // -1 daca nu tine 
 // ---------------------------------------------------------------
 // Legatura cu panoul (ESP32)
 // ---------------------------------------------------------------
-// Pe Uno R3 folosim AltSoftSerial: D8 = RX (de la ESP32), D9 = TX (spre ESP32).
-// Asa D0/D1 raman pentru USB si putem urca programul fara sa scoatem fire.
+// Pe I2C, prin translatorul de nivel: A4 = SDA, A5 = SCL (aceleasi fire ca
+// modulele INA219). Panoul ne intreaba, Arduino raspunde la adresa de mai jos.
+// D0/D1 raman pentru USB: putem urca programul si vedea Serial Monitor oricand.
 // Pentru simularea in Wokwi decomentati linia de mai jos: atunci
 // totul merge pe Serial si comenzile se scriu in Serial Monitor.
 // #define FARA_PANOU
-#define VITEZA_LEGATURA 9600
+#define ADRESA_ARDUINO 8
 
 #if defined(FARA_PANOU)
 #define LEGATURA Serial
 #define PERIOADA_STARE 5000       // pe Serial Monitor nu vrem o linie pe secunda
-#elif defined(ARDUINO_ARCH_RENESAS)
-#define LEGATURA Serial1          // Uno R4 are un port serial separat pe D0/D1
-#define PERIOADA_STARE 1000
 #else
-#define LEGATURA legaturaPanou    // AltSoftSerial, definit in panou
+#define LEGATURA legaturaPanou    // LegaturaI2C (legatura.h), definita in panou
 #define PERIOADA_STARE 1000
 #endif

@@ -14,12 +14,17 @@ class Ina219 {
  public:
   explicit Ina219(uint8_t adresa) : adresa(adresa) {}
 
+  // true cat timp vorbim cu un modul (firul I2C e al nostru, panoul asteapta)
+  static volatile bool ocupat;
+
   // true daca modulul raspunde pe I2C
   bool porneste() {
+    ocupat = true;
     Wire.beginTransmission(adresa);
-    if (Wire.endTransmission() != 0) return false;
-    scrie(0x00, 0x399F);   // configuratia implicita: 32 V, +-320 mV pe sunt, masurare continua
-    return true;
+    bool raspunde = Wire.endTransmission() == 0;
+    ocupat = false;
+    if (raspunde) scrie(0x00, 0x399F);   // configuratia implicita: 32 V, +-320 mV pe sunt, masurare continua
+    return raspunde;
   }
 
   // tensiunea de pe magistrala (dupa sunt), in volti. 1 bit = 4 mV
@@ -41,20 +46,27 @@ class Ina219 {
   uint8_t adresa;
 
   void scrie(uint8_t reg, uint16_t val) {
+    ocupat = true;
     Wire.beginTransmission(adresa);
     Wire.write(reg);
     Wire.write(val >> 8);
     Wire.write(val & 0xFF);
     Wire.endTransmission();
+    ocupat = false;
   }
 
   uint16_t citeste(uint8_t reg) {
+    uint16_t v = 0;
+    ocupat = true;
     Wire.beginTransmission(adresa);
     Wire.write(reg);
-    if (Wire.endTransmission() != 0) return 0;
-    if (Wire.requestFrom(adresa, (uint8_t)2) != 2) return 0;
-    uint16_t v = Wire.read() << 8;
-    v |= Wire.read();
+    if (Wire.endTransmission() == 0 && Wire.requestFrom(adresa, (uint8_t)2) == 2) {
+      v = Wire.read() << 8;
+      v |= Wire.read();
+    }
+    ocupat = false;
     return v;
   }
 };
+
+volatile bool Ina219::ocupat = false;

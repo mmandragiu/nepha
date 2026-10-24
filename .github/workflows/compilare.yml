@@ -20,7 +20,6 @@ jobs:
           libraries: |
             - name: rc-switch
             - name: OneWire
-            - name: AltSoftSerial
 
   panou:
     name: ESP32 cu ecran (panou)

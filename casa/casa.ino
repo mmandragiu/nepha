@@ -22,7 +22,7 @@
     termostat - incalzirea si ferestrele deschise
     usi       - senzorii wireless 433 MHz de pe usi si geamuri
 
-  Biblioteci (Library Manager): rc-switch, OneWire, AltSoftSerial
+  Biblioteci (Library Manager): rc-switch, OneWire
 */
 
 #include "config.h"
@@ -31,8 +31,8 @@
 #include <EEPROM.h>
 #include <RCSwitch.h>
 #include <OneWire.h>
-#if !defined(FARA_PANOU) && !defined(ARDUINO_ARCH_RENESAS)
-#include <AltSoftSerial.h>
+#if !defined(FARA_PANOU)
+#include "legatura.h"
 #endif
 
 Casa casa;
@@ -70,9 +70,9 @@ void setup() {
   pinMode(PIN_PRIZA, OUTPUT);
   digitalWrite(PIN_PRIZA, RELEU_PORNIT);
 
+  panouInit();          // intai firul I2C (il folosesc si modulele INA219)
   senzoriInit();
   usiInit();
-  panouInit();
 
   secundaDecizie = acum();
   casa.priza.standbyDin = acum();

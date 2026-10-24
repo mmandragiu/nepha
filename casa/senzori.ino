@@ -36,10 +36,10 @@ void senzoriInit() {
   }
   termometre.masoara();
 
-  // INA219
-  Wire.begin();
+  // INA219 (pe firul I2C pornit de panouInit, impreuna cu panoul)
 #if defined(WIRE_HAS_TIMEOUT)
-  Wire.setWireTimeout(3000, true);   // un fir desprins nu trebuie sa blocheze casa
+  // un fir desprins nu trebuie sa blocheze casa; 25 ms ca sa-l lasam pe panou sa termine
+  Wire.setWireTimeout(25000, true);
 #endif
   if (inaSolar.porneste()) casa.senzori |= SENZ_SOLAR;
   if (inaVant.porneste()) casa.senzori |= SENZ_VANT;

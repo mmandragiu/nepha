@@ -9,9 +9,9 @@
 // Aceleasi comenzi merg si din Serial Monitor (115200 baud, "Newline").
 // Lista completa: comanda AJUTOR sau docs/protocol.md
 
-// pe ce port vorbim cu panoul se alege in config.h (LEGATURA)
-#if !defined(FARA_PANOU) && !defined(ARDUINO_ARCH_RENESAS)
-AltSoftSerial legaturaPanou;      // D8 = RX, D9 = TX (fixe pentru AltSoftSerial)
+// pe ce vorbim cu panoul se alege in config.h (LEGATURA)
+#if !defined(FARA_PANOU)
+LegaturaI2C legaturaPanou;        // I2C, vezi legatura.h
 #endif
 
 char liniePanou[40];
@@ -29,8 +29,10 @@ const char NUME_EVENIMENTE[] PROGMEM =
   "usa/geam|sugestie armare|PIN gresit|senzor invatat|test";
 
 void panouInit() {
-#if !defined(FARA_PANOU)
-  LEGATURA.begin(VITEZA_LEGATURA);
+#if defined(FARA_PANOU)
+  Wire.begin();
+#else
+  legaturaPanou.begin(ADRESA_ARDUINO);
 #endif
 }
 
@@ -230,6 +232,8 @@ void executaComanda(char *linie, Print &raspuns) {
     if (a1) usiInvata(atoi(a1));
   } else if (este(cmd, PSTR("STERGE"))) {
     if (a1) usiSterge(atoi(a1));
+  } else if (este(cmd, PSTR("USA"))) {
+    if (a2) usiSeteaza(atoi(a1), atoi(a2));
   } else if (este(cmd, PSTR("TEST"))) {
     if (este(a1, PSTR("RAPID"))) testRapid(raspuns);
     else if (este(a1, PSTR("STOP"))) scenariuOpreste();
@@ -243,7 +247,7 @@ void executaComanda(char *linie, Print &raspuns) {
   } else if (este(cmd, PSTR("STARE"))) {
     trimiteStare(Serial);
   } else if (este(cmd, PSTR("AJUTOR"))) {
-    Serial.println(F("STARE MOD ALARMA TEMP LUMINA PRIZA UDA INVATA STERGE TEST RUTINA SCAN ORA VREME - vezi docs/protocol.md"));
+    Serial.println(F("STARE MOD ALARMA TEMP LUMINA PRIZA UDA INVATA STERGE USA TEST RUTINA SCAN ORA VREME - vezi docs/protocol.md"));
   } else {
     raspuns.print(F("# nu stiu comanda: "));
     raspuns.println(cmd);
