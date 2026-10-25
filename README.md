@@ -122,7 +122,7 @@ Dacă nu are Wi-Fi, face el o rețea, `NEPHA-casa`.
 | [`casa/`](casa) | programul pentru Arduino Uno — fiecare parte în tab-ul ei (alarmă, termostat, lumini, energie, grădină, rutină...) |
 | [`panou/`](panou) | programul pentru panoul ESP32: ecranele, Wi-Fi, prognoza, pagina web |
 | [`web/`](web) | pagina casei (un singur fișier HTML; se poate deschide și direct în browser, atunci arată o zi demo) |
-| [`aplicatie/`](aplicatie) | aplicația de telefon (Expo, Android și iPhone): aceleași ecrane ca pagina casei, plus un mod demo |
+| [`aplicatie/`](aplicatie) | aplicația de telefon (Flutter, Android și iPhone): aceleași ecrane ca pagina casei, plus un mod demo |
 | [`simulare/`](simulare) | casa virtuală (tot proiectul, în browser) și schema pentru simulatorul Wokwi |
 | [`docs/`](docs) | [montajul](docs/montaj.md), [piesele](docs/piese.md), [mesajele dintre plăci](docs/protocol.md), [cum funcționează codul](docs/cum-functioneaza-codul.md) |
 | [`unelte/`](unelte) | scripturile cu care am făcut fonturile cu diacritice pentru ecran și am pus pagina în panou |
