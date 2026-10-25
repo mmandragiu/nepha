@@ -64,7 +64,7 @@ Dacă nu merge (fața nu e recunoscută, telefonul nu are nimic setat), cerem PI
 ## Pe iPhone
 
 Aplicația pentru iPhone se poate face doar pe un Mac, așa că o face GitHub pe un Mac al lui: pe
-GitHub, la **Actions → Aplicatia → Run workflow** (cu „iPhone” bifat). După vreo 15 minute, jos la
+GitHub, la **Actions → Aplicatia → Run workflow** (cu „iPhone” bifat). După vreo 10 minute, jos la
 **Artifacts** apare `NEPHA-iphone`, cu `NEPHA.ipa` înăuntru.
 
 Fișierul nu e semnat. Ca să îl punem pe telefon, de pe Windows:

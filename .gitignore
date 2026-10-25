@@ -20,3 +20,4 @@ simulare/browser/construit/
 
 # aplicatia compilata (se face cu: cd aplicatie && flutter build apk)
 *.apk
+*.ipa
