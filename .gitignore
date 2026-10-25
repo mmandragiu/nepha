@@ -17,3 +17,6 @@ Thumbs.db
 
 # simulatorul din browser isi face aici o copie a panoului cand se construieste
 simulare/browser/construit/
+
+# aplicatia compilata (se face cu: cd aplicatie && flutter build apk)
+*.apk
