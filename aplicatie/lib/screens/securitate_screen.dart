@@ -1,4 +1,5 @@
-// Securitate & Setari - alarma (PIN sau amprenta), usile / geamurile, unde e panoul, cum se poarta casa
+// Securitate & Setari - alarma (PIN, Face ID / Touch ID sau amprenta), usile / geamurile,
+// unde e panoul, cum se poarta casa
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -35,7 +36,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
   }
 
   Future<void> _dezarmeaza(AppState app) async {
-    // intai amprenta (daca am pastrat PIN-ul), altfel tastatura
+    // intai Face ID / Touch ID / amprenta (daca am pastrat PIN-ul), altfel tastatura
     if (app.amprentaPornita &&
         app.areSalvatPin &&
         await app.dezarmeazaCuAmprenta()) {
@@ -120,7 +121,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                     width: double.infinity,
                     child: Buton(
                       app.amprentaPornita && app.areSalvatPin
-                          ? 'Dezarmează (amprentă sau PIN)'
+                          ? 'Dezarmează (${app.numeBiometrie} sau PIN)'
                           : 'Dezarmează',
                       principal: true,
                       onTap: () => _dezarmeaza(app),
@@ -279,12 +280,12 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
               if (app.amprentaDisponibila) ...[
                 const SizedBox(height: 14),
                 _RandSetare(
-                  titlu: 'Dezarmare cu amprenta',
+                  titlu: 'Dezarmare cu ${app.numeBiometrie}',
                   detaliu: app.areSalvatPin
                       ? 'PIN-ul e păstrat criptat pe telefon'
-                      : 'după prima dezarmare cu PIN, data viitoare ajunge amprenta',
+                      : 'după prima dezarmare cu PIN, data viitoare ajunge ${app.numeBiometrie}',
                   dreapta: Comutator(
-                    eticheta: 'Dezarmare cu amprenta',
+                    eticheta: 'Dezarmare cu ${app.numeBiometrie}',
                     pornit: app.amprentaPornita,
                     culoare: Culori.verde,
                     onSchimba: (v) => app.schimbaSetari(amprenta: v),

@@ -4,8 +4,9 @@
 // - tine minte adresa panoului, modul demo si temperatura de confort
 // - comenzile se vad pe loc ("optimist"): comutatorul se muta imediat, iar daca panoul
 //   nu raspunde in 3 secunde revine si apare un mesaj
-// - amprenta / Face ID: PIN-ul il verifica tot Arduino. Dupa o dezarmare reusita cu PIN,
-//   il pastram criptat pe telefon; data viitoare il trimitem noi, dupa amprenta.
+// - Face ID / Touch ID pe iPhone, amprenta pe Android: PIN-ul il verifica tot Arduino.
+//   Dupa o dezarmare reusita cu PIN, il pastram criptat pe telefon (Keychain pe iPhone,
+//   Keystore pe Android); data viitoare il trimitem noi, dupa ce telefonul ne recunoaste.
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -64,7 +65,10 @@ class AppState extends ChangeNotifier {
   bool demo = true;
   double confort = 21.5;
   bool amprentaPornita = false; // utilizatorul vrea sa dezarmeze cu amprenta
-  bool amprentaDisponibila = false; // telefonul are amprenta / Face ID
+  bool amprentaDisponibila =
+      false; // telefonul are amprenta / Face ID / Touch ID
+  // cum se numeste pe telefonul asta: "Face ID", "Touch ID" (iPhone) sau "amprenta" (Android)
+  String numeBiometrie = 'amprenta';
   bool areSalvatPin = false;
   bool setariGata = false;
 
@@ -103,6 +107,17 @@ class AppState extends ChangeNotifier {
         amprentaDisponibila =
             await _amprenta.isDeviceSupported() &&
             await _amprenta.canCheckBiometrics;
+        if (amprentaDisponibila) {
+          final feluri = await _amprenta.getAvailableBiometrics();
+          final iPhone = defaultTargetPlatform == TargetPlatform.iOS;
+          if (iPhone && feluri.contains(BiometricType.face)) {
+            numeBiometrie = 'Face ID';
+          } else if (iPhone) {
+            numeBiometrie = 'Touch ID';
+          } else if (feluri.length == 1 && feluri.first == BiometricType.face) {
+            numeBiometrie = 'recunoașterea feței';
+          }
+        }
         areSalvatPin = await _seif.containsKey(key: 'pin');
       } catch (_) {
         amprentaDisponibila = false;
@@ -323,7 +338,8 @@ class AppState extends ChangeNotifier {
       );
       if (!ok) return false;
     } on LocalAuthException catch (_) {
-      anunta('Amprenta nu a mers. Folosiți PIN-ul.', eroare: true);
+      final nume = numeBiometrie[0].toUpperCase() + numeBiometrie.substring(1);
+      anunta('$nume nu a mers. Folosiți PIN-ul.', eroare: true);
       return false;
     }
     await comanda('ALARMA OPRIT $pin');

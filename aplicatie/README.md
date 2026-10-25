@@ -18,7 +18,7 @@ Patru file:
 - **Camere & Grădină** — luminile (se aprind de aici), umiditatea solului cu „Udă acum” și ce a
   învățat casa (pe camere și pe ore);
 - **Energie** — soarele, vântul, bateria și consumul, graficul zilei și ziua de test (clasic vs smart);
-- **Securitate & Setări** — alarma (PIN sau amprentă), ușile și geamurile, adresa panoului, modul
+- **Securitate & Setări** — alarma (PIN, Face ID / Touch ID sau amprentă), ușile și geamurile, adresa panoului, modul
   demo, Smart / Clasic și temperatura de confort.
 
 ## Cum o pornim
@@ -47,11 +47,35 @@ Sus, în dreapta, se vede legătura: verde = conectat, galben = se conectează s
 roșu = panoul nu răspunde. Fără panou, **modul demo** arată o seară simulată (e pornit la prima
 deschidere), iar comenzile merg și acolo.
 
-## Alarma și amprenta
+## Alarma: PIN, Face ID, Touch ID sau amprentă
 
 PIN-ul îl verifică Arduino, nu aplicația. Prima dată dezarmăm cu PIN-ul; dacă Arduino l-a acceptat și
-„Dezarmare cu amprenta” e pornită, aplicația îl păstrează criptat pe telefon. Data viitoare ajunge
-amprenta (sau Face ID): aplicația trimite ea PIN-ul.
+dezarmarea fără PIN e pornită, aplicația îl păstrează criptat pe telefon (Keychain pe iPhone, Keystore
+pe Android). Data viitoare telefonul ne recunoaște și aplicația trimite ea PIN-ul.
+
+Aplicația vede singură ce are telefonul și așa scrie peste tot:
+
+- iPhone cu Face ID (X și mai noi) — „Dezarmare cu Face ID”;
+- iPhone cu buton (SE, 8) — „Dezarmare cu Touch ID”;
+- Android — „Dezarmare cu amprenta”.
+
+Dacă nu merge (fața nu e recunoscută, telefonul nu are nimic setat), cerem PIN-ul.
+
+## Pe iPhone
+
+Aplicația pentru iPhone se poate face doar pe un Mac, așa că o face GitHub pe un Mac al lui: pe
+GitHub, la **Actions → Aplicatia → Run workflow** (cu „iPhone” bifat). După vreo 15 minute, jos la
+**Artifacts** apare `NEPHA-iphone`, cu `NEPHA.ipa` înăuntru.
+
+Fișierul nu e semnat. Ca să îl punem pe telefon, de pe Windows:
+
+1. instalăm [Sideloadly](https://sideloadly.io) și iTunes (de pe site-ul Apple, nu din Microsoft Store);
+2. legăm iPhone-ul cu cablu, îl tragem pe `NEPHA.ipa` în Sideloadly și ne logăm cu Apple ID-ul nostru;
+3. pe iPhone: **Setări → General → VPN și gestionare dispozitive** → avem încredere în Apple ID-ul nostru;
+   pe iOS 16 și mai nou mai trebuie pornit și **Setări → Confidențialitate → Mod dezvoltator**.
+
+Cu un Apple ID obișnuit (gratuit), aplicația merge 7 zile, apoi o punem din nou (datele rămân). Cu
+contul de dezvoltator Apple (99 $ pe an) merge un an și se poate da și altora, prin TestFlight.
 
 ## Cum e făcută
 
@@ -61,13 +85,15 @@ amprenta (sau Face ID): aplicația trimite ea PIN-ul.
 - Comutatoarele se mută pe loc și așteaptă confirmarea; dacă nu vine, revin.
 - Panoul vorbește HTTP simplu (fără HTTPS): pe Android e permis în `AndroidManifest.xml`
   (`usesCleartextTraffic`), pe iPhone în `Info.plist` (doar rețeaua locală).
+- La prima deschidere, iPhone-ul întreabă dacă aplicația poate căuta în rețeaua locală (panoul) și,
+  la prima dezarmare, dacă poate folosi Face ID: la amândouă răspundem „Permite”.
 - Fontul Nunito e în aplicație (`assets/google_fonts`), merge și fără internet.
 
 | Fișier | Ce face |
 |---|---|
 | `lib/models/api_models.dart` | ce trimite panoul (aceleași câmpuri ca în `panou/web.ino`) |
 | `lib/services/api_service.dart` | cererile către panou (dio, 3 s) și seara simulată pentru modul demo |
-| `lib/providers/app_state.dart` | starea aplicației: întrebările periodice, comenzile, setările, amprenta |
+| `lib/providers/app_state.dart` | starea aplicației: întrebările periodice, comenzile, setările, Face ID / amprenta |
 | `lib/theme/nepha_theme.dart` | culorile și fontul (aceleași ca pe pagină și pe panou) |
 | `lib/widgets/` | cardurile, comutatoarele, graficul, harta rutinei, tastatura PIN |
 | `lib/screens/` | cele patru ecrane |
