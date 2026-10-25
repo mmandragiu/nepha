@@ -97,7 +97,7 @@ class EnergieScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Eticheta(
+              Eticheta(
                 'Azi',
                 iconita: Icons.wb_sunny_outlined,
                 culoare: Culori.soare,
@@ -116,7 +116,7 @@ class EnergieScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Eticheta(
+              Eticheta(
                 'Ziua de test',
                 iconita: Icons.balance_outlined,
                 culoare: Culori.verde,

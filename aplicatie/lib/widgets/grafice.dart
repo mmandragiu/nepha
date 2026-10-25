@@ -99,7 +99,7 @@ class GraficEnergie extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        const Wrap(
+        Wrap(
           spacing: 14,
           children: [
             _Legenda(Culori.soare, 'producție (soare + vânt)'),
@@ -202,7 +202,7 @@ class HartaRutina extends StatelessWidget {
                   child: Text(
                     h % 6 == 0 ? '$h' : '',
                     softWrap: false,
-                    style: const TextStyle(fontSize: 10, color: Culori.text2),
+                    style: TextStyle(fontSize: 10, color: Culori.text2),
                   ),
                 ),
               ),

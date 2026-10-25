@@ -1,5 +1,5 @@
 // Securitate & Setari - alarma (PIN, Face ID / Touch ID sau amprenta), usile / geamurile,
-// unde e panoul, cum se poarta casa
+// unde e panoul, cum se poarta casa, tema de zi / noapte
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -153,7 +153,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
                           border: i > 0
-                              ? const Border(
+                              ? Border(
                                   top: BorderSide(
                                     color: Culori.linie,
                                     width: 0.6,
@@ -207,11 +207,11 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                   isDense: true,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Culori.linie),
+                    borderSide: BorderSide(color: Culori.linie),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Culori.linie),
+                    borderSide: BorderSide(color: Culori.linie),
                   ),
                 ),
               ),
@@ -250,7 +250,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Eticheta(
+              Eticheta(
                 'Cum se poartă casa',
                 iconita: Icons.eco_outlined,
                 culoare: Culori.verde,
@@ -295,6 +295,29 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
             ],
           ),
         ),
+
+        // ---- cum arata aplicatia
+        Bloc(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Eticheta('Aspect', iconita: Icons.dark_mode_outlined),
+              _Alegere(
+                optiuni: const {
+                  'auto': 'Ca telefonul',
+                  'zi': 'Zi',
+                  'noapte': 'Noapte',
+                },
+                ales: app.tema,
+                onAlege: (t) => app.schimbaSetari(tema: t),
+              ),
+              const SizedBox(height: 8),
+              const T.mic(
+                'Noaptea, ecranul e închis la culoare și nu mai luminează camera.',
+              ),
+            ],
+          ),
+        ),
         const T.mic(
           'NEPHA · casa care se gândește singură cum să economisească energie',
           aliniere: TextAlign.center,
@@ -330,45 +353,21 @@ class _ModCasa extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: Culori.moale,
-            borderRadius: BorderRadius.circular(99),
-          ),
-          child: Row(
-            children: [
-              for (final m in [true, false])
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      if (smart == null || smart == m) return;
-                      atingere();
-                      app.comanda(
-                        m ? 'MOD SMART' : 'MOD CLASIC',
-                        cheie: 'mod',
-                        valoare: m,
-                      );
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: smart == m ? Culori.card : Colors.transparent,
-                        borderRadius: BorderRadius.circular(99),
-                        boxShadow: smart == m ? umbraCard : null,
-                      ),
-                      child: T(
-                        '${m ? 'Smart' : 'Clasic'}${smart == m && app.asteapta('mod') ? '…' : ''}',
-                        gros: FontWeight.w700,
-                        culoare: smart == m ? Culori.text : Culori.text2,
-                        aliniere: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+        _Alegere(
+          optiuni: {
+            'smart': 'Smart${smart == true && app.asteapta('mod') ? '…' : ''}',
+            'clasic':
+                'Clasic${smart == false && app.asteapta('mod') ? '…' : ''}',
+          },
+          ales: smart == null ? null : (smart ? 'smart' : 'clasic'),
+          onAlege: (m) {
+            if (smart == null) return;
+            app.comanda(
+              m == 'smart' ? 'MOD SMART' : 'MOD CLASIC',
+              cheie: 'mod',
+              valoare: m == 'smart',
+            );
+          },
         ),
         const SizedBox(height: 8),
         T.mic(
@@ -381,6 +380,59 @@ class _ModCasa extends StatelessWidget {
       ],
     );
   }
+}
+
+// cateva butoane lipite, unul singur ales (ca la Smart / Clasic)
+class _Alegere extends StatelessWidget {
+  final Map<String, String> optiuni; // cheie -> ce scrie pe buton
+  final String? ales;
+  final ValueChanged<String> onAlege;
+  const _Alegere({
+    required this.optiuni,
+    required this.ales,
+    required this.onAlege,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(4),
+    decoration: BoxDecoration(
+      color: Culori.moale,
+      borderRadius: BorderRadius.circular(99),
+    ),
+    child: Row(
+      children: [
+        for (final o in optiuni.entries)
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (o.key == ales) return;
+                atingere();
+                onAlege(o.key);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  // noaptea, cel ales e mai deschis decat fundalul, nu mai inchis
+                  color: o.key == ales
+                      ? (Culori.intunecat ? Culori.linie : Culori.card)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(99),
+                  boxShadow: o.key == ales ? umbraCard : null,
+                ),
+                child: T(
+                  o.value,
+                  gros: FontWeight.w700,
+                  culoare: o.key == ales ? Culori.text : Culori.text2,
+                  aliniere: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
 }
 
 class _RandSetare extends StatelessWidget {
@@ -423,7 +475,7 @@ class _ButonMic extends StatelessWidget {
       },
       style: OutlinedButton.styleFrom(
         padding: EdgeInsets.zero,
-        side: const BorderSide(color: Culori.linie),
+        side: BorderSide(color: Culori.linie),
         shape: const StadiumBorder(),
         foregroundColor: Culori.text,
       ),

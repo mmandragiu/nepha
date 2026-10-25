@@ -19,7 +19,7 @@ Patru file:
   învățat casa (pe camere și pe ore);
 - **Energie** — soarele, vântul, bateria și consumul, graficul zilei și ziua de test (clasic vs smart);
 - **Securitate & Setări** — alarma (PIN, Face ID / Touch ID sau amprentă), ușile și geamurile, adresa panoului, modul
-  demo, Smart / Clasic și temperatura de confort.
+  demo, Smart / Clasic, temperatura de confort și tema (ca telefonul, zi sau noapte).
 
 ## Cum o pornim
 
@@ -87,6 +87,8 @@ contul de dezvoltator Apple (99 $ pe an) merge un an și se poate da și altora,
   (`usesCleartextTraffic`), pe iPhone în `Info.plist` (doar rețeaua locală).
 - La prima deschidere, iPhone-ul întreabă dacă aplicația poate căuta în rețeaua locală (panoul) și,
   la prima dezarmare, dacă poate folosi Face ID: la amândouă răspundem „Permite”.
+- Tema de noapte: culorile sunt în `lib/theme/nepha_theme.dart`, câte un set pentru zi și unul pentru
+  noapte. Când se schimbă, `main.dart` reface tot ecranul ca să le citească din nou.
 - Fontul Nunito e în aplicație (`assets/google_fonts`), merge și fără internet.
 
 | Fișier | Ce face |

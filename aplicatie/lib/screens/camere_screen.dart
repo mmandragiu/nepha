@@ -73,7 +73,7 @@ class CamereScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Eticheta(
+                Eticheta(
                   'Grădină',
                   iconita: Icons.water_drop_outlined,
                   culoare: Culori.apa,

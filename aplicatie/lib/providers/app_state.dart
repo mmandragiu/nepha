@@ -1,7 +1,7 @@
 // app_state - tot ce stie aplicatia despre casa, intr-un singur loc
 //
 // - intreaba panoul o data la 2 secunde (ca pagina casei); jurnalul, graficul si rutina mai rar
-// - tine minte adresa panoului, modul demo si temperatura de confort
+// - tine minte adresa panoului, modul demo, temperatura de confort si tema (zi / noapte)
 // - comenzile se vad pe loc ("optimist"): comutatorul se muta imediat, iar daca panoul
 //   nu raspunde in 3 secunde revine si apare un mesaj
 // - Face ID / Touch ID pe iPhone, amprenta pe Android: PIN-ul il verifica tot Arduino.
@@ -64,6 +64,7 @@ class AppState extends ChangeNotifier {
   String adresa = '';
   bool demo = true;
   double confort = 21.5;
+  String tema = 'auto'; // 'auto' (ca telefonul), 'zi' sau 'noapte'
   bool amprentaPornita = false; // utilizatorul vrea sa dezarmeze cu amprenta
   bool amprentaDisponibila =
       false; // telefonul are amprenta / Face ID / Touch ID
@@ -101,6 +102,7 @@ class AppState extends ChangeNotifier {
     adresa = p.getString('adresa') ?? '';
     demo = p.getBool('demo') ?? true;
     confort = p.getDouble('confort') ?? 21.5;
+    tema = p.getString('tema') ?? 'auto';
     amprentaPornita = p.getBool('amprenta') ?? false;
     if (!kIsWeb) {
       try {
@@ -132,6 +134,7 @@ class AppState extends ChangeNotifier {
     String? adresa,
     bool? demo,
     double? confort,
+    String? tema,
     bool? amprenta,
   }) async {
     final p = await SharedPreferences.getInstance();
@@ -149,6 +152,10 @@ class AppState extends ChangeNotifier {
     if (confort != null) {
       this.confort = confort;
       await p.setDouble('confort', confort);
+    }
+    if (tema != null) {
+      this.tema = tema;
+      await p.setString('tema', tema);
     }
     if (amprenta != null) {
       amprentaPornita = amprenta;

@@ -34,6 +34,7 @@ class T extends StatelessWidget {
   final Color? culoare;
   final TextAlign? aliniere;
   final int? randuri;
+  final bool _mic; // textul mic e gri, daca nu zicem altfel
   const T(
     this.text, {
     super.key,
@@ -42,16 +43,12 @@ class T extends StatelessWidget {
     this.culoare,
     this.aliniere,
     this.randuri,
-  });
+  }) : _mic = false;
 
-  const T.mic(
-    this.text, {
-    super.key,
-    this.culoare = Culori.text2,
-    this.aliniere,
-    this.randuri,
-  }) : marime = 13,
-       gros = FontWeight.w400;
+  const T.mic(this.text, {super.key, this.culoare, this.aliniere, this.randuri})
+    : marime = 13,
+      gros = FontWeight.w400,
+      _mic = true;
 
   const T.mare(
     this.text, {
@@ -60,7 +57,8 @@ class T extends StatelessWidget {
     this.aliniere,
     this.randuri,
   }) : marime = 44,
-       gros = FontWeight.w800;
+       gros = FontWeight.w800,
+       _mic = false;
 
   const T.mediu(
     this.text, {
@@ -69,7 +67,8 @@ class T extends StatelessWidget {
     this.aliniere,
     this.randuri,
   }) : marime = 24,
-       gros = FontWeight.w700;
+       gros = FontWeight.w700,
+       _mic = false;
 
   @override
   Widget build(BuildContext context) => Text(
@@ -80,7 +79,7 @@ class T extends StatelessWidget {
     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
       fontSize: marime,
       fontWeight: gros,
-      color: culoare ?? Culori.text,
+      color: culoare ?? (_mic ? Culori.text2 : Culori.text),
       height: marime > 30 ? 1.1 : 1.35,
       letterSpacing: marime > 30 ? -1 : 0,
     ),
@@ -138,7 +137,7 @@ class Ecran extends StatelessWidget {
                   color: Culori.soareD,
                   borderRadius: BorderRadius.circular(coltCard),
                 ),
-                child: const T.mic(
+                child: T.mic(
                   'Mod demo: vedeți o seară simulată. Adresa panoului se pune la Securitate & Setări.',
                   culoare: Culori.text,
                 ),
@@ -185,7 +184,7 @@ class _BlocState extends State<Bloc> {
       ), // se ridica putin la atingere
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.pericol ? const Color(0xFFFFF8F8) : Culori.card,
+        color: widget.pericol ? Culori.cardPericol : Culori.card,
         borderRadius: BorderRadius.circular(coltCard),
         border: Border.all(
           color: widget.pericol ? Culori.rosu : Culori.linie,
@@ -211,14 +210,14 @@ class _BlocState extends State<Bloc> {
 
 class Eticheta extends StatelessWidget {
   final IconData? iconita;
-  final Color culoare;
+  final Color? culoare;
   final String text;
   final Widget? dreapta;
   const Eticheta(
     this.text, {
     super.key,
     this.iconita,
-    this.culoare = Culori.text2,
+    this.culoare,
     this.dreapta,
   });
 
@@ -230,7 +229,7 @@ class Eticheta extends StatelessWidget {
       child: Row(
         children: [
           if (iconita != null) ...[
-            Icon(iconita, size: 18, color: culoare),
+            Icon(iconita, size: 18, color: culoare ?? Culori.text2),
             const SizedBox(width: 8),
           ],
           Expanded(
@@ -253,7 +252,7 @@ class Eticheta extends StatelessWidget {
 
 enum Ton { gri, verde, soare, apa, cald, rosu }
 
-const _tonuri = {
+Map<Ton, (Color, Color)> get _tonuri => {
   Ton.gri: (Culori.moale, Culori.text2),
   Ton.verde: (Culori.verdeD, Culori.verde),
   Ton.soare: (Culori.soareD, Culori.soare),
@@ -360,11 +359,9 @@ class Buton extends StatelessWidget {
         : OutlinedButton(
             onPressed: apasa,
             style: stil.copyWith(
-              side: const WidgetStatePropertyAll(
-                BorderSide(color: Culori.linie),
-              ),
-              backgroundColor: const WidgetStatePropertyAll(Culori.card),
-              foregroundColor: const WidgetStatePropertyAll(Culori.text),
+              side: WidgetStatePropertyAll(BorderSide(color: Culori.linie)),
+              backgroundColor: WidgetStatePropertyAll(Culori.card),
+              foregroundColor: WidgetStatePropertyAll(Culori.text),
             ),
             child: Text(text),
           );
@@ -378,14 +375,14 @@ class Comutator extends StatelessWidget {
   final bool pornit;
   final ValueChanged<bool> onSchimba;
   final bool asteapta;
-  final Color culoare;
+  final Color? culoare;
   final String eticheta;
   const Comutator({
     super.key,
     required this.pornit,
     required this.onSchimba,
     this.asteapta = false,
-    this.culoare = Culori.soare,
+    this.culoare,
     required this.eticheta,
   });
 
@@ -405,7 +402,7 @@ class Comutator extends StatelessWidget {
         height: 28,
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
-          color: pornit ? culoare : Culori.linie,
+          color: pornit ? (culoare ?? Culori.soare) : Culori.linie,
           borderRadius: BorderRadius.circular(99),
         ),
         child: AnimatedAlign(
@@ -415,7 +412,7 @@ class Comutator extends StatelessWidget {
           child: Container(
             width: 22,
             height: 22,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Culori.card,
               shape: BoxShape.circle,
               boxShadow: [
@@ -428,7 +425,7 @@ class Comutator extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(5),
             child: asteapta
-                ? const CircularProgressIndicator(
+                ? CircularProgressIndicator(
                     strokeWidth: 1.6,
                     color: Culori.text2,
                   )
@@ -445,21 +442,16 @@ class Comutator extends StatelessWidget {
 // bara aluneca in 0,5 s, cu aceeasi curba ca pe panou
 class Bara extends StatelessWidget {
   final double procent;
-  final Color culoare;
-  final Color fundal;
-  const Bara(
-    this.procent, {
-    super.key,
-    this.culoare = Culori.verde,
-    this.fundal = Culori.linie,
-  });
+  final Color? culoare;
+  final Color? fundal;
+  const Bara(this.procent, {super.key, this.culoare, this.fundal});
 
   @override
   Widget build(BuildContext context) => ClipRRect(
     borderRadius: BorderRadius.circular(99),
     child: Container(
       height: 8,
-      color: fundal,
+      color: fundal ?? Culori.linie,
       alignment: Alignment.centerLeft,
       child: TweenAnimationBuilder<double>(
         tween: Tween(end: (procent / 100).clamp(0, 1).toDouble()),
@@ -469,7 +461,7 @@ class Bara extends StatelessWidget {
           widthFactor: v,
           child: Container(
             decoration: BoxDecoration(
-              color: culoare,
+              color: culoare ?? Culori.verde,
               borderRadius: BorderRadius.circular(99),
             ),
           ),

@@ -113,7 +113,7 @@ class _AcasaScreenState extends State<AcasaScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Eticheta(
+                      Eticheta(
                         'În casă',
                         iconita: Icons.thermostat_outlined,
                         culoare: Culori.cald,
@@ -138,7 +138,7 @@ class _AcasaScreenState extends State<AcasaScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Eticheta(
+                      Eticheta(
                         'Afară',
                         iconita: Icons.wb_sunny_outlined,
                         culoare: Culori.apa,
@@ -201,7 +201,7 @@ class _AcasaScreenState extends State<AcasaScreen> {
                 culoare: al.pericol
                     ? Culori.rosu
                     : (al.cod == 0 ? Culori.text2 : Culori.verde),
-                dreapta: const Icon(
+                dreapta: Icon(
                   Icons.chevron_right,
                   size: 18,
                   color: Culori.text2,
@@ -237,7 +237,7 @@ class _AcasaScreenState extends State<AcasaScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 9),
                   decoration: BoxDecoration(
                     border: i > 0
-                        ? const Border(
+                        ? Border(
                             top: BorderSide(color: Culori.linie, width: 0.6),
                           )
                         : null,
