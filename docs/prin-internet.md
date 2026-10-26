@@ -120,17 +120,23 @@ GitHub nu-ți mai arată parola niciodată: doar că există. În loguri apare c
 1. pe GitHub, la **Actions**, șterge rulările vechi ale lui „Aplicatia” (cu ele se șterg și fișierele `.ipa`);
 2. schimbați parola lui `nepha-client` pe broker și în Secret.
 
-### Verificare fără panou și fără telefon
+### Verificare fără panou
 
-`unelte/proba_broker.py` (trebuie `pip install paho-mqtt`) ia parolele din aceleași fișiere și nu
-le afișează:
+`unelte/proba_broker.py` (trebuie `pip install paho-mqtt cryptography`) ia parolele din aceleași
+fișiere și nu le afișează.
 
-- `python unelte/proba_broker.py panou` se dă drept un panou de probă (`nepha-proba`), cu o casă
-  inventată. Așa poți încerca aplicația prin internet fără ESP32.
+- `python unelte/proba_broker.py panou` pornește pe laptop un panou de probă (`nepha-proba`), cu o
+  casă inventată (PIN-ul alarmei: 1234). Răspunde:
+  - **pe Wi-Fi**, la adresa laptopului, portul 8080 (o afișează la pornire). În aplicație scrii
+    `adresa:8080`, de exemplu `192.168.1.10:8080`;
+  - **prin broker**, dacă găsește `panou/secrete.h`.
+
+  Tot el afișează și un cod de legare. Așa probezi tot drumul fără ESP32: Wi-Fi, legarea, apoi
+  oprești Wi-Fi-ul telefonului, mergi prin internet și dezarmezi cu PIN-ul criptat.
 - `python unelte/proba_broker.py telefon nepha-xxxxxx` se dă drept telefon și întreabă panoul
-  adevărat de stare.
+  adevărat de stare, prin broker.
 
-Dacă brokerul refuză (de exemplu din ACL), scriptul arată codul de eroare.
+Dacă brokerul refuză (de exemplu din cauza ACL-ului), scriptul arată codul de eroare.
 
 ## Mai departe (după concurs)
 
