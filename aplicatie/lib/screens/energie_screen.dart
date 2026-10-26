@@ -97,12 +97,7 @@ class EnergieScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Eticheta(
-                'Azi',
-                iconita: Icons.wb_sunny_outlined,
-                culoare: Culori.soare,
-              ),
-              GraficEnergie(app.istoric),
+              _Grafic(app),
               if (en.estimatSolar6h != null) ...[
                 const SizedBox(height: 8),
                 T.mic(
@@ -231,4 +226,42 @@ class _Rezultate extends StatelessWidget {
       ],
     );
   }
+}
+
+// graficul: ultimele 24 de ore (de la panou) sau ultimele 3 zile (tinute pe telefon)
+class _Grafic extends StatefulWidget {
+  final AppState app;
+  const _Grafic(this.app);
+
+  @override
+  State<_Grafic> createState() => _GraficState();
+}
+
+class _GraficState extends State<_Grafic> {
+  bool _trei = false;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Eticheta(
+        _trei ? 'Ultimele 3 zile' : 'Azi',
+        iconita: Icons.wb_sunny_outlined,
+        culoare: Culori.soare,
+        dreapta: widget.app.istoric3 == null
+            ? null
+            : SizedBox(
+                width: 150,
+                child: Alegere(
+                  optiuni: const {'azi': 'Azi', 'trei': '3 zile'},
+                  ales: _trei ? 'trei' : 'azi',
+                  onAlege: (v) => setState(() => _trei = v == 'trei'),
+                ),
+              ),
+      ),
+      _trei
+          ? GraficEnergie(widget.app.istoric3, zile: true)
+          : GraficEnergie(widget.app.istoric),
+    ],
+  );
 }

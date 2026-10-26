@@ -1,19 +1,29 @@
-// ui_setari - reteaua, modul casei (smart / clasic), temperatura de confort, calibrarea ecranului
+// ui_setari - reteaua, legarea unui telefon, modul casei (smart / clasic), temperatura de confort,
+// calibrarea ecranului
 
 float confortSetat = 21.5;     // panoul nu primeste setarea de la Arduino, o tinem minte aici
 
 void desenSetari(bool tot) {
-  String semn = numeRetea() + adresaIP() + casa.mod + zecimal(confortSetat, 1);
+  uint32_t cod = codDeAfisat();
+  String semn = numeRetea() + adresaIP() + casa.mod + zecimal(confortSetat, 1) + mqttConectat() + cod +
+                (cod ? secundeImperechere() / 10 : 0);
   if (!schimbat(0, semn)) return;
-  for (uint8_t id = 94; id <= 99; id++) stergeZona(id);
+  for (uint8_t id = 93; id <= 99; id++) stergeZona(id);
   card(12, 50, 456, 216);
 
   // reteaua
   scrie("Rețea", 28, 62, F_MIC, C_TEXT2, C_CARD);
   String linie1, linie2;
-  if (online()) {
+  if (cod) {
+    // telefonul scrie codul asta in aplicatie (Securitate & Setari -> Leaga telefonul)
+    char text[48];
+    snprintf(text, sizeof(text), "Cod pentru telefon: %03u %03u", (unsigned)(cod / 1000), (unsigned)(cod % 1000));
+    linie1 = text;
+    linie2 = "Scrieți-l în aplicație (mai e valabil " + String(secundeImperechere()) + " s)";
+  } else if (online()) {
     linie1 = numeRetea() + " · " + adresaIP();
-    linie2 = "Pagina casei: http://nepha.local sau http://" + adresaIP();
+    linie2 = String("Aplicația: adresa ") + adresaIP() + " · prin internet: " + (mqttConectat() ? "da" : "nu") +
+             " · " + idServer;
   } else if (modAP()) {
     linie1 = "Rețeaua panoului: " AP_NUME " (parola " AP_PAROLA ")";
     linie2 = "Pe telefon: conectați-vă la ea și deschideți 192.168.4.1/wifi";
@@ -33,8 +43,9 @@ void desenSetari(bool tot) {
   scrie(grade(confortSetat), 324, 197, F_TEXT, C_TEXT, C_CARD, textdatum_t::middle_center);
   buton("+", 354, 180, 44, 32, 98);
 
-  buton("Jurnal", 28, 224, 140, 34, 94);
-  buton("Calibrează ecranul", 250, 224, 202, 34, 99);
+  buton("Jurnal", 28, 224, 108, 34, 94);
+  buton("Leagă telefonul", 144, 224, 160, 34, 93, cod != 0);
+  buton("Calibrează", 312, 224, 140, 34, 99);
 }
 
 void atingeSetari(uint8_t id) {
@@ -45,6 +56,10 @@ void atingeSetari(uint8_t id) {
     char cmd[24];
     snprintf(cmd, sizeof(cmd), "TEMP CONFORT %d", (int)lroundf(confortSetat * 10));
     trimiteArduino(cmd);
+    dateNoiUI = true;
+  }
+  if (id == 93) {
+    incepeImperechere();
     dateNoiUI = true;
   }
   if (id == 94) schimbaEcran(E_JURNAL);

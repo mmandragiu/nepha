@@ -36,3 +36,4 @@ jobs:
           libraries: |
             - name: LovyanGFX
             - name: ArduinoJson
+            - name: PubSubClient

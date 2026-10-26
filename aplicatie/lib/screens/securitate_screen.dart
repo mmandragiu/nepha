@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/app_state.dart';
+import '../services/broker.dart' show areBroker;
 import '../theme/nepha_theme.dart';
 import '../widgets/tastatura_pin.dart';
 import '../widgets/ui.dart';
@@ -45,6 +46,11 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
     if (!mounted) return;
     final pin = await ceAPin(context);
     if (pin != null) await app.dezarmeazaCuPin(pin);
+  }
+
+  Future<void> _leaga(AppState app) async {
+    final cod = await ceCodulPanoului(context);
+    if (cod != null) await app.leagaTelefonul(cod);
   }
 
   void _conecteaza(AppState app) {
@@ -225,6 +231,22 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                 ),
               ),
               const SizedBox(height: 14),
+              // legat = are cheia casei: poate dezarma si prin internet (PIN-ul pleaca criptat)
+              _RandSetare(
+                titlu: app.legat
+                    ? 'Telefonul e legat de casă'
+                    : 'Leagă telefonul de casă',
+                detaliu: !areBroker
+                    ? 'aplicația e compilată fără broker: merge doar pe Wi-Fi'
+                    : app.legat
+                    ? 'merge și de pe date mobile · ${app.server}'
+                    : 'o dată, acasă, ca să meargă și de pe date mobile',
+                dreapta: Buton(
+                  app.legat ? 'Din nou' : 'Leagă',
+                  onTap: () => _leaga(app),
+                ),
+              ),
+              const SizedBox(height: 14),
               _RandSetare(
                 titlu: 'Mod demo',
                 detaliu: 'o seară simulată, fără panou (pentru prezentări)',
@@ -302,7 +324,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Eticheta('Aspect', iconita: Icons.dark_mode_outlined),
-              _Alegere(
+              Alegere(
                 optiuni: const {
                   'auto': 'Ca telefonul',
                   'zi': 'Zi',
@@ -353,7 +375,7 @@ class _ModCasa extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Alegere(
+        Alegere(
           optiuni: {
             'smart': 'Smart${smart == true && app.asteapta('mod') ? '…' : ''}',
             'clasic':
@@ -380,59 +402,6 @@ class _ModCasa extends StatelessWidget {
       ],
     );
   }
-}
-
-// cateva butoane lipite, unul singur ales (ca la Smart / Clasic)
-class _Alegere extends StatelessWidget {
-  final Map<String, String> optiuni; // cheie -> ce scrie pe buton
-  final String? ales;
-  final ValueChanged<String> onAlege;
-  const _Alegere({
-    required this.optiuni,
-    required this.ales,
-    required this.onAlege,
-  });
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(4),
-    decoration: BoxDecoration(
-      color: Culori.moale,
-      borderRadius: BorderRadius.circular(99),
-    ),
-    child: Row(
-      children: [
-        for (final o in optiuni.entries)
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                if (o.key == ales) return;
-                atingere();
-                onAlege(o.key);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  // noaptea, cel ales e mai deschis decat fundalul, nu mai inchis
-                  color: o.key == ales
-                      ? (Culori.intunecat ? Culori.linie : Culori.card)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(99),
-                  boxShadow: o.key == ales ? umbraCard : null,
-                ),
-                child: T(
-                  o.value,
-                  gros: FontWeight.w700,
-                  culoare: o.key == ales ? Culori.text : Culori.text2,
-                  aliniere: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
-      ],
-    ),
-  );
 }
 
 class _RandSetare extends StatelessWidget {

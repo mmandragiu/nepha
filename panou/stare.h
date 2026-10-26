@@ -109,9 +109,39 @@ void invataPanou();
 // istoric
 void istoricPas();
 
-// web
+// imperechere si broker (folosite si de ecran si de legatura cu Arduino)
+extern String idServer;
+void incepeImperechere();
+uint32_t codDeAfisat();
+uint8_t secundeImperechere();
+void mqttEveniment(const EvenimentP &e);
+bool mqttConectat();
+
+// doar pe placa (simulatorul din browser nu are retea)
+#if defined(ARDUINO_ARCH_ESP32)
+#include <ArduinoJson.h>
+
+// web (JSON-ul e acelasi pe Wi-Fi si prin broker)
 void webInit();
 void webPas();
+void jsonStare(JsonObject doc);
+void jsonJurnal(JsonArray a);
+void jsonRutina(JsonObject doc);
+void jsonEveniment(JsonObject e, const EvenimentP &ev);
+void scrieIstoric(Print &o, const PunctIstoric *puncte, uint16_t n);
+bool comandaPermisa(String &c);
+void executaComanda(const String &c);
+
+// imperechere: cheia casei
+void imperechereInit();
+bool imperecheaza(uint32_t cod, String &cheieText);
+bool decripteazaComanda(const char *secret, String &comanda);
+
+// mqtt: casa prin internet
+extern SemaphoreHandle_t lacatCasa;   // datele casei, impartite cu legatura spre broker
+void mqttInit();
+void mqttPas();
+#endif
 
 // texte
 String textEveniment(const EvenimentP &e);

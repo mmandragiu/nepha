@@ -1,4 +1,5 @@
-// tastatura_pin - PIN-ul alarmei. Il verifica Arduino, nu aplicatia: noi doar il trimitem.
+// tastatura_pin - PIN-ul alarmei (il verifica Arduino, nu aplicatia: noi doar il trimitem)
+// si codul de 6 cifre de pe panou, cand legam telefonul de casa.
 import 'package:flutter/material.dart';
 
 import '../theme/nepha_theme.dart';
@@ -8,11 +9,38 @@ import 'ui.dart';
 Future<String?> ceAPin(BuildContext context) => showDialog<String>(
   context: context,
   barrierColor: const Color(0x73171512),
-  builder: (_) => const _TastaturaPin(),
+  builder: (_) => const _TastaturaPin(
+    titlu: 'PIN-ul alarmei',
+    detaliu: 'Îl verifică Arduino, nu aplicația.',
+    cifre: 4,
+    buton: 'Dezarmează',
+  ),
+);
+
+// codul afisat pe panou la Setari -> Leaga telefonul (cifrele se vad, nu e un secret de tinut minte)
+Future<String?> ceCodulPanoului(BuildContext context) => showDialog<String>(
+  context: context,
+  barrierColor: const Color(0x73171512),
+  builder: (_) => const _TastaturaPin(
+    titlu: 'Codul de pe panou',
+    detaliu: 'Pe panou: Setări → „Leagă telefonul”. Codul e valabil 2 minute.',
+    cifre: 6,
+    buton: 'Leagă',
+    aratCifrele: true,
+  ),
 );
 
 class _TastaturaPin extends StatefulWidget {
-  const _TastaturaPin();
+  final String titlu, detaliu, buton;
+  final int cifre;
+  final bool aratCifrele;
+  const _TastaturaPin({
+    required this.titlu,
+    required this.detaliu,
+    required this.cifre,
+    required this.buton,
+    this.aratCifrele = false,
+  });
 
   @override
   State<_TastaturaPin> createState() => _TastaturaPinState();
@@ -40,7 +68,7 @@ class _TastaturaPinState extends State<_TastaturaPin> {
     setState(() {
       if (k == '⌫') {
         if (_pin.isNotEmpty) _pin = _pin.substring(0, _pin.length - 1);
-      } else if (_pin.length < 4) {
+      } else if (_pin.length < widget.cifre) {
         _pin += k;
       }
     });
@@ -57,27 +85,44 @@ class _TastaturaPinState extends State<_TastaturaPin> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const T.mediu('PIN-ul alarmei'),
-          const T.mic('Îl verifică Arduino, nu aplicația.'),
+          T.mediu(widget.titlu),
+          T.mic(widget.detaliu),
           const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              for (var i = 0; i < 4; i++)
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  width: 14,
-                  height: 14,
-                  margin: const EdgeInsets.symmetric(horizontal: 6),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: i < _pin.length ? Culori.text : Colors.transparent,
-                    border: Border.all(
-                      color: i < _pin.length ? Culori.text : Culori.linie,
-                      width: 2,
+              for (var i = 0; i < widget.cifre; i++)
+                if (widget.aratCifrele)
+                  Container(
+                    width: 30,
+                    height: 40,
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Culori.moale,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: T(
+                      i < _pin.length ? _pin[i] : '',
+                      marime: 20,
+                      gros: FontWeight.w700,
+                    ),
+                  )
+                else
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    width: 14,
+                    height: 14,
+                    margin: const EdgeInsets.symmetric(horizontal: 6),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: i < _pin.length ? Culori.text : Colors.transparent,
+                      border: Border.all(
+                        color: i < _pin.length ? Culori.text : Culori.linie,
+                        width: 2,
+                      ),
                     ),
                   ),
-                ),
             ],
           ),
           const SizedBox(height: 14),
@@ -114,9 +159,11 @@ class _TastaturaPinState extends State<_TastaturaPin> {
               const SizedBox(width: 8),
               Expanded(
                 child: Buton(
-                  'Dezarmează',
+                  widget.buton,
                   principal: true,
-                  onTap: _pin.isEmpty
+                  onTap:
+                      _pin.isEmpty ||
+                          (widget.aratCifrele && _pin.length < widget.cifre)
                       ? null
                       : () => Navigator.pop(context, _pin),
                 ),

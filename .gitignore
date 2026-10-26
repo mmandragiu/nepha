@@ -1,5 +1,11 @@
-# parola de Wi-Fi nu se urca
-panou/secrete.h
+# parolele NU se urca pe GitHub, oriunde ar fi in repo:
+# Wi-Fi-ul si brokerul pentru panou (secrete.h), brokerul pentru aplicatie (secrete.json),
+# credentialele brokerului (mqtt_credentials)
+secrete.h
+secrete.json
+mqtt_credentials*
+*.secret
+.env
 
 # PlatformIO / VS Code
 .pio/

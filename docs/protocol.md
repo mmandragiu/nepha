@@ -107,3 +107,9 @@ Linii care încep cu `#` (de exemplu tabelul de la `TEST RAPID`). Panoul doar le
 | `SCAN` | ce senzori vede Arduino și ce citește (pentru montaj și calibrare) |
 | `STARE` | linia `S` de acum, pe Serial |
 | `AJUTOR` | lista scurtă de comenzi |
+
+## Telefonul și panoul
+
+Între aplicație și panou nu mai sunt linii de text, ci JSON: pe Wi-Fi prin HTTP (`/api/stare`,
+`/api/comanda`...), iar prin internet prin brokerul MQTT, cu același JSON. Totul e descris în
+[prin-internet.md](prin-internet.md).

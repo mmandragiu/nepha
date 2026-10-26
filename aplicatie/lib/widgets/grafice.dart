@@ -18,9 +18,13 @@ List<double> _netezeste(List<double> v, [int k = 3]) => [
     }(),
 ];
 
+const _zileSapt = ['lun', 'mar', 'mie', 'joi', 'vin', 'sâm', 'dum'];
+
 class GraficEnergie extends StatelessWidget {
   final Istoric? istoric;
-  const GraficEnergie(this.istoric, {super.key});
+  // zile = true: `minut` e minutul de la 1970 (graficul pe 3 zile de pe telefon), altfel minutul zilei
+  final bool zile;
+  const GraficEnergie(this.istoric, {super.key, this.zile = false});
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +42,12 @@ class GraficEnergie extends StatelessWidget {
     ];
     final consum = _netezeste(i.consum);
     final maxim = [0.5, ...prod, ...consum].reduce(max) * 1.15;
+    // pe 3 zile: unde lipsesc puncte (aplicatia a stat inchisa mai mult de o zi) lasam gol
     List<FlSpot> puncte(List<double> v) => [
-      for (var k = 0; k < v.length; k++) FlSpot(i.minut[k].toDouble(), v[k]),
+      for (var k = 0; k < v.length; k++) ...[
+        if (zile && k > 0 && i.minut[k] - i.minut[k - 1] > 20) FlSpot.nullSpot,
+        FlSpot(i.minut[k].toDouble(), v[k]),
+      ],
     ];
 
     return Column(
@@ -64,15 +72,23 @@ class GraficEnergie extends StatelessWidget {
                   sideTitles: SideTitles(
                     showTitles: true,
                     reservedSize: 20,
-                    interval: 180, // din 3 in 3 ore
+                    interval: zile
+                        ? 720
+                        : 180, // din 12 in 12 ore / din 3 in 3 ore
                     getTitlesWidget: (v, meta) {
                       if (v == meta.min || v == meta.max) {
                         return const SizedBox.shrink();
                       }
-                      return SideTitleWidget(
-                        meta: meta,
-                        child: T.mic('${v ~/ 60}:00'),
-                      );
+                      final String text;
+                      if (zile) {
+                        final d = DateTime.fromMillisecondsSinceEpoch(
+                          v.toInt() * 60000,
+                        );
+                        text = '${_zileSapt[d.weekday - 1]} ${d.hour}:00';
+                      } else {
+                        text = '${v ~/ 60}:00';
+                      }
+                      return SideTitleWidget(meta: meta, child: T.mic(text));
                     },
                   ),
                 ),

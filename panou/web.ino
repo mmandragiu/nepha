@@ -6,11 +6,23 @@
 //   /api/istoric    punctele pentru grafice
 //   /api/rutina     ce a invatat casa
 //   /api/comanda    POST c=<comanda>, o trimitem lui Arduino
+//   /api/imperechere POST cod=<codul de pe ecran>: telefonul primeste cheia casei (imperechere.ino)
 //   /wifi           alegem reteaua casei si locul (pentru prognoza)
+//
+// JSON-ul il fac functiile json*() / scrieIstoric(), aceleasi si pentru broker (mqtt.ino):
+// aplicatia primeste exact aceleasi campuri, pe Wi-Fi sau prin internet.
 
 #include "web_pagina.h"
 
 WebServer server(80);
+
+// scrie textul intr-un String (pentru raspunsurile HTTP)
+struct TextPrint : Print {
+  String &s;
+  TextPrint(String &s) : s(s) {}
+  size_t write(uint8_t c) override { s += (char)c; return 1; }
+  size_t write(const uint8_t *b, size_t n) override { s.concat((const char *)b, n); return n; }
+};
 
 static void trimiteJson(JsonDocument &doc) {
   String s;
@@ -25,8 +37,8 @@ static void paginaPrincipala() {
   server.send_P(200, "text/html", (const char *)PAGINA_GZ, sizeof(PAGINA_GZ));
 }
 
-static void apiStare() {
-  JsonDocument doc;
+void jsonStare(JsonObject doc) {
+  doc["server"] = idServer;
   doc["primit"] = casa.primit;
   doc["vechime"] = casa.primit ? (int32_t)((millis() - casa.primitLa) / 1000) : -1;
   doc["ora"] = oraText(casa.minut);
@@ -109,46 +121,70 @@ static void apiStare() {
   doc["retea"]["ip"] = adresaIP();
   doc["retea"]["nume"] = numeRetea();
   doc["retea"]["ap"] = modAP();
+  doc["retea"]["internet"] = mqttConectat();   // panoul vorbeste cu brokerul
   doc["pretKwh"] = PRET_KWH;
+}
+
+static void apiStare() {
+  JsonDocument doc;
+  jsonStare(doc.to<JsonObject>());
   trimiteJson(doc);
+}
+
+void jsonEveniment(JsonObject e, const EvenimentP &ev) {
+  e["ora"] = oraText(ev.minut);
+  e["cod"] = ev.cod;
+  e["text"] = textEveniment(ev);
+}
+
+void jsonJurnal(JsonArray a) {
+  for (uint8_t i = 0; i < nrJurnal; i++) jsonEveniment(a.add<JsonObject>(), jurnal[i]);
 }
 
 static void apiJurnal() {
   JsonDocument doc;
-  JsonArray a = doc.to<JsonArray>();
-  for (uint8_t i = 0; i < nrJurnal; i++) {
-    JsonObject e = a.add<JsonObject>();
-    e["ora"] = oraText(jurnal[i].minut);
-    e["cod"] = jurnal[i].cod;
-    e["text"] = textEveniment(jurnal[i]);
-  }
+  jsonJurnal(doc.to<JsonArray>());
   trimiteJson(doc);
+}
+
+// graficul, scris direct ca text: 288 de puncte x 7 siruri ar lua ~30 KB intr-un JsonDocument
+// {"minut":[...],"tCasa":[...],"tAfara":[...],"baterie":[...],"solar":[...],"vant":[...],"consum":[...]}
+void scrieIstoric(Print &o, const PunctIstoric *puncte, uint16_t n) {
+  const char *nume[] = {"minut", "tCasa", "tAfara", "baterie", "solar", "vant", "consum"};
+  o.print('{');
+  for (uint8_t k = 0; k < 7; k++) {
+    if (k) o.print(',');
+    o.print('"');
+    o.print(nume[k]);
+    o.print("\":[");
+    for (uint16_t i = 0; i < n; i++) {
+      const PunctIstoric &p = puncte[i];
+      if (i) o.print(',');
+      switch (k) {
+        case 0: o.print(p.minut); break;
+        case 1: if (p.tCasa == INT16_MIN) o.print("null"); else o.print(p.tCasa / 10.0, 1); break;
+        case 2: if (p.tAfara == INT16_MIN) o.print("null"); else o.print(p.tAfara / 10.0, 1); break;
+        case 3: o.print(p.baterie); break;
+        case 4: o.print(p.solar / 1000.0, 3); break;
+        case 5: o.print(p.vant / 1000.0, 3); break;
+        case 6: o.print(p.consum / 1000.0, 3); break;
+      }
+    }
+    o.print(']');
+  }
+  o.print('}');
 }
 
 static void apiIstoric() {
-  JsonDocument doc;
-  JsonArray minut = doc["minut"].to<JsonArray>();
-  JsonArray tCasa = doc["tCasa"].to<JsonArray>();
-  JsonArray tAfara = doc["tAfara"].to<JsonArray>();
-  JsonArray baterie = doc["baterie"].to<JsonArray>();
-  JsonArray solar = doc["solar"].to<JsonArray>();
-  JsonArray vant = doc["vant"].to<JsonArray>();
-  JsonArray consum = doc["consum"].to<JsonArray>();
-  for (uint16_t i = 0; i < nrIstoric; i++) {
-    PunctIstoric &p = istoric[i];
-    minut.add(p.minut);
-    if (p.tCasa == INT16_MIN) tCasa.add(nullptr); else tCasa.add(p.tCasa / 10.0);
-    if (p.tAfara == INT16_MIN) tAfara.add(nullptr); else tAfara.add(p.tAfara / 10.0);
-    baterie.add(p.baterie);
-    solar.add(p.solar / 1000.0);
-    vant.add(p.vant / 1000.0);
-    consum.add(p.consum / 1000.0);
-  }
-  trimiteJson(doc);
+  String s;
+  s.reserve(14000);
+  TextPrint o(s);
+  scrieIstoric(o, istoric, nrIstoric);
+  server.sendHeader("Cache-Control", "no-store");
+  server.send(200, "application/json", s);
 }
 
-static void apiRutina() {
-  JsonDocument doc;
+void jsonRutina(JsonObject doc) {
   doc["valida"] = rutina.valida;
   JsonArray nume = doc["camere"].to<JsonArray>();
   JsonArray p = doc["p"].to<JsonArray>();
@@ -159,24 +195,51 @@ static void apiRutina() {
   }
   JsonArray zile = doc["zile"].to<JsonArray>();
   for (uint8_t h = 0; h < 24; h++) zile.add(rutina.zile[h]);
+}
+
+static void apiRutina() {
+  JsonDocument doc;
+  jsonRutina(doc.to<JsonObject>());
   trimiteJson(doc);
 }
 
-// de pe pagina primim doar comenzi "cunoscute"
-static void apiComanda() {
-  String c = server.arg("c");
+// primim doar comenzi "cunoscute" (si de pe Wi-Fi, si prin broker); o aducem la forma ei curata
+bool comandaPermisa(String &c) {
   c.trim();
   c.toUpperCase();
   const char *permise[] = {"MOD ", "ALARMA ", "LUMINA ", "PRIZA ", "UDA", "TEST ", "TEMP ", "RUTINA", "INVATA ", "STERGE ", "USA "};
   bool ok = false;
   for (const char *p : permise) ok |= c.startsWith(p);
-  if (!ok || c.length() > 38) {
+  return ok && c.length() <= 38;
+}
+
+// doar din loop() (acolo e legatura cu Arduino)
+void executaComanda(const String &c) {
+  trimiteArduino(c.c_str());
+  if (c == "RUTINA STERGE") trimiteArduino("RUTINA");
+}
+
+static void apiComanda() {
+  String c = server.arg("c");
+  if (!comandaPermisa(c)) {
     server.send(400, "application/json", "{\"ok\":false}");
     return;
   }
-  trimiteArduino(c.c_str());
-  if (c == "RUTINA STERGE") trimiteArduino("RUTINA");
+  executaComanda(c);
   server.send(200, "application/json", "{\"ok\":true}");
+}
+
+static void apiImperechere() {
+  String cheie;
+  if (!imperecheaza(server.arg("cod").toInt(), cheie)) {
+    server.send(403, "application/json", "{\"ok\":false}");
+    return;
+  }
+  JsonDocument doc;
+  doc["ok"] = true;
+  doc["server"] = idServer;
+  doc["cheie"] = cheie;
+  trimiteJson(doc);
 }
 
 static const char PAGINA_WIFI[] PROGMEM = R"rawliteral(<!doctype html>
@@ -238,6 +301,7 @@ void webInit() {
   server.on("/api/istoric", apiIstoric);
   server.on("/api/rutina", apiRutina);
   server.on("/api/comanda", HTTP_POST, apiComanda);
+  server.on("/api/imperechere", HTTP_POST, apiImperechere);
   server.on("/wifi", paginaWifi);
   server.onNotFound([]() {
     // telefoanele conectate la NEPHA-casa ajung aici cand cauta internetul

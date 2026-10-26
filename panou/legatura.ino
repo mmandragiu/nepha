@@ -117,6 +117,7 @@ static void adaugaInJurnal(uint8_t cod, uint8_t a, uint8_t b) {
   Serial.print("[jurnal] ");
   Serial.println(textEveniment(jurnal[0]));
   uiEveniment(jurnal[0]);
+  mqttEveniment(jurnal[0]);
 }
 
 static void citesteLinie(char *linie) {

@@ -36,6 +36,8 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+      # APK-ul de pe GitHub e doar pentru verificare: fara parola brokerului (merge doar pe Wi-Fi).
+      # Cel adevarat il facem pe laptop, cu secrete.json (vezi aplicatie/README.md).
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v5
         with:
@@ -58,7 +60,16 @@ jobs:
           cache: true
       - run: flutter pub get
       # fara semnatura: o semnam la instalare (Sideloadly cu Apple ID-ul nostru) - vezi aplicatie/README.md
-      - run: flutter build ios --release --no-codesign
+      # Parola brokerului vine din seiful repo-ului (Settings -> Secrets -> Actions), nu din cod.
+      # Fara ea, aplicatia de iPhone merge doar pe Wi-Fi.
+      # (prin variabile, ca o parola cu $, spatii sau ghilimele sa ajunga intocmai)
+      - env:
+          MQTT_UTILIZATOR: ${{ secrets.MQTT_UTILIZATOR }}
+          MQTT_PAROLA: ${{ secrets.MQTT_PAROLA }}
+        run: >-
+          flutter build ios --release --no-codesign
+          --dart-define="MQTT_UTILIZATOR=$MQTT_UTILIZATOR"
+          --dart-define="MQTT_PAROLA=$MQTT_PAROLA"
       - name: Facem .ipa
         run: |
           mkdir -p Payload

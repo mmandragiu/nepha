@@ -67,6 +67,13 @@ bool modAP() { return false; }
 String adresaIP() { return "simulator"; }
 String numeRetea() { return "casa virtuala"; }
 void invataPanou() {}
+// fara broker si fara imperechere in simulator
+String idServer = "nepha-simulator";
+void incepeImperechere() {}
+uint32_t codDeAfisat() { return 0; }
+uint8_t secundeImperechere() { return 0; }
+void mqttEveniment(const EvenimentP &) {}
+bool mqttConectat() { return false; }
 
 // soarele din urmatoarele ore, dupa ora din zi (prognoza simulata)
 float productieEstimata(uint8_t ore) {

@@ -1,7 +1,9 @@
 // api_service - vorbim cu panoul pe HTTP, la fel ca pagina casei (docs/protocol.md)
 //   GET  /api/stare, /api/jurnal, /api/istoric, /api/rutina
 //   POST /api/comanda   c=<comanda>   (ex. "LUMINA 0 100", "ALARMA PLECAT")
+//   POST /api/imperechere cod=<codul de pe ecranul panoului> -> numele panoului si cheia casei
 // In modul demo nu vorbim cu nimeni: o seara simulata, in care comenzile chiar schimba starea.
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
@@ -55,6 +57,24 @@ class ApiService {
     return (r.data ?? const [])
         .map((e) => Decizie.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  // codul de 6 cifre de pe panou (Setari -> Leaga telefonul) -> (numele panoului, cheia casei);
+  // null daca panoul nu-l accepta (cod gresit sau expirat)
+  Future<(String, List<int>)?> imperecheaza(String adresa, String cod) async {
+    try {
+      final r = await _dio.post<Map<String, dynamic>>(
+        '${adresaCompleta(adresa)}/api/imperechere',
+        data: {'cod': cod},
+        options: Options(contentType: Headers.formUrlEncodedContentType),
+      );
+      final j = r.data ?? const {};
+      if (j['ok'] != true) return null;
+      return ('${j['server']}', base64.decode('${j['cheie']}'));
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 403) return null;
+      rethrow;
+    }
   }
 
   // arunca o eroare daca panoul nu raspunde sau nu accepta comanda

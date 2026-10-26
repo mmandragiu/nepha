@@ -248,6 +248,62 @@ class Eticheta extends StatelessWidget {
   );
 }
 
+// ---------------------------------------------------------------- alegere
+
+// cateva butoane lipite, unul singur ales (ca la Smart / Clasic)
+class Alegere extends StatelessWidget {
+  final Map<String, String> optiuni; // cheie -> ce scrie pe buton
+  final String? ales;
+  final ValueChanged<String> onAlege;
+  const Alegere({
+    super.key,
+    required this.optiuni,
+    required this.ales,
+    required this.onAlege,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(4),
+    decoration: BoxDecoration(
+      color: Culori.moale,
+      borderRadius: BorderRadius.circular(99),
+    ),
+    child: Row(
+      children: [
+        for (final o in optiuni.entries)
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (o.key == ales) return;
+                atingere();
+                onAlege(o.key);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  // noaptea, cel ales e mai deschis decat fundalul, nu mai inchis
+                  color: o.key == ales
+                      ? (Culori.intunecat ? Culori.linie : Culori.card)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(99),
+                  boxShadow: o.key == ales ? umbraCard : null,
+                ),
+                child: T(
+                  o.value,
+                  gros: FontWeight.w700,
+                  culoare: o.key == ales ? Culori.text : Culori.text2,
+                  aliniere: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
 // ---------------------------------------------------------------- pastila
 
 enum Ton { gri, verde, soare, apa, cald, rosu }

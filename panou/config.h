@@ -9,7 +9,7 @@
 // conecta, porneste reteaua "NEPHA-casa" (parola de mai jos). Ne conectam
 // la ea cu telefonul si deschidem http://192.168.4.1/wifi
 // Daca vreti totusi sa o scrieti aici, faceti un fisier secrete.h (nu se urca
-// pe GitHub) cu:  #define WIFI_NUME "..."   si   #define WIFI_PAROLA "..."
+// pe GitHub), dupa modelul din secrete.exemplu.h.
 #if __has_include("secrete.h")
 #include "secrete.h"
 #endif
@@ -20,6 +20,20 @@
 #define AP_NUME   "NEPHA-casa"
 #define AP_PAROLA "casa2026"
 #define NUME_RETEA "nepha"            // http://nepha.local
+
+// ---------------------------------------------------------------
+// Prin internet: brokerul MQTT, pentru cand telefonul nu e in Wi-Fi-ul casei
+// ---------------------------------------------------------------
+// Utilizatorul si parola panoului NU se scriu aici: le punem in secrete.h (MQTT_UTILIZATOR,
+// MQTT_PAROLA). Fara ele, panoul merge doar pe Wi-Fi.
+#define MQTT_SERVER "mqtt.mandragiu.eu"
+#define MQTT_PORT 8883
+// Topicele le stabileste ACL-ul brokerului. In ele se pot folosi:
+//   {server} = numele unic al panoului (ex. nepha-a1b2c3, il vedeti la Setari)
+//   {client} = id-ul telefonului care a intrebat
+#define TOPIC_CERERI  "nepha/server/requests"              // telefoanele scriu, noi citim
+#define TOPIC_RASPUNS "nepha/clients/{client}/responses"   // noi raspundem fiecarui telefon
+#define TOPIC_NOUTATI "nepha/events/devices"               // noi anuntam ce se schimba in casa
 
 // unde e casa (pentru prognoza meteo) - Bucuresti; se poate schimba din pagina web
 #define LATITUDINE  44.43

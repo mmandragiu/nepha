@@ -201,15 +201,27 @@ class RezultatTest {
 class Retea {
   final String ip, nume;
   final bool ap; // e pe reteaua proprie NEPHA-casa
+  final bool
+  internet; // panoul vorbeste cu brokerul (merge si de pe date mobile)
 
-  const Retea({required this.ip, required this.nume, required this.ap});
+  const Retea({
+    required this.ip,
+    required this.nume,
+    required this.ap,
+    this.internet = false,
+  });
 
-  factory Retea.fromJson(Map<String, dynamic> j) =>
-      Retea(ip: _text(j['ip']), nume: _text(j['nume']), ap: _bool(j['ap']));
+  factory Retea.fromJson(Map<String, dynamic> j) => Retea(
+    ip: _text(j['ip']),
+    nume: _text(j['nume']),
+    ap: _bool(j['ap']),
+    internet: _bool(j['internet']),
+  );
 }
 
 // GET /api/stare
 class Stare {
+  final String server; // numele unic al panoului (ex. nepha-a1b2c3)
   final bool primit; // panoul primeste date de la Arduino?
   final int vechime; // de cate secunde n-au mai venit date (-1 = niciodata)
   final String ora;
@@ -231,6 +243,7 @@ class Stare {
   final double pretKwh;
 
   const Stare({
+    this.server = '',
     required this.primit,
     required this.vechime,
     required this.ora,
@@ -253,6 +266,7 @@ class Stare {
   });
 
   factory Stare.fromJson(Map<String, dynamic> j) => Stare(
+    server: _text(j['server']),
     primit: _bool(j['primit']),
     vechime: j['vechime'] is num ? _int(j['vechime']) : -1,
     ora: _text(j['ora']),

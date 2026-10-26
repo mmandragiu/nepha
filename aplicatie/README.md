@@ -43,9 +43,23 @@ pagini străine).
    `192.168.4.1`).
 3. În aplicație, la **Securitate & Setări**: scriem adresa, apăsăm **Conectează**.
 
-Sus, în dreapta, se vede legătura: verde = conectat, galben = se conectează sau Arduino nu răspunde,
-roșu = panoul nu răspunde. Fără panou, **modul demo** arată o seară simulată (e pornit la prima
+Sus, în dreapta, se vede legătura: verde = acasă, pe Wi-Fi, albastru = prin internet, galben = se
+conectează sau Arduino nu răspunde, roșu = panoul nu răspunde. Fără panou, **modul demo** arată o seară simulată (e pornit la prima
 deschidere), iar comenzile merg și acolo.
+
+## Prin internet
+
+Când telefonul nu e în Wi-Fi-ul casei (date mobile, alt Wi-Fi), aplicația merge prin brokerul MQTT
+`mqtt.mandragiu.eu`. Trece singură de pe un drum pe altul. Cum funcționează, legarea telefonului de
+casă și unde se pun parolele: [docs/prin-internet.md](../docs/prin-internet.md).
+
+APK-ul cu broker se face cu parola din `secrete.json` (ignorat de git, după `secrete.exemplu.json`):
+
+```
+flutter build apk --release --dart-define-from-file=secrete.json
+```
+
+Graficul de la Energie are și „3 zile”: punctele se țin pe telefon (SQLite), ~50 KB.
 
 ## Alarma: PIN, Face ID, Touch ID sau amprentă
 
@@ -94,8 +108,10 @@ contul de dezvoltator Apple (99 $ pe an) merge un an și se poate da și altora,
 | Fișier | Ce face |
 |---|---|
 | `lib/models/api_models.dart` | ce trimite panoul (aceleași câmpuri ca în `panou/web.ino`) |
-| `lib/services/api_service.dart` | cererile către panou (dio, 3 s) și seara simulată pentru modul demo |
-| `lib/providers/app_state.dart` | starea aplicației: întrebările periodice, comenzile, setările, Face ID / amprenta |
+| `lib/services/api_service.dart` | cererile către panou pe Wi-Fi (dio, 3 s) și seara simulată pentru modul demo |
+| `lib/services/broker.dart` | aceleași cereri prin brokerul MQTT, PIN-ul criptat |
+| `lib/services/istoric_local.dart` | graficul pe 3 zile, pe telefon |
+| `lib/providers/app_state.dart` | starea aplicației: Wi-Fi sau internet, întrebările periodice, comenzile, setările, Face ID / amprenta |
 | `lib/theme/nepha_theme.dart` | culorile și fontul (aceleași ca pe pagină și pe panou) |
 | `lib/widgets/` | cardurile, comutatoarele, graficul, harta rutinei, tastatura PIN |
 | `lib/screens/` | cele patru ecrane |
