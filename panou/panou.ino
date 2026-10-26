@@ -14,12 +14,13 @@
     legatura  - mesajele cu Arduino          retea   - Wi-Fi si ora
     vreme     - prognoza (open-meteo.com)     web     - pagina si API-ul
     mqtt      - API-ul prin internet          imperechere - numele panoului si cheia casei
+    inrolare  - conturile pe broker (pentru panou si pentru telefoane)
     istoric   - puncte pentru grafice         texte   - jurnalul in cuvinte
     sunet     - difuzor si LED                ui_*    - ecranele
 
   Placa: "ESP32 Dev Module", Partition Scheme: "Huge APP (3MB No OTA/1MB SPIFFS)"
   Biblioteci (Library Manager): LovyanGFX, ArduinoJson, PubSubClient
-  Parolele (Wi-Fi, broker) stau in secrete.h, dupa modelul din secrete.exemplu.h
+  Cheile si parolele (Wi-Fi, inrolarea pe broker) stau in secrete.h, dupa modelul din secrete.exemplu.h
 */
 
 #include "config.h"
@@ -35,6 +36,7 @@
 #include <LovyanGFX.hpp>
 #include "ecran.h"
 #include "ui.h"
+#include "radacini.h"
 
 CasaP casa;
 RutinaP rutina;

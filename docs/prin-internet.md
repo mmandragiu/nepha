@@ -23,7 +23,8 @@ Aplicația ajunge la casă pe două drumuri:
 | Unde | Fișier | Ce face |
 |---|---|---|
 | Panou | `panou/mqtt.ino` | se leagă de broker, răspunde la cereri, anunță ce se schimbă |
-| Panou | `panou/imperechere.ino` | numele unic al panoului (`nepha-xxxxxx`), cheia casei, codul de pe ecran, desfacerea PIN-ului |
+| Panou | `panou/inrolare.ino` | conturile pe broker, de la serverul de conturi (`nepha-auth.mandragiu.eu`): al panoului și ale telefoanelor |
+| Panou | `panou/imperechere.ino` | numele unic al panoului (adresa MAC), cheia casei, codul de pe ecran, desfacerea PIN-ului |
 | Panou | `panou/web.ino` | API-ul de pe Wi-Fi; JSON-ul îl fac aceleași funcții pentru ambele drumuri |
 | Panou | `panou/config.h` | adresa brokerului și **topicele** (într-un singur loc) |
 | Aplicație | `lib/services/broker.dart` | legătura cu brokerul, cererile, criptarea PIN-ului; topicele, la fel ca în panou |
@@ -32,8 +33,8 @@ Aplicația ajunge la casă pe două drumuri:
 
 ## Ce circulă pe broker
 
-Trei topice, cum le cere ACL-ul brokerului. `{sid}` e numele panoului (`nepha-xxxxxx`, se vede pe
-panou la Setări), `{cid}` e id-ul telefonului (`nepha-app-...`, făcut la prima pornire a aplicației).
+Trei topice, cum le cere ACL-ul brokerului. `{sid}` e numele panoului (adresa MAC, se vede pe
+panou la Setări), `{cid}` e id-ul telefonului (16 litere și cifre, făcut la prima pornire a aplicației).
 Ambele sunt și „client ID”-ul cu care se conectează fiecare la broker.
 
 | Topic | Cine scrie | Ce e în el |
@@ -67,81 +68,84 @@ Ambele sunt și „client ID”-ul cu care se conectează fiecare la broker.
 
    Abia apoi îi dă comanda lui Arduino, care verifică PIN-ul ca de obicei.
 
+## Conturile pe broker
+
+Pe broker, fiecare panou și fiecare telefon are **contul lui** (utilizator și parolă). Conturile le
+face serverul de conturi al brokerului (`nepha-auth.mandragiu.eu`):
+
+| Cine | Cerere | Cheia (`X-Enroll-Key`) | Unde ține parola |
+|---|---|---|---|
+| panoul, singur, la prima pornire | `POST /enroll/server {"serverId"}` | a panourilor | în memoria panoului (Preferences „broker”, nu se șterge când urci alt program) |
+| panoul, pentru un telefon, la legare | `POST /enroll/client {"clientId","serverId"}` | a telefoanelor | pe telefon, criptat (`flutter_secure_storage`: Keychain / Keystore) |
+| dacă id-ul are deja cont | același POST, cu `"reset": true` | de resetare | se înlocuiește cu parola nouă |
+
+Răspunsul e `{"username", "password"}`.
+
+- **Telefoanele nu se înrolează singure.** Le înrolează panoul, la legare. Așa, cheile de înrolare
+  stau doar pe panou (`panou/secrete.h`), nu în aplicație, iar cont primește doar telefonul care a
+  văzut codul de pe ecranul panoului.
+- **În aplicație nu e nicio parolă.** APK-ul și IPA-ul se pot da oricui, iar repo-ul poate fi public.
+- Dacă brokerul refuză parola panoului (contul a fost șters sau resetat), panoul cere singur una nouă.
+- `{sid}` = adresa MAC a panoului (12 caractere, de exemplu `a0b1c2d3e4f5`; se vede la Setări).
+  `{cid}` = id-ul telefonului (16 litere și cifre, făcut la prima pornire a aplicației). Cu ele se
+  conectează fiecare la broker (client ID) și ele apar în topice.
+
 ## Legarea telefonului de casă (o dată, acasă)
 
 1. Telefonul în Wi-Fi-ul casei, aplicația conectată la panou (sus scrie „acasă, pe Wi-Fi”).
 2. Pe panou: **Setări → Leagă telefonul**. Apare un cod de 6 cifre, valabil 2 minute.
 3. În aplicație: **Securitate & Setări → Leagă**, scrii codul.
-4. Gata: scrie „Telefonul e legat de casă”. De acum merge și de pe date mobile.
+4. Panoul îi dă telefonului cheia casei și îi face cont pe broker (durează câteva secunde).
+5. Gata: scrie „Telefonul e legat de casă: merge și prin internet”.
 
-Fără legare, prin internet merge tot în afară de dezarmare. Un cod e bun pentru un singur telefon;
-după 5 coduri greșite, panoul îl anulează.
+Un cod e bun pentru un singur telefon; după 5 coduri greșite, panoul îl anulează. Dacă panoul n-are
+internet în momentul ăla, telefonul primește doar cheia: merge pe Wi-Fi, iar pentru internet îl legi
+din nou mai târziu.
 
-## Unde pun parolele (pas cu pas)
+## Unde pun cheile (pas cu pas)
 
-Parolele **nu** se scriu în cod și **nu** ajung pe GitHub. Stau în fișiere pe care git le ignoră
-(`.gitignore`). În plus, un control local (`.git/hooks/pre-commit`) oprește orice commit care le-ar
-conține. **Nu le pune nici pe dontpad:** paginile de acolo sunt publice.
-
-### Panoul (parola lui `nepha-server`)
+Singurul loc cu chei e **panoul**. Ele stau în `panou/secrete.h`, pe care git îl ignoră. În plus,
+un control local (`.git/hooks/pre-commit`) oprește orice commit care l-ar conține. **Nu-l pune nici
+pe dontpad:** paginile de acolo sunt publice.
 
 1. În folderul `panou/`, fă o copie a lui `secrete.exemplu.h` și numește-o `secrete.h`.
-2. Deschide `secrete.h` și scrie parola adevărată în locul textului `aici parola lui nepha-server`.
+2. În `secrete.h`, în locul textelor de exemplu, scrie cele trei chei de la tatăl tău:
+   - `INROLARE_PANOURI`: cheia pentru `/enroll/server`;
+   - `INROLARE_TELEFOANE`: cheia pentru `/enroll/client`;
+   - `INROLARE_RESET`: cheia de resetare.
 3. Urcă programul pe panou, ca de obicei.
-4. Ca să verifici: pe panou, la **Setări**, trebuie să scrie „prin internet: da”.
+4. Ca să verifici: pe panou, la **Setări**, trebuie să scrie „prin internet: da”. În Serial Monitor
+   apare „Inrolare /enroll/server: 200” și „Broker: conectat”.
 
 Colegul care urcă programul pe panou are nevoie de același `secrete.h`. Dă-i fișierul direct (stick,
 mesaj privat), nu prin GitHub sau dontpad.
 
-### Aplicația pe Android (parola lui `nepha-client`)
-
-1. În folderul `aplicatie/`, fă o copie a lui `secrete.exemplu.json` și numește-o `secrete.json`.
-2. Scrie parola în locul textului `aici parola lui nepha-client`.
-3. Fă APK-ul cu:
-   ```
-   cd aplicatie
-   flutter build apk --release --dart-define-from-file=secrete.json
-   ```
-   Fără `--dart-define-from-file`, APK-ul iese fără broker și merge doar pe Wi-Fi.
-
-### Aplicația pe iPhone (GitHub Secrets)
-
-Aplicația de iPhone se compilează pe Mac-ul de la GitHub, așa că parola trebuie să fie în seiful
-repo-ului:
-
-1. Pe GitHub, în repo: **Settings → Secrets and variables → Actions → New repository secret**.
-2. Nume: `MQTT_UTILIZATOR`, valoare: `nepha-client`. Salvezi.
-3. Încă unul. Nume: `MQTT_PAROLA`, valoare: parola lui `nepha-client`. Salvezi.
-4. **Actions → Aplicatia → Run workflow** (cu „iPhone” bifat). În `.ipa` ajunge și parola.
-
-GitHub nu-ți mai arată parola niciodată: doar că există. În loguri apare ca `***`.
-
-**Dacă faci repo-ul public:**
-1. pe GitHub, la **Actions**, șterge rulările vechi ale lui „Aplicatia” (cu ele se șterg și fișierele `.ipa`);
-2. schimbați parola lui `nepha-client` pe broker și în Secret.
+Aplicației (Android sau iPhone) nu-i trebuie nimic: nici `secrete.json`, nici GitHub Secrets.
+Secretele `MQTT_UTILIZATOR` și `MQTT_PAROLA` din GitHub nu mai sunt folosite și se pot șterge.
 
 ### Verificare fără panou
 
 `unelte/proba_broker.py` (trebuie `pip install paho-mqtt cryptography`) ia parolele din aceleași
 fișiere și nu le afișează.
 
-- `python unelte/proba_broker.py panou` pornește pe laptop un panou de probă (`nepha-proba`), cu o
+- `python unelte/proba_broker.py panou` pornește pe laptop un panou de probă (`nephaproba01`), cu o
   casă inventată (PIN-ul alarmei: 1234). Răspunde:
   - **pe Wi-Fi**, la adresa laptopului, portul 8080 (o afișează la pornire). În aplicație scrii
     `adresa:8080`, de exemplu `192.168.1.10:8080`;
-  - **prin broker**, dacă găsește `panou/secrete.h`.
+  - **prin broker**, dacă găsește cheile de înrolare în `panou/secrete.h` (își face cont și le face cont telefoanelor legate, ca panoul adevărat).
 
   Tot el afișează și un cod de legare. Așa probezi tot drumul fără ESP32: Wi-Fi, legarea, apoi
   oprești Wi-Fi-ul telefonului, mergi prin internet și dezarmezi cu PIN-ul criptat.
-- `python unelte/proba_broker.py telefon nepha-xxxxxx` se dă drept telefon și întreabă panoul
+- `python unelte/proba_broker.py telefon a0b1c2d3e4f5` (numele panoului) se dă drept telefon și întreabă panoul
   adevărat de stare, prin broker.
 
 Dacă brokerul refuză (de exemplu din cauza ACL-ului), scriptul arată codul de eroare.
 
 ## Mai departe (după concurs)
 
-- **Un cont pe fiecare telefon.** Un server mic creează un cont pe broker pentru fiecare telefon,
-  doar după ce telefonul arată codul de pe panou (cum e acum legarea). Atunci parola nu mai stă în
-  aplicație, iar fiecare telefon vede doar casa lui.
+- **Cheile de înrolare pe fiecare panou.** Acum toate panourile au aceleași trei chei, deci cine
+  scoate cheile din memoria unui panou poate face sau reseta conturi și la alte case. Mai bine ar fi
+  ca serverul de conturi să dea fiecărui panou cheia lui, sau ca `/enroll/client` să accepte cereri
+  doar de la panoul logat al casei respective.
 - **Notificări pe telefon când aplicația e închisă** (alarma sună, ușa s-a deschis): ar trebui
   Firebase (Android) sau APNs (iPhone).

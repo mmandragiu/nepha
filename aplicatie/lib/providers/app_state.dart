@@ -16,8 +16,9 @@
 // - Face ID / Touch ID pe iPhone, amprenta pe Android: PIN-ul il verifica tot Arduino.
 //   Dupa o dezarmare reusita cu PIN, il pastram criptat pe telefon (Keychain pe iPhone,
 //   Keystore pe Android); data viitoare il trimitem noi, dupa ce telefonul ne recunoaste.
-// - legarea de casa (imperecherea): pe Wi-Fi, cu codul de pe panou, primim cheia casei.
-//   Cu ea criptam PIN-ul cand dezarmam prin internet (brokerul nu-l vede niciodata).
+// - legarea de casa (imperecherea): pe Wi-Fi, cu codul de pe panou, primim cheia casei (cu ea
+//   criptam PIN-ul cand dezarmam prin internet, brokerul nu-l vede niciodata) si contul nostru
+//   pe broker, facut de panou. Amandoua stau criptate pe telefon (flutter_secure_storage).
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -96,10 +97,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // cine suntem pe broker si cu ce casa vorbim
   String clientId = ''; // id-ul telefonului, facut o data la prima pornire
-  String server = ''; // numele panoului (ex. nepha-a1b2c3), aflat pe Wi-Fi
-  List<int>? _cheie; // cheia casei, de la imperechere
+  String server = ''; // numele panoului (adresa lui MAC), aflat pe Wi-Fi
+  List<int>? _cheie; // cheia casei, de la legare
+  (String, String)?
+  _cont; // contul nostru pe broker (utilizator, parola), de la legare
   bool get legat => _cheie != null && server.isNotEmpty;
-  bool get poatePrinInternet => areBroker && server.isNotEmpty;
+  bool get poatePrinInternet => _cont != null && server.isNotEmpty;
 
   // ce stim despre casa
   Stare? stare;
@@ -144,11 +147,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     amprentaPornita = p.getBool('amprenta') ?? false;
     server = p.getString('server') ?? '';
     clientId = p.getString('client') ?? '';
-    if (clientId.isEmpty) {
+    // id-ul telefonului: 16 litere si cifre la intamplare (ajunge in topicuri si in numele contului)
+    if (clientId.isEmpty || clientId.startsWith('nepha-app-')) {
       final r = Random.secure();
       const litere = 'abcdefghijklmnopqrstuvwxyz0123456789';
-      clientId =
-          'nepha-app-${List.generate(10, (_) => litere[r.nextInt(litere.length)]).join()}';
+      clientId = List.generate(
+        16,
+        (_) => litere[r.nextInt(litere.length)],
+      ).join();
       await p.setString('client', clientId);
     }
     if (!kIsWeb) {
@@ -174,6 +180,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       try {
         final c = await _seif.read(key: 'cheie');
         if (c != null) _cheie = base64.decode(c);
+        final u = await _seif.read(key: 'broker_utilizator');
+        final pa = await _seif.read(key: 'broker_parola');
+        if (u != null && pa != null) _cont = (u, pa);
       } catch (_) {}
     }
     try {
@@ -337,10 +346,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // drumul 2: prin broker. Starea vine singura (_dinBroker); noi doar cerem din cand in cand
   Future<void> _prinInternet(int g) async {
-    if (!poatePrinInternet) throw StateError('fara drum prin internet');
+    final cont = _cont;
+    if (cont == null || server.isEmpty) {
+      throw StateError('fara drum prin internet');
+    }
     final b = _broker ??= Broker(
       client: clientId,
       server: server,
+      utilizator: cont.$1,
+      parola: cont.$2,
       laStare: (s) {
         if (g != _generatie) return;
         _panouPeBroker = true;
@@ -420,13 +434,16 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     _panouPeBroker = true;
   }
 
-  // numele panoului il aflam pe Wi-Fi; daca e alt panou, cheia veche nu mai e buna
+  // numele panoului il aflam pe Wi-Fi; daca e alt panou, cheia si contul vechi nu mai sunt bune
   Future<void> _aflaServerul(String s) async {
     if (s.isEmpty || s == server) return;
     final p = await SharedPreferences.getInstance();
-    if (server.isNotEmpty && _cheie != null) {
+    if (server.isNotEmpty) {
       _cheie = null;
+      _cont = null;
       await _seif.delete(key: 'cheie');
+      await _seif.delete(key: 'broker_utilizator');
+      await _seif.delete(key: 'broker_parola');
     }
     server = s;
     await p.setString('server', s);
@@ -459,7 +476,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       return false;
     }
     try {
-      final r = await _api.imperecheaza(adresa, cod.replaceAll(' ', ''));
+      final r = await _api.imperecheaza(
+        adresa,
+        cod.replaceAll(' ', ''),
+        clientId,
+      );
       if (r == null) {
         anunta(
           'Codul nu e bun sau a expirat. Cereți altul pe panou.',
@@ -467,12 +488,21 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         );
         return false;
       }
-      final (s, cheie) = r;
-      await _aflaServerul(s);
-      _cheie = cheie;
-      await _seif.write(key: 'cheie', value: base64.encode(cheie));
+      await _aflaServerul(r.server);
+      _cheie = r.cheie;
+      await _seif.write(key: 'cheie', value: base64.encode(r.cheie));
+      if (r.parola.isNotEmpty) {
+        _cont = (r.utilizator, r.parola);
+        await _seif.write(key: 'broker_utilizator', value: r.utilizator);
+        await _seif.write(key: 'broker_parola', value: r.parola);
+      }
       notifyListeners();
-      anunta('Telefonul e legat de casă');
+      anunta(
+        r.parola.isNotEmpty
+            ? 'Telefonul e legat de casă: merge și prin internet'
+            : 'Telefonul e legat, dar panoul n-a putut face contul pentru internet. Încercați din nou mai târziu.',
+        eroare: r.parola.isEmpty,
+      );
       return true;
     } catch (_) {
       anunta('Panoul nu a putut fi contactat', eroare: true);

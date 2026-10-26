@@ -134,7 +134,11 @@ void executaComanda(const String &c);
 
 // imperechere: cheia casei
 void imperechereInit();
-bool imperecheaza(uint32_t cod, String &cheieText);
+bool imperecheaza(uint32_t cod, const String &clientId, String &cheieText, String &utilizator, String &parola);
+
+// inrolare: conturile pe broker, de la serverul de conturi
+bool areInrolare();
+bool inroleaza(const String &clientId, String &utilizator, String &parola);
 bool decripteazaComanda(const char *secret, String &comanda);
 
 // mqtt: casa prin internet

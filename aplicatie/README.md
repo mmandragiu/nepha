@@ -53,11 +53,9 @@ Când telefonul nu e în Wi-Fi-ul casei (date mobile, alt Wi-Fi), aplicația mer
 `mqtt.mandragiu.eu`. Trece singură de pe un drum pe altul. Cum funcționează, legarea telefonului de
 casă și unde se pun parolele: [docs/prin-internet.md](../docs/prin-internet.md).
 
-APK-ul cu broker se face cu parola din `secrete.json` (ignorat de git, după `secrete.exemplu.json`):
-
-```
-flutter build apk --release --dart-define-from-file=secrete.json
-```
+În aplicație nu e nicio parolă: fiecare telefon își primește contul lui pe broker de la panou,
+când îl legăm de casă (Securitate & Setări → Leagă, cu codul de pe ecranul panoului), și îl ține
+criptat pe telefon. APK-ul și IPA-ul se pot da oricui.
 
 Graficul de la Energie are și „3 zile”: punctele se țin pe telefon (SQLite), ~50 KB.
 

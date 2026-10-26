@@ -24,12 +24,24 @@
 // ---------------------------------------------------------------
 // Prin internet: brokerul MQTT, pentru cand telefonul nu e in Wi-Fi-ul casei
 // ---------------------------------------------------------------
-// Utilizatorul si parola panoului NU se scriu aici: le punem in secrete.h (MQTT_UTILIZATOR,
-// MQTT_PAROLA). Fara ele, panoul merge doar pe Wi-Fi.
+// Conturile pe broker le face serverul de conturi (inrolare.ino): panoul isi face singur unul la
+// prima pornire, iar telefoanelor le face el cate unul, la legare. Cheile de inrolare NU se scriu
+// aici: stau in secrete.h (INROLARE_PANOURI, INROLARE_TELEFOANE, INROLARE_RESET).
+// Fara ele, panoul merge doar pe Wi-Fi.
 #define MQTT_SERVER "mqtt.mandragiu.eu"
 #define MQTT_PORT 8883
+#define AUTH_URL "https://nepha-auth.mandragiu.eu"
+#ifndef INROLARE_PANOURI
+#define INROLARE_PANOURI ""
+#endif
+#ifndef INROLARE_TELEFOANE
+#define INROLARE_TELEFOANE ""
+#endif
+#ifndef INROLARE_RESET
+#define INROLARE_RESET ""
+#endif
 // Topicele le stabileste ACL-ul brokerului. In ele se pot folosi:
-//   {server} = numele unic al panoului (ex. nepha-a1b2c3, il vedeti la Setari)
+//   {server} = numele unic al panoului (adresa MAC, ex. a0b1c2d3e4f5, il vedeti la Setari)
 //   {client} = id-ul telefonului care a intrebat
 #define TOPIC_CERERI  "nepha/servers/{server}/requests"                     // telefoanele scriu, noi citim
 #define TOPIC_RASPUNS "nepha/servers/{server}/clients/{client}/responses"  // noi raspundem fiecarui telefon

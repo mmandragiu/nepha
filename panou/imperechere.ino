@@ -1,13 +1,15 @@
 // imperechere - cum afla telefonul cine e panoul si cum primeste cheia casei
 //
 // Fiecare panou are:
-//   - un nume unic (idServer, ex. "nepha-a1b2c3", din adresa MAC), ca doua case sa nu se
-//     incurce pe acelasi broker
+//   - un nume unic (idServer, ex. "a0b1c2d3e4f5", adresa MAC), ca doua case sa nu se incurce
+//     pe acelasi broker; cu el se inroleaza si se conecteaza la broker
 //   - o cheie secreta a casei (32 de octeti, facuta la prima pornire, tinuta in memoria panoului)
 //
-// Cu cheia, telefonul cripteaza PIN-ul cand dezarmeaza alarma prin internet (vezi mqtt.ino).
-// Cheia o primeste o singura data, pe Wi-Fi-ul casei: pe panou, la Setari, "Leagă telefonul"
-// arata un cod de 6 cifre pentru 2 minute; il scriem in aplicatie. Prin broker nu trece niciodata.
+// La legare, telefonul primeste, o singura data, pe Wi-Fi-ul casei:
+//   - cheia casei: cu ea cripteaza PIN-ul cand dezarmeaza alarma prin internet (vezi mqtt.ino)
+//   - contul lui pe broker (utilizator si parola), pe care i-l face panoul (inrolare.ino)
+// Pe panou, la Setari, "Leagă telefonul" arata un cod de 6 cifre pentru 2 minute; il scriem in
+// aplicatie. Nimic din astea nu trece prin broker.
 
 #include <esp_mac.h>
 #if __has_include(<esp_random.h>)
@@ -26,8 +28,9 @@ static uint8_t incercariGresite = 0;
 void imperechereInit() {
   uint8_t mac[6];
   esp_read_mac(mac, ESP_MAC_WIFI_STA);
+  // toata adresa MAC (12 caractere): unica pe fiecare placa, chiar daca facem multe panouri
   char id[16];
-  snprintf(id, sizeof(id), "nepha-%02x%02x%02x", mac[3], mac[4], mac[5]);
+  snprintf(id, sizeof(id), "%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   idServer = id;
 
   Preferences p;
@@ -56,8 +59,9 @@ uint8_t secundeImperechere() {
   return codDeAfisat() ? (codPanaLa - millis()) / 1000 : 0;
 }
 
-// telefonul trimite codul; daca e bun, ii dam numele panoului si cheia casei (in base64)
-bool imperecheaza(uint32_t cod, String &cheieText) {
+// telefonul trimite codul si id-ul lui; daca e bun, ii dam cheia casei (in base64) si, daca
+// avem internet si cheile de inrolare, contul lui pe broker (altfel raman goale: merge doar pe Wi-Fi)
+bool imperecheaza(uint32_t cod, const String &clientId, String &cheieText, String &utilizator, String &parola) {
   if (!codDeAfisat()) return false;
   if (cod != codImperechere) {
     if (++incercariGresite >= 5) codImperechere = 0;   // nu lasam pe nimeni sa ghiceasca
@@ -68,6 +72,11 @@ bool imperecheaza(uint32_t cod, String &cheieText) {
   size_t lung = 0;
   mbedtls_base64_encode(text, sizeof(text), &lung, cheieCasa, sizeof(cheieCasa));
   cheieText = String((const char *)text, lung);
+
+  // id-ul telefonului ajunge in topicuri si in numele contului: doar litere, cifre si '-'
+  bool idBun = clientId.length() > 0 && clientId.length() <= 40;
+  for (char c : clientId) idBun &= isalnum(c) || c == '-';
+  if (!idBun || !inroleaza(clientId, utilizator, parola)) utilizator = parola = "";
   return true;
 }
 

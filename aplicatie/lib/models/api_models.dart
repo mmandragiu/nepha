@@ -221,7 +221,8 @@ class Retea {
 
 // GET /api/stare
 class Stare {
-  final String server; // numele unic al panoului (ex. nepha-a1b2c3)
+  final String
+  server; // numele unic al panoului (adresa lui MAC, ex. a0b1c2d3e4f5)
   final bool primit; // panoul primeste date de la Arduino?
   final int vechime; // de cate secunde n-au mai venit date (-1 = niciodata)
   final String ora;

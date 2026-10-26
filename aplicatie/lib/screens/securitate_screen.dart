@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/app_state.dart';
-import '../services/broker.dart' show areBroker;
 import '../theme/nepha_theme.dart';
 import '../widgets/tastatura_pin.dart';
 import '../widgets/ui.dart';
@@ -236,11 +235,11 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                 titlu: app.legat
                     ? 'Telefonul e legat de casă'
                     : 'Leagă telefonul de casă',
-                detaliu: !areBroker
-                    ? 'aplicația e compilată fără broker: merge doar pe Wi-Fi'
-                    : app.legat
+                detaliu: !app.legat
+                    ? 'o dată, acasă, ca să meargă și de pe date mobile'
+                    : app.poatePrinInternet
                     ? 'merge și de pe date mobile · ${app.server}'
-                    : 'o dată, acasă, ca să meargă și de pe date mobile',
+                    : 'încă fără cont pentru internet: legați-l din nou',
                 dreapta: Buton(
                   app.legat ? 'Din nou' : 'Leagă',
                   onTap: () => _leaga(app),

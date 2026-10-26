@@ -5,9 +5,9 @@
 //   TOPIC_RASPUNS  panoul ne raspunde:    {"id","ok","date"}           (doar noua, dupa id-ul telefonului)
 //   TOPIC_NOUTATI  panoul anunta pe toti: {"tip":"stare|eveniment|online|offline","server","date"}
 //
-// Utilizatorul si parola nu sunt in cod: vin la compilare din secrete.json (vezi README):
-//   flutter build apk --dart-define-from-file=secrete.json
-// Fara ele, aplicatia merge doar pe Wi-Fi.
+// Utilizatorul si parola nu sunt in aplicatie: fiecare telefon isi primeste contul lui pe broker
+// de la panou, cand il legam de casa (codul de pe ecran), si il tine criptat pe telefon
+// (flutter_secure_storage: Keychain pe iPhone, Keystore pe Android). Fara cont, doar Wi-Fi.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -24,10 +24,6 @@ const brokerPort = 8883;
 const topicCereri = 'nepha/servers/{server}/requests';
 const topicRaspuns = 'nepha/servers/{server}/clients/{client}/responses';
 const topicNoutati = 'nepha/servers/{server}/events/devices';
-
-const _utilizator = String.fromEnvironment('MQTT_UTILIZATOR');
-const _parola = String.fromEnvironment('MQTT_PAROLA');
-const areBroker = _utilizator != '' && _parola != '';
 
 String _topic(String model, {String server = '', String client = ''}) =>
     model.replaceAll('{server}', server).replaceAll('{client}', client);
@@ -56,7 +52,9 @@ Future<String> cripteazaComanda(
 
 class Broker {
   final String client; // id-ul telefonului, acelasi la fiecare pornire
-  final String server; // numele panoului (ex. nepha-a1b2c3)
+  final String server; // numele panoului (adresa lui MAC, ex. a0b1c2d3e4f5)
+  final String utilizator,
+      parola; // contul telefonului pe broker, primit la legare
   final void Function(Stare) laStare;
   final void Function(Decizie) laEveniment;
   final void Function(bool) laPanou; // panoul a intrat / a iesit de pe broker
@@ -64,6 +62,8 @@ class Broker {
   Broker({
     required this.client,
     required this.server,
+    required this.utilizator,
+    required this.parola,
     required this.laStare,
     required this.laEveniment,
     required this.laPanou,
@@ -79,7 +79,6 @@ class Broker {
       _mqtt?.connectionStatus?.state == MqttConnectionState.connected;
 
   Future<bool> porneste() async {
-    if (!areBroker) return false;
     if (conectat) return true;
     final m = MqttServerClient.withPort(brokerServer, client, brokerPort)
       ..secure = true
@@ -89,7 +88,7 @@ class Broker {
       ..logging(on: false);
     _mqtt = m;
     try {
-      await m.connect(_utilizator, _parola);
+      await m.connect(utilizator, parola);
     } catch (_) {
       m.disconnect();
       return false;

@@ -9,8 +9,8 @@
 #                                           de stare prin broker si arata ce primeste
 #
 # Parolele le ia din fisierele ignorate de git (nu le scrie nicaieri si nu le afiseaza):
-#   panou   -> panou/secrete.h        (MQTT_UTILIZATOR, MQTT_PAROLA)
-#   telefon -> aplicatie/secrete.json (MQTT_UTILIZATOR, MQTT_PAROLA)
+#   panou/secrete.h: cheile de inrolare (INROLARE_PANOURI, INROLARE_TELEFOANE, INROLARE_RESET).
+#   Cu ele isi face cont pe broker, ca panoul adevarat (vezi panou/inrolare.ino).
 # Trebuie: pip install paho-mqtt cryptography
 #
 # Topicele sunt aceleasi ca in panou/config.h si aplicatie/lib/services/broker.dart;
@@ -29,13 +29,17 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs
 
+import urllib.error
+import urllib.request
+
 import paho.mqtt.client as mqtt
 
 BROKER, PORT = "mqtt.mandragiu.eu", 8883
 TOPIC_CERERI = "nepha/servers/{server}/requests"
 TOPIC_RASPUNS = "nepha/servers/{server}/clients/{client}/responses"
 TOPIC_NOUTATI = "nepha/servers/{server}/events/devices"
-SERVER = "nepha-proba"          # numele "panoului" de proba
+AUTH = "https://nepha-auth.mandragiu.eu"
+SERVER = "nephaproba01"         # numele "panoului" de proba (cel adevarat foloseste adresa MAC)
 PORT_WIFI = 8080
 RADACINA = Path(__file__).resolve().parent.parent
 
@@ -48,15 +52,32 @@ def topic(model, server="", client=""):
     return model.replace("{server}", server).replace("{client}", client)
 
 
-def parole_panou():
+def chei():
     text = (RADACINA / "panou" / "secrete.h").read_text(encoding="utf-8")
     gaseste = lambda nume: re.search(r'^\s*#define\s+' + nume + r'\s+"([^"]*)"', text, re.M).group(1)
-    return gaseste("MQTT_UTILIZATOR"), gaseste("MQTT_PAROLA")
+    return gaseste("INROLARE_PANOURI"), gaseste("INROLARE_TELEFOANE"), gaseste("INROLARE_RESET")
 
 
-def parole_telefon():
-    j = json.loads((RADACINA / "aplicatie" / "secrete.json").read_text(encoding="utf-8"))
-    return j["MQTT_UTILIZATOR"], j["MQTT_PAROLA"]
+# ca panou/inrolare.ino: cont nou; daca exista deja, parola noua (reset)
+def inroleaza(server_id, client_id=None):
+    k_panouri, k_telefoane, k_reset = chei()
+    corp = {"serverId": server_id}
+    if client_id:
+        corp["clientId"] = client_id
+    cale = "/enroll/client" if client_id else "/enroll/server"
+    for cheie, reset in ((k_telefoane if client_id else k_panouri, False), (k_reset, True)):
+        if reset:
+            corp["reset"] = True
+        cerere = urllib.request.Request(AUTH + cale, data=json.dumps(corp).encode(), method="POST",
+                                        headers={"Content-Type": "application/json", "X-Enroll-Key": cheie})
+        try:
+            with urllib.request.urlopen(cerere, timeout=10) as raspuns:
+                j = json.loads(raspuns.read())
+                print(f"inrolare {cale}{' (parola noua)' if reset else ''}: cont {j['username']}")
+                return j["username"], j["password"]
+        except urllib.error.HTTPError as e:
+            print(f"inrolare {cale}{' (parola noua)' if reset else ''}: {e.code}")
+    raise SystemExit("serverul de conturi n-a dat cont")
 
 
 def client_nou(id_client, utilizator, parola):
@@ -152,7 +173,12 @@ class Wifi(BaseHTTPRequestHandler):
         elif self.path == "/api/imperechere":
             if f.get("cod", [""])[0] == str(cod_legare):
                 print("[Wi-Fi] telefon legat; cod nou:", cod_legare := random.randint(100000, 999999))
-                self.trimite(200, {"ok": True, "server": SERVER, "cheie": base64.b64encode(cheie).decode()})
+                raspuns = {"ok": True, "server": SERVER, "cheie": base64.b64encode(cheie).decode()}
+                try:   # ca panoul: ii facem telefonului cont pe broker
+                    raspuns["utilizator"], raspuns["parola"] = inroleaza(SERVER, f.get("client", [""])[0])
+                except (OSError, AttributeError, SystemExit) as e:
+                    print("[Wi-Fi] fara cont pe broker pentru telefon:", e)
+                self.trimite(200, raspuns)
             else:
                 self.trimite(403, {"ok": False})
         else:
@@ -165,12 +191,12 @@ def panou():
     print(f"codul de legare: {cod_legare}   PIN-ul alarmei: 1234")
 
     try:
-        parole = parole_panou()
+        cont = inroleaza(SERVER)
     except (OSError, AttributeError):
-        print("broker: fara panou/secrete.h, merg doar pe Wi-Fi (Ctrl+C ca sa opresti)")
+        print("broker: fara cheile de inrolare in panou/secrete.h, merg doar pe Wi-Fi (Ctrl+C ca sa opresti)")
         while True:
             time.sleep(10)
-    c = client_nou(SERVER, *parole)
+    c = client_nou(SERVER, *cont)
     c.will_set(topic(TOPIC_NOUTATI, SERVER), json.dumps({"tip": "offline", "server": SERVER}))
 
     def la_conectare(c, u, f, rc, p):
@@ -208,9 +234,9 @@ def panou():
 
 
 def telefon():
-    eu = "nepha-app-proba" + str(random.randint(100, 999))
+    eu = "probatelefon" + str(random.randint(1000, 9999))
     server = sys.argv[2] if len(sys.argv) > 2 else SERVER
-    c = client_nou(eu, *parole_telefon())
+    c = client_nou(eu, *inroleaza(server, eu))
 
     def la_conectare(c, u, f, rc, p):
         print("broker: conectat ca telefon" if rc == 0 else f"broker: a refuzat ({rc})")

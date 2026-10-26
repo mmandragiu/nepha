@@ -6,7 +6,8 @@
 //   /api/istoric    punctele pentru grafice
 //   /api/rutina     ce a invatat casa
 //   /api/comanda    POST c=<comanda>, o trimitem lui Arduino
-//   /api/imperechere POST cod=<codul de pe ecran>: telefonul primeste cheia casei (imperechere.ino)
+//   /api/imperechere POST cod=<codul de pe ecran>&client=<id telefon>: telefonul primeste cheia
+//                    casei si contul lui pe broker (imperechere.ino, inrolare.ino)
 //   /wifi           alegem reteaua casei si locul (pentru prognoza)
 //
 // JSON-ul il fac functiile json*() / scrieIstoric(), aceleasi si pentru broker (mqtt.ino):
@@ -230,8 +231,8 @@ static void apiComanda() {
 }
 
 static void apiImperechere() {
-  String cheie;
-  if (!imperecheaza(server.arg("cod").toInt(), cheie)) {
+  String cheie, utilizator, parola;
+  if (!imperecheaza(server.arg("cod").toInt(), server.arg("client"), cheie, utilizator, parola)) {
     server.send(403, "application/json", "{\"ok\":false}");
     return;
   }
@@ -239,6 +240,10 @@ static void apiImperechere() {
   doc["ok"] = true;
   doc["server"] = idServer;
   doc["cheie"] = cheie;
+  if (parola.length()) {             // contul telefonului pe broker (doar lui, o singura data)
+    doc["utilizator"] = utilizator;
+    doc["parola"] = parola;
+  }
   trimiteJson(doc);
 }
 
