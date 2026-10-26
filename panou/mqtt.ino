@@ -91,7 +91,7 @@ bool mqttConectat() {
   return conectatBroker;
 }
 
-// "nepha/clients/{client}/responses" -> "nepha/clients/telefon1/responses"
+// "nepha/servers/{server}/clients/{client}/responses" -> "nepha/servers/nepha-a1b2c3/clients/nepha-app-x7/responses"
 static String topic(const char *model, const char *client = "") {
   String t = model;
   t.replace("{server}", idServer);

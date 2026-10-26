@@ -32,17 +32,19 @@ Aplicația ajunge la casă pe două drumuri:
 
 ## Ce circulă pe broker
 
-Trei topice, cum le cere ACL-ul brokerului:
+Trei topice, cum le cere ACL-ul brokerului. `{sid}` e numele panoului (`nepha-xxxxxx`, se vede pe
+panou la Setări), `{cid}` e id-ul telefonului (`nepha-app-...`, făcut la prima pornire a aplicației).
+Ambele sunt și „client ID”-ul cu care se conectează fiecare la broker.
 
 | Topic | Cine scrie | Ce e în el |
 |---|---|---|
-| `nepha/server/requests` | telefonul | o cerere: `{"id","client","server","cere":"stare\|jurnal\|istoric\|rutina\|comanda\|privesc"}` |
-| `nepha/clients/{clientId}/responses` | panoul | răspunsul, doar pentru telefonul care a întrebat: `{"id","ok","date"}` |
-| `nepha/events/devices` | panoul | noutăți pentru toți: `{"tip":"stare\|eveniment\|online\|offline","server","date"}` |
+| `nepha/servers/{sid}/requests` | telefoanele înrolate la casă | o cerere: `{"id","client","server","cere":"stare\|jurnal\|istoric\|rutina\|comanda\|privesc"}` |
+| `nepha/servers/{sid}/clients/{cid}/responses` | panoul | răspunsul, doar pentru telefonul care a întrebat: `{"id","ok","date"}` |
+| `nepha/servers/{sid}/events/devices` | panoul | noutăți pentru telefoanele casei: `{"tip":"stare\|eveniment\|online\|offline","server","date"}` |
 
 - În `date` e **exact același JSON** ca pe Wi-Fi (`/api/stare`, `/api/jurnal`...).
-- Fiecare mesaj are `server` (numele panoului). Panoul ignoră cererile pentru alte case, iar aplicația ignoră noutățile de la alte case.
-- Când tatăl tău pune `{serverId}` în topice, se schimbă doar cele trei rânduri din `panou/config.h`, `lib/services/broker.dart` și `unelte/proba_broker.py`. În ele se poate scrie `{server}` și `{client}`.
+- Fiecare casă are topicele ei, deci două case pe același broker nu se încurcă.
+- Topicele sunt scrise în trei locuri, care trebuie să rămână la fel: `panou/config.h`, `aplicatie/lib/services/broker.dart` și `unelte/proba_broker.py`. Acolo `{server}` = `{sid}` și `{client}` = `{cid}`.
 
 ### Cât trafic
 

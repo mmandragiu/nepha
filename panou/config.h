@@ -31,9 +31,9 @@
 // Topicele le stabileste ACL-ul brokerului. In ele se pot folosi:
 //   {server} = numele unic al panoului (ex. nepha-a1b2c3, il vedeti la Setari)
 //   {client} = id-ul telefonului care a intrebat
-#define TOPIC_CERERI  "nepha/server/requests"              // telefoanele scriu, noi citim
-#define TOPIC_RASPUNS "nepha/clients/{client}/responses"   // noi raspundem fiecarui telefon
-#define TOPIC_NOUTATI "nepha/events/devices"               // noi anuntam ce se schimba in casa
+#define TOPIC_CERERI  "nepha/servers/{server}/requests"                     // telefoanele scriu, noi citim
+#define TOPIC_RASPUNS "nepha/servers/{server}/clients/{client}/responses"  // noi raspundem fiecarui telefon
+#define TOPIC_NOUTATI "nepha/servers/{server}/events/devices"              // noi anuntam ce se schimba in casa
 
 // unde e casa (pentru prognoza meteo) - Bucuresti; se poate schimba din pagina web
 #define LATITUDINE  44.43

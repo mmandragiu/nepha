@@ -24,9 +24,9 @@ from pathlib import Path
 import paho.mqtt.client as mqtt
 
 BROKER, PORT = "mqtt.mandragiu.eu", 8883
-TOPIC_CERERI = "nepha/server/requests"
-TOPIC_RASPUNS = "nepha/clients/{client}/responses"
-TOPIC_NOUTATI = "nepha/events/devices"
+TOPIC_CERERI = "nepha/servers/{server}/requests"
+TOPIC_RASPUNS = "nepha/servers/{server}/clients/{client}/responses"
+TOPIC_NOUTATI = "nepha/servers/{server}/events/devices"
 SERVER = "nepha-proba"          # numele "panoului" de proba
 RADACINA = Path(__file__).resolve().parent.parent
 

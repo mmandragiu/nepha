@@ -21,9 +21,9 @@ import '../models/api_models.dart';
 const brokerServer = 'mqtt.mandragiu.eu';
 const brokerPort = 8883;
 // la fel ca in panou/config.h: {server} = numele panoului, {client} = id-ul telefonului
-const topicCereri = 'nepha/server/requests';
-const topicRaspuns = 'nepha/clients/{client}/responses';
-const topicNoutati = 'nepha/events/devices';
+const topicCereri = 'nepha/servers/{server}/requests';
+const topicRaspuns = 'nepha/servers/{server}/clients/{client}/responses';
+const topicNoutati = 'nepha/servers/{server}/events/devices';
 
 const _utilizator = String.fromEnvironment('MQTT_UTILIZATOR');
 const _parola = String.fromEnvironment('MQTT_PAROLA');
@@ -95,7 +95,10 @@ class Broker {
       return false;
     }
     if (!conectat) return false;
-    m.subscribe(_topic(topicRaspuns, client: client), MqttQos.atMostOnce);
+    m.subscribe(
+      _topic(topicRaspuns, server: server, client: client),
+      MqttQos.atMostOnce,
+    );
     m.subscribe(_topic(topicNoutati, server: server), MqttQos.atMostOnce);
     _ascult = m.updates?.listen(_primit);
     return true;
