@@ -1,9 +1,13 @@
 // teste mici: numerele scrise ca la noi si JSON-ul panoului citit corect
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nepha/models/api_models.dart';
+import 'package:nepha/widgets/grafice.dart';
 import 'package:nepha/widgets/ui.dart';
 
 void main() {
+  _harta();
+
   test('numere cu virgula si puncte la mii', () {
     expect(nr(21.44), '21,4');
     expect(nr(16200, 0), '16.200');
@@ -70,4 +74,35 @@ void main() {
       expect(s.rezultate[1].total, 13681);
     },
   );
+}
+
+// harta rutinei intr-o lista care se deruleaza (ca pe ecranul Camere), pe telefon si pe tableta:
+// lista trebuie sa se termine dupa harta, nu sa mearga la nesfarsit in gol
+void _harta() {
+  for (final latime in [390.0, 1280.0]) {
+    testWidgets('harta rutinei are inaltime normala (latime $latime)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(latime, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final r = Rutina(
+        valida: true,
+        camere: const ['Sufragerie', 'Dormitor', 'Bucătărie'],
+        p: List.generate(3, (_) => List.generate(24, (h) => h * 4)),
+        zile: List.filled(24, 7),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ListView(children: [HartaRutina(r, oraAcum: 18)]),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      final lista = tester.state<ScrollableState>(find.byType(Scrollable));
+      expect(lista.position.maxScrollExtent, 0);
+      expect(tester.getSize(find.byType(HartaRutina)).height, lessThan(200));
+    });
+  }
 }

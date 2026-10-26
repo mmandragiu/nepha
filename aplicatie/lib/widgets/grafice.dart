@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show OverflowBoxFit;
 
 import '../models/api_models.dart';
 import '../theme/nepha_theme.dart';
@@ -190,13 +191,17 @@ class HartaRutina extends StatelessWidget {
               ],
             ),
           ),
-        // orele: 0, 6, 12, 18 (textul poate iesi peste coloanele vecine, nu se rupe)
+        // orele: 0, 6, 12, 18 (textul poate iesi peste coloanele vecine, nu se rupe).
+        // Inaltimea o ia de la text (deferToChild): altfel, intr-o lista, OverflowBox s-ar
+        // face infinit de inalt si ecranul s-ar derula la nesfarsit in gol
         Row(
           children: [
             const SizedBox(width: _nume),
             for (var h = 0; h < 24; h++)
               Expanded(
                 child: OverflowBox(
+                  fit: OverflowBoxFit.deferToChild,
+                  minWidth: 0, // pe tableta coloana e mai lata de 40
                   maxWidth: 40,
                   alignment: Alignment.centerLeft,
                   child: Text(
