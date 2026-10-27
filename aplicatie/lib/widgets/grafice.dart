@@ -1,4 +1,4 @@
-// grafice - graficul de energie (fl_chart, fara gradienti) si harta rutinei
+// grafice - graficul de energie (fl_chart, plat) si harta rutinei
 import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
@@ -96,18 +96,23 @@ class GraficEnergie extends StatelessWidget {
               lineBarsData: [
                 LineChartBarData(
                   spots: puncte(prod),
-                  color: Culori.soare,
+                  color: Culori.verde,
                   barWidth: 2,
                   dotData: const FlDotData(show: false),
+                  isCurved: true,
+                  curveSmoothness: 0.2,
                   belowBarData: BarAreaData(
                     show: true,
-                    color: Culori.soare.withValues(alpha: 0.12),
+                    color: Culori.verde.withValues(alpha: 0.14),
                   ),
                 ),
                 LineChartBarData(
                   spots: puncte(consum),
-                  color: Culori.text.withValues(alpha: 0.8),
+                  color: Culori.text,
                   barWidth: 1.5,
+                  isCurved: true,
+                  curveSmoothness: 0.2,
+                  dashArray: const [4, 4],
                   dotData: const FlDotData(show: false),
                 ),
               ],
@@ -119,7 +124,7 @@ class GraficEnergie extends StatelessWidget {
         Wrap(
           spacing: 14,
           children: [
-            _Legenda(Culori.soare, 'producție (soare + vânt)'),
+            _Legenda(Culori.verde, 'producție (soare + vânt)'),
             _Legenda(Culori.text, 'consum'),
           ],
         ),
@@ -138,11 +143,11 @@ class _Legenda extends StatelessWidget {
     mainAxisSize: MainAxisSize.min,
     children: [
       Container(
-        width: 10,
-        height: 10,
+        width: 14,
+        height: 3,
         decoration: BoxDecoration(
           color: culoare,
-          borderRadius: BorderRadius.circular(3),
+          borderRadius: BorderRadius.circular(99),
         ),
       ),
       const SizedBox(width: 6),
@@ -178,17 +183,17 @@ class HartaRutina extends StatelessWidget {
                       height: 24,
                       margin: const EdgeInsets.symmetric(horizontal: 0.75),
                       decoration: BoxDecoration(
-                        // cu cat e mai probabil sa fie cineva, cu atat mai verde
-                        color: Culori.verde.withValues(
+                        // cu cat e mai probabil sa fie cineva, cu atat mai portocaliu
+                        color: Culori.accent.withValues(
                           alpha:
-                              0.08 +
+                              0.06 +
                               (max(
                                         0,
                                         (h < r.p[c].length ? r.p[c][h] : 0) -
                                             10,
                                       ) /
                                       90) *
-                                  0.92,
+                                  0.84,
                         ),
                         borderRadius: BorderRadius.circular(3),
                       ),
@@ -223,7 +228,7 @@ class HartaRutina extends StatelessWidget {
                   child: Text(
                     h % 6 == 0 ? '$h' : '',
                     softWrap: false,
-                    style: TextStyle(fontSize: 10, color: Culori.text2),
+                    style: fontText(marime: 10, culoare: Culori.text2),
                   ),
                 ),
               ),

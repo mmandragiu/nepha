@@ -110,6 +110,7 @@ class DemoCasa {
   DateTime? _pompaPanaLa;
   final _lumini = [80, 0, 45];
   final _usi = [false, false, false, false];
+  bool _priza = true;
 
   static const _numeAlarma = [
     'Dezarmată',
@@ -224,6 +225,8 @@ class DemoCasa {
     }
     final l = RegExp(r'^LUMINA (\d) (\d+)$').firstMatch(c);
     if (l != null) _lumini[int.parse(l[1]!)] = int.parse(l[2]!);
+    if (c == 'PRIZA 1' || c == 'PRIZA AUTO') _priza = true;
+    if (c == 'PRIZA 0') _priza = false;
     final u = RegExp(r'^USA (\d) (\d)$').firstMatch(c);
     if (u != null) _usi[int.parse(u[1]!)] = u[2] == '1';
   }
@@ -297,7 +300,7 @@ class DemoCasa {
         ],
       ),
       gradina: Gradina(umiditate: pompa ? 34 : 31, pompa: pompa),
-      priza: true,
+      priza: _priza,
       senzori: 159,
       vreme: const Vreme(
         valida: true,
@@ -373,6 +376,7 @@ class DemoCasa {
         solar = <double>[],
         vant = <double>[],
         consum = <double>[];
+    final baterie = <int>[], tCasa = <double?>[], tAfara = <double?>[];
     for (var m = 0; m < 1130; m += 5) {
       final zi = max(0.0, sin((m / 60 - 7) / 11 * pi));
       minut.add(m);
@@ -383,15 +387,18 @@ class DemoCasa {
           ? 1
           : 0; // porneste si se opreste
       consum.add((acasa ? 0.45 : 0.15) + calorifer);
+      baterie.add((62 + 30 * zi - (m > 1000 ? (m - 1000) / 40 : 0)).round());
+      tCasa.add((acasa || m > 900 ? 21.2 : 18.4) + sin(m / 23) * 0.3);
+      tAfara.add(4.5 + 6 * zi + sin(m / 70) * 0.4);
     }
     return Istoric(
       minut: minut,
       solar: solar,
       vant: vant,
       consum: consum,
-      baterie: const [],
-      tCasa: const [],
-      tAfara: const [],
+      baterie: baterie,
+      tCasa: tCasa,
+      tAfara: tAfara,
     );
   }
 

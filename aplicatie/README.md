@@ -13,11 +13,13 @@ rămâne Arduino.
 
 Patru file:
 
-- **Acasă** — economia de azi (kWh și lei, față de o casă clasică), în casă / afară, bateria,
-  alarma și jurnalul deciziilor casei;
-- **Camere & Grădină** — luminile (se aprind de aici), umiditatea solului cu „Udă acum” și ce a
-  învățat casa (pe camere și pe ore);
-- **Energie** — soarele, vântul, bateria și consumul, graficul zilei și ziua de test (clasic vs smart);
+- **Acasă** — un rezumat într-o frază (alarma, temperatura medie, ce cere atenție), economia de
+  azi față de o casă clasică, cardurile cu cifrele casei, **automatizările** (regulile casei,
+  colorate când lucrează) și jurnalul deciziilor;
+- **Camere** — câte un card pe cameră (lumina se aprinde de aici; atins, deschide camera cu
+  „Noapte / Relax / Citit / Plin”), priza TV, grădina cu „Udă acum” și ce a învățat casa;
+- **Energie** — cât din consumul de acum vine din soare și vânt (semicercul), bateria în căsuțe,
+  graficul zilei și ziua de test (clasic vs smart);
 - **Securitate & Setări** — alarma (PIN, Face ID / Touch ID sau amprentă), ușile și geamurile, adresa panoului, modul
   demo, Smart / Clasic, temperatura de confort și tema (ca telefonul, zi sau noapte).
 
@@ -101,7 +103,29 @@ contul de dezvoltator Apple (99 $ pe an) merge un an și se poate da și altora,
   la prima dezarmare, dacă poate folosi Face ID: la amândouă răspundem „Permite”.
 - Tema de noapte: culorile sunt în `lib/theme/nepha_theme.dart`, câte un set pentru zi și unul pentru
   noapte. Când se schimbă, `main.dart` reface tot ecranul ca să le citească din nou.
-- Fontul Nunito e în aplicație (`assets/google_fonts`), merge și fără internet.
+- Fonturile sunt în aplicație (`assets/google_fonts`), merg și fără internet: Urbanist pentru
+  text și cifre, JetBrains Mono doar pentru datele tehnice din „Date avansate”.
+
+### Aspectul
+
+- **Curat, fără efecte.** Carduri plate, cu colțuri mari: albe pe gri deschis ziua, grafit noaptea.
+  Fără gradienți, fără strălucire.
+- **Un singur accent: portocaliu.** Ce e pornit și butoanele principale sunt portocalii. Verdele e
+  doar pentru economie și producție, roșul doar pentru alarmă.
+- **Cifrele mari sunt scrise subțire** (de exemplu „2,3 kWh”), iar titlurile au o parte îngroșată
+  („Casa ta, **pe scurt**”).
+- **Sticla (ca „Liquid Glass” pe iPhone)** e doar pe ce plutește peste ecran: bara de jos și
+  indicatorul de legătură. Ce trece pe sub ele se vede încețoșat. Cardurile rămân plate, cum
+  recomandă Apple. E desenată de noi (`Sticla` în `lib/widgets/ui.dart`), deci arată la fel pe
+  Android.
+- **„Date avansate”.** Ții apăsat pe un card de pe Acasă și se deschide fereastra cu:
+  - graficul pe 24 de ore;
+  - de unde vine valoarea: senzorul, pinul, adresa I2C;
+  - drumul până la telefon (Wi-Fi sau broker), latența în milisecunde și cât de proaspete sunt datele.
+
+  Totul e în `lib/widgets/carduri.dart`.
+- **Automatizările** (`lib/widgets/automatizari.dart`) sunt regulile scrise în Arduino. Aplicația
+  nu le schimbă, doar arată care lucrează acum (cu portocaliu). Comutatorul de sus e Smart / Clasic.
 
 | Fișier | Ce face |
 |---|---|
@@ -110,8 +134,12 @@ contul de dezvoltator Apple (99 $ pe an) merge un an și se poate da și altora,
 | `lib/services/broker.dart` | aceleași cereri prin brokerul MQTT, PIN-ul criptat |
 | `lib/services/istoric_local.dart` | graficul pe 3 zile, pe telefon |
 | `lib/providers/app_state.dart` | starea aplicației: Wi-Fi sau internet, întrebările periodice, comenzile, setările, Face ID / amprenta |
-| `lib/theme/nepha_theme.dart` | culorile și fontul (aceleași ca pe pagină și pe panou) |
-| `lib/widgets/` | cardurile, comutatoarele, graficul, harta rutinei, tastatura PIN |
+| `lib/theme/nepha_theme.dart` | culorile (zi / noapte) și fonturile |
+| `lib/widgets/ui.dart` | bucățile de bază: cardul, sticla, iconițe rotunde, pastile, butoane, comutatorul, bare, grafice mici |
+| `lib/widgets/fereastra_camera.dart` | fereastra unei camere: lumina și scenele |
+| `lib/widgets/carduri.dart` | cardurile de pe Acasă și „Date avansate” |
+| `lib/widgets/automatizari.dart` | regulile casei, ca noduri „Dacă → Atunci” |
+| `lib/widgets/` (restul) | graficul de energie, harta rutinei, tastatura PIN |
 | `lib/screens/` | cele patru ecrane |
 
 Înainte de a urca modificări: `flutter analyze` și `flutter test`.

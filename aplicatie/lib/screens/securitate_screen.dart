@@ -78,19 +78,21 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
         if (s != null)
           Bloc(
             pericol: s.alarma.pericol,
+            lumina: s.alarma.cod >= 2 ? Culori.verde : null,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.shield_outlined,
-                      size: 30,
-                      color: s.alarma.pericol
+                    Iconita(
+                      s.alarma.cod == 0 ? Icons.shield_outlined : Icons.shield,
+                      culoare: s.alarma.pericol
                           ? Culori.rosu
                           : (s.alarma.cod == 0 ? Culori.text2 : Culori.verde),
+                      aprinsa: s.alarma.cod >= 2,
+                      marime: 52,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: T.mediu(
                         s.alarma.stare,
@@ -108,6 +110,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                       Expanded(
                         child: Buton(
                           'Plec de acasă',
+                          icon: Icons.logout,
                           principal: true,
                           onTap: () => app.comanda('ALARMA PLECAT'),
                         ),
@@ -116,6 +119,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                       Expanded(
                         child: Buton(
                           'Noapte',
+                          icon: Icons.nightlight_outlined,
                           onTap: () => app.comanda('ALARMA ACASA'),
                         ),
                       ),
@@ -129,6 +133,11 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                           ? 'Dezarmează (${app.numeBiometrie} sau PIN)'
                           : 'Dezarmează',
                       principal: true,
+                      icon: app.amprentaPornita && app.areSalvatPin
+                          ? (app.numeBiometrie == 'Face ID'
+                                ? Icons.face_retouching_natural
+                                : Icons.fingerprint)
+                          : Icons.dialpad,
                       onTap: () => _dezarmeaza(app),
                     ),
                   ),
@@ -207,16 +216,29 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                 keyboardType: TextInputType.url,
                 autocorrect: false,
                 onSubmitted: (_) => _conecteaza(app),
+                style: fontCod(marime: 15, culoare: Culori.text),
                 decoration: InputDecoration(
                   hintText: '192.168.1.42',
+                  hintStyle: fontCod(marime: 15, culoare: Culori.text2),
                   isDense: true,
+                  filled: true,
+                  fillColor: Culori.moale,
+                  prefixIcon: Icon(Icons.lan_outlined, color: Culori.text2),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(coltMic),
                     borderSide: BorderSide(color: Culori.linie),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(coltMic),
                     borderSide: BorderSide(color: Culori.linie),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(coltMic),
+                    borderSide: BorderSide(color: Culori.accent, width: 1.5),
                   ),
                 ),
               ),
@@ -252,13 +274,12 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                 dreapta: Comutator(
                   eticheta: 'Mod demo',
                   pornit: app.demo,
-                  culoare: Culori.verde,
                   onSchimba: (d) => app.schimbaSetari(demo: d),
                 ),
               ),
               if (s != null && s.retea.ip.isNotEmpty) ...[
                 const SizedBox(height: 10),
-                T.mic(
+                T.cod(
                   'Panoul e în ${s.retea.ap ? 'rețeaua proprie NEPHA-casa' : (s.retea.nume.isEmpty ? 'Wi-Fi' : s.retea.nume)} · ${s.retea.ip}',
                 ),
               ],
@@ -271,11 +292,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Eticheta(
-                'Cum se poartă casa',
-                iconita: Icons.eco_outlined,
-                culoare: Culori.verde,
-              ),
+              Eticheta('Cum se poartă casa', iconita: Icons.eco_outlined),
               _ModCasa(app),
               const SizedBox(height: 16),
               _RandSetare(
@@ -308,7 +325,6 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                   dreapta: Comutator(
                     eticheta: 'Dezarmare cu ${app.numeBiometrie}',
                     pornit: app.amprentaPornita,
-                    culoare: Culori.verde,
                     onSchimba: (v) => app.schimbaSetari(amprenta: v),
                   ),
                 ),
@@ -444,6 +460,7 @@ class _ButonMic extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         padding: EdgeInsets.zero,
         side: BorderSide(color: Culori.linie),
+        backgroundColor: Culori.moale,
         shape: const StadiumBorder(),
         foregroundColor: Culori.text,
       ),

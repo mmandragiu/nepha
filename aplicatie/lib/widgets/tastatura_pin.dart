@@ -8,7 +8,7 @@ import 'ui.dart';
 // intoarce PIN-ul scris, sau null daca s-a renuntat
 Future<String?> ceAPin(BuildContext context) => showDialog<String>(
   context: context,
-  barrierColor: const Color(0x73171512),
+  barrierColor: const Color(0x99050810),
   builder: (_) => const _TastaturaPin(
     titlu: 'PIN-ul alarmei',
     detaliu: 'Îl verifică Arduino, nu aplicația.',
@@ -20,7 +20,7 @@ Future<String?> ceAPin(BuildContext context) => showDialog<String>(
 // codul afisat pe panou la Setari -> Leaga telefonul (cifrele se vad, nu e un secret de tinut minte)
 Future<String?> ceCodulPanoului(BuildContext context) => showDialog<String>(
   context: context,
-  barrierColor: const Color(0x73171512),
+  barrierColor: const Color(0x99050810),
   builder: (_) => const _TastaturaPin(
     titlu: 'Codul de pe panou',
     detaliu: 'Pe panou: Setări → „Leagă telefonul”. Codul e valabil 2 minute.',
@@ -78,7 +78,10 @@ class _TastaturaPinState extends State<_TastaturaPin> {
   Widget build(BuildContext context) => Dialog(
     backgroundColor: Culori.card,
     surfaceTintColor: Colors.transparent,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(coltCard),
+      side: BorderSide(color: Culori.linie),
+    ),
     child: Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -100,12 +103,15 @@ class _TastaturaPinState extends State<_TastaturaPin> {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: Culori.moale,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: i == _pin.length ? Culori.accent : Culori.linie,
+                      ),
                     ),
-                    child: T(
+                    child: T.cod(
                       i < _pin.length ? _pin[i] : '',
                       marime: 20,
-                      gros: FontWeight.w700,
+                      culoare: Culori.text,
                     ),
                   )
                 else
@@ -116,9 +122,11 @@ class _TastaturaPinState extends State<_TastaturaPin> {
                     margin: const EdgeInsets.symmetric(horizontal: 6),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: i < _pin.length ? Culori.text : Colors.transparent,
+                      color: i < _pin.length
+                          ? Culori.accent
+                          : Colors.transparent,
                       border: Border.all(
-                        color: i < _pin.length ? Culori.text : Culori.linie,
+                        color: i < _pin.length ? Culori.accent : Culori.linie,
                         width: 2,
                       ),
                     ),
@@ -139,9 +147,9 @@ class _TastaturaPinState extends State<_TastaturaPin> {
                     ? const SizedBox.shrink()
                     : Material(
                         color: Culori.moale,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(coltMic),
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(coltMic),
                           onTap: () => _apasa(k),
                           child: Center(
                             child: T(k, marime: 20, gros: FontWeight.w700),

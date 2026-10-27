@@ -10,6 +10,7 @@ import 'screens/camere_screen.dart';
 import 'screens/energie_screen.dart';
 import 'screens/securitate_screen.dart';
 import 'theme/nepha_theme.dart';
+import 'widgets/ui.dart';
 
 void main() {
   runApp(
@@ -45,7 +46,7 @@ class Nepha extends StatelessWidget {
       value: (noapte ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
           .copyWith(
             statusBarColor: Colors.transparent,
-            systemNavigationBarColor: Culori.card,
+            systemNavigationBarColor: Colors.transparent,
           ),
       child: MaterialApp(
         title: 'NEPHA',
@@ -74,9 +75,13 @@ class _AcasaState extends State<Acasa> {
   Widget build(BuildContext context) {
     final gata = context.select<AppState, bool>((s) => s.setariGata);
     return Scaffold(
-      body: !gata
-          ? Center(child: CircularProgressIndicator(color: Culori.verde))
-          : IndexedStack(
+      backgroundColor: Culori.fundal,
+      body: Stack(
+        children: [
+          if (!gata)
+            Center(child: CircularProgressIndicator(color: Culori.accent))
+          else
+            IndexedStack(
               index: _fila,
               children: [
                 AcasaScreen(mergiLa: _mergiLa),
@@ -85,32 +90,79 @@ class _AcasaState extends State<Acasa> {
                 const SecuritateScreen(),
               ],
             ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _fila,
-        onDestinationSelected: _mergiLa,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Acasă',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.lightbulb_outline),
-            selectedIcon: Icon(Icons.lightbulb),
-            label: 'Camere',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bolt_outlined),
-            selectedIcon: Icon(Icons.bolt),
-            label: 'Energie',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.shield_outlined),
-            selectedIcon: Icon(Icons.shield),
-            label: 'Securitate',
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _BaraDeJos(fila: _fila, mergiLa: _mergiLa),
           ),
         ],
       ),
     );
   }
+}
+
+const _file = [
+  (Icons.home_outlined, Icons.home_rounded, 'Acasă'),
+  (Icons.lightbulb_outline, Icons.lightbulb, 'Camere'),
+  (Icons.bolt_outlined, Icons.bolt, 'Energie'),
+  (Icons.shield_outlined, Icons.shield, 'Securitate'),
+];
+
+// bara de jos, ca in poza: o capsula de sticla fumurie care pluteste peste ecran (ce trece pe sub
+// ea se vede incetosat), cu iconitele in cercuri; fila deschisa e cercul portocaliu
+class _BaraDeJos extends StatelessWidget {
+  final int fila;
+  final void Function(int) mergiLa;
+  const _BaraDeJos({required this.fila, required this.mergiLa});
+
+  Widget _buton(int i, {required bool aleasa}) => Semantics(
+    button: true,
+    selected: aleasa,
+    label: _file[i].$3,
+    child: GestureDetector(
+      onTap: () {
+        if (!aleasa) atingere();
+        mergiLa(i);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: usor,
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: aleasa ? Culori.accent : Colors.white.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          aleasa ? _file[i].$2 : _file[i].$1,
+          size: 22,
+          color: aleasa ? Colors.white : Colors.white.withValues(alpha: 0.75),
+        ),
+      ),
+    ),
+  );
+
+  // iconitele stau mereu in aceeasi ordine (nu sar dintr-un loc in altul cand schimbi fila)
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    top: false,
+    minimum: const EdgeInsets.only(bottom: 12),
+    child: Center(
+      child: Sticla(
+        fumurie: true,
+        padding: const EdgeInsets.all(5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < _file.length; i++)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                child: _buton(i, aleasa: i == fila),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

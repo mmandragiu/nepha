@@ -110,6 +110,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Istoric? istoric; // ultimele 24 de ore, de la panou
   Istoric? istoric3; // ultimele 3 zile, de pe telefon
   Rutina? rutina;
+  // pentru "Date avansate": cat a durat ultima intrebare (dus-intors) si cand am aflat starea
+  int? latentaMs;
+  DateTime? stareLa;
   Conexiune _conexiune = Conexiune.seConecteaza;
 
   final _optimist = <String, (Object, DateTime)>{};
@@ -281,6 +284,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     try {
       if (demo) {
         stare = _demo.generateMockStare();
+        stareLa = DateTime.now();
+        latentaMs = null;
         if (n % 3 == 0) jurnal = _demo.jurnal();
         if (n % 15 == 0) istoric = _demo.istoric();
         if (n % 30 == 0) rutina = _demo.rutina();
@@ -311,8 +316,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     _ultimaIncercareAcasa = acum;
     final Stare s;
+    final ceas = Stopwatch()..start();
     try {
       s = await _api.stare(adresa);
+      latentaMs = ceas.elapsedMilliseconds;
     } catch (_) {
       if (!poatePrinInternet) rethrow; // n-avem alt drum
       return false;
@@ -326,6 +333,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
     await _aflaServerul(s.server);
     stare = s;
+    stareLa = DateTime.now();
     _conexiune = s.arduinoVorbeste ? Conexiune.conectat : Conexiune.arduinoTace;
     final a = adresa;
     if (n % 3 == 0) {
@@ -364,6 +372,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         if (g != _generatie) return;
         _panouPeBroker = true;
         stare = s;
+        stareLa = DateTime.now();
         _conexiune = s.arduinoVorbeste
             ? Conexiune.internet
             : Conexiune.arduinoTace;
@@ -406,9 +415,12 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       if (n % 30 == 0) await b.privesc();
       if (primaData || _vreauStare) {
         _vreauStare = false;
+        final ceas = Stopwatch()..start();
         final s = await b.stare();
         if (g != _generatie) return;
+        latentaMs = ceas.elapsedMilliseconds;
         stare = s;
+        stareLa = DateTime.now();
       }
       _panouPeBroker = true;
       if (stare != null) {

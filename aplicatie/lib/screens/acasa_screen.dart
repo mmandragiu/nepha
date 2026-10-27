@@ -1,10 +1,13 @@
-// Acasa - pe scurt: cat am economisit azi, cum e in casa si afara, bateria, alarma, ce a decis casa
+// Acasa - tabloul casei: un mesaj care spune pe scurt ce e important, cat a economisit casa azi,
+// cardurile (tinute apasat arata datele tehnice), automatizarile care lucreaza acum si jurnalul
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/api_models.dart';
 import '../providers/app_state.dart';
 import '../theme/nepha_theme.dart';
+import '../widgets/automatizari.dart';
+import '../widgets/carduri.dart';
 import '../widgets/ui.dart';
 
 String salut(int minut) {
@@ -22,6 +25,19 @@ String textVreme(Vreme v) {
       : 'Fără ploaie în 12 ore';
 }
 
+// ce trebuie sa stie omul acum, in cateva cuvinte (cele mai grave primele)
+List<(String, Ton)> deAtentie(Stare s) => [
+  if (s.alarma.cod == 5) ('Alarma sună', Ton.rosu),
+  if (s.alarma.cod == 4) ('Cere PIN-ul', Ton.rosu),
+  if (!s.arduinoVorbeste) ('Arduino nu răspunde', Ton.cald),
+  for (final u in s.alarma.senzori)
+    if (u.deschis) ('${u.nume}: deschis', Ton.cald),
+  if (s.energie.modCod == 3) ('Baterie aproape goală', Ton.rosu),
+  if (s.energie.modCod == 2) ('Baterie slabă', Ton.soare),
+  if (s.gradina.umiditate < 25 && !s.gradina.pompa && s.vreme.oraPloaie == null)
+    ('Grădina e uscată', Ton.soare),
+];
+
 class AcasaScreen extends StatefulWidget {
   final void Function(int fila)
   mergiLa; // ca un card sa poata deschide alta fila
@@ -33,6 +49,7 @@ class AcasaScreen extends StatefulWidget {
 
 class _AcasaScreenState extends State<AcasaScreen> {
   bool _totJurnalul = false;
+  bool _toateRegulile = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,225 +57,107 @@ class _AcasaScreenState extends State<AcasaScreen> {
     final s = app.stare;
     if (s == null) return _faraDate(app);
 
-    final en = s.energie;
-    final al = s.alarma;
-    final deschise = al.senzori.where((x) => x.deschis).length;
-    final culoareBaterie = en.modCod == 3
-        ? Culori.rosu
-        : (en.modCod == 2 ? Culori.soare : Culori.verde);
+    final reguli = regulileCasei()
+      ..sort((a, b) {
+        // cele care lucreaza acum, primele
+        bool merge(Regula r) => (!r.doarSmart || s.smart) && r.acum(s);
+        return (merge(b) ? 1 : 0) - (merge(a) ? 1 : 0);
+      });
+    final active = reguli
+        .where((r) => (!r.doarSmart || s.smart) && r.acum(s))
+        .length;
     final decizii = _totJurnalul ? app.jurnal : app.jurnal.take(3).toList();
 
     return Ecran(
-      titlu: salut(s.minut),
       subtitlu:
-          'Casa NEPHA · ${s.ora}${s.test == 1 ? ' · ziua de test rulează' : ''}',
+          '${salut(s.minut)} · ${s.ora}${s.test == 1 ? ' · ziua de test rulează' : ''}',
+      titlu: 'Casa ta,\n',
+      titluTare: 'pe scurt',
       copii: [
-        // economia de azi
+        _Rezumat(s),
+        _Economie(s, onTap: () => widget.mergiLa(2)),
+        const Sectiune(
+          'Casa acum',
+          dreapta: T.mic(
+            'ține apăsat pentru detalii',
+            aliniere: TextAlign.right,
+          ),
+        ),
+        GrilaCarduri(carduriCasa(app), mergiLa: widget.mergiLa),
+        Sectiune(
+          'Automatizări',
+          dreapta: Pastila(
+            active == 0 ? 'în așteptare' : '$active active acum',
+            ton: active == 0 ? Ton.gri : Ton.cald,
+          ),
+        ),
         Bloc(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Eticheta(
-                'Economie azi',
-                iconita: Icons.eco_outlined,
-                culoare: Culori.verde,
-                dreapta: Row(
-                  children: [
-                    Punct(
-                      culoare: s.smart ? Culori.verde : Culori.text2,
-                      pulseaza: s.smart,
-                    ),
-                    const SizedBox(width: 6),
-                    T.mic(s.smart ? 'Smart' : 'Clasic'),
-                  ],
-                ),
-              ),
-              if (s.smart) ...[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    T.mare(nr(en.kwhEconomisiti), culoare: Culori.verde),
-                    const T.mediu(' kWh'),
-                    const Spacer(),
-                    T.mic('≈ ${nr(en.kwhEconomisiti * s.pretKwh)} lei'),
-                  ],
-                ),
-                const T.mic('față de o casă obișnuită, în aceleași condiții'),
-                const SizedBox(height: 14),
-                _RandCompara('Casă clasică', en.whClasic, 100, Culori.text2),
-                const SizedBox(height: 8),
-                _RandCompara(
-                  'NEPHA',
-                  en.whAzi,
-                  en.whClasic > 0 ? en.whAzi / en.whClasic * 100 : 0,
-                  Culori.verde,
-                ),
-              ] else
-                const T.mic(
-                  'Casa e în modul clasic: merge ca o casă obișnuită, fără să economisească.',
-                ),
-            ],
-          ),
-        ),
-
-        // in casa / afara
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Bloc(
-                  onTap: () => widget.mergiLa(1),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Eticheta(
-                        'În casă',
-                        iconita: Icons.thermostat_outlined,
-                        culoare: Culori.cald,
-                      ),
-                      T.mare(grade(s.tempCasa)),
-                      const SizedBox(height: 8),
-                      Pastila(
-                        s.incalzire.pornita ? 'încălzește' : 'în repaus',
-                        ton: s.incalzire.pornita ? Ton.cald : Ton.gri,
-                      ),
-                      const SizedBox(height: 6),
-                      T.mic(
-                        'Țintă ${grade(s.incalzire.tinta)} · ${s.incalzire.motiv}',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Bloc(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Eticheta(
-                        'Afară',
-                        iconita: Icons.wb_sunny_outlined,
-                        culoare: Culori.apa,
-                      ),
-                      T.mare(
-                        grade(
-                          s.afara ?? (s.vreme.valida ? s.vreme.temp : null),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      T.mic(textVreme(s.vreme)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // bateria
-        Bloc(
-          onTap: () => widget.mergiLa(2),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Eticheta(
-                'Baterie',
-                iconita: Icons.bolt_outlined,
-                culoare: Culori.soare,
-                dreapta: Pastila(
-                  'Mod ${en.mod.toLowerCase()}',
-                  ton: en.modCod == 3
-                      ? Ton.rosu
-                      : (en.modCod == 2 ? Ton.soare : Ton.verde),
-                ),
-              ),
               Row(
                 children: [
-                  T.mediu('${en.baterie}%'),
-                  const SizedBox(width: 14),
                   Expanded(
-                    child: Bara(en.baterie.toDouble(), culoare: culoareBaterie),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        T(
+                          s.smart ? 'Casa decide singură' : 'Modul clasic',
+                          gros: FontWeight.w700,
+                        ),
+                        T.mic(
+                          s.smart
+                              ? 'Regulile sunt în Arduino. Se aprind cele care lucrează acum.'
+                              : 'Casa merge ca una obișnuită: regulile smart stau.',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Comutator(
+                    eticheta: 'Modul smart',
+                    pornit: app.arata('mod', s.smart),
+                    asteapta: app.asteapta('mod'),
+                    onSchimba: (v) => app.comanda(
+                      v ? 'MOD SMART' : 'MOD CLASIC',
+                      cheie: 'mod',
+                      valoare: v,
+                    ),
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-
-        // alarma
-        Bloc(
-          pericol: al.pericol,
-          onTap: () => widget.mergiLa(3),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Eticheta(
-                'Alarmă',
-                iconita: Icons.shield_outlined,
-                culoare: al.pericol
-                    ? Culori.rosu
-                    : (al.cod == 0 ? Culori.text2 : Culori.verde),
-                dreapta: Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: Culori.text2,
+              const SizedBox(height: 14),
+              for (final r in _toateRegulile ? reguli : reguli.take(4))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: RandRegula(r, s),
+                ),
+              const SizedBox(height: 4),
+              SizedBox(
+                width: double.infinity,
+                child: Buton(
+                  _toateRegulile
+                      ? 'Arată mai puține'
+                      : 'Toate regulile (${reguli.length})',
+                  onTap: () => setState(() => _toateRegulile = !_toateRegulile),
                 ),
               ),
-              T.mediu(al.stare, culoare: al.pericol ? Culori.rosu : null),
-              const SizedBox(height: 4),
-              T.mic(
-                deschise == 0
-                    ? 'Toate ușile și geamurile sunt închise'
-                    : '$deschise ${deschise == 1 ? 'ușă sau geam deschis' : 'uși sau geamuri deschise'}',
-              ),
             ],
           ),
         ),
-
-        // jurnalul
+        const Sectiune('Jurnalul casei'),
         Bloc(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Eticheta(
-                'Jurnalul casei',
-                iconita: Icons.format_list_bulleted,
-                dreapta: T.mic('ce a decis și de ce'),
-              ),
               if (decizii.isEmpty)
                 const T.mic(
                   'Încă nimic. Aici apar deciziile casei, cu motivul lor.',
                 ),
               for (var i = 0; i < decizii.length; i++)
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  decoration: BoxDecoration(
-                    border: i > 0
-                        ? Border(
-                            top: BorderSide(color: Culori.linie, width: 0.6),
-                          )
-                        : null,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 48,
-                        child: T(
-                          decizii[i].ora,
-                          gros: FontWeight.w700,
-                          culoare: Culori.verde,
-                        ),
-                      ),
-                      Expanded(child: T(decizii[i].text)),
-                    ],
-                  ),
-                ),
+                _RandJurnal(decizii[i], ultimul: i == decizii.length - 1),
               if (app.jurnal.length > 3) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 6),
                 SizedBox(
                   width: double.infinity,
                   child: Buton(
@@ -292,9 +191,11 @@ class _AcasaScreenState extends State<AcasaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Iconita(Icons.router_outlined, culoare: c.culoare, marime: 48),
+              const SizedBox(height: 14),
               T(text),
               if (c == Conexiune.faraAdresa || c == Conexiune.deconectat) ...[
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: Buton(
@@ -312,21 +213,214 @@ class _AcasaScreenState extends State<AcasaScreen> {
   }
 }
 
+// mesajul de sus: siguranta, temperatura si cate lucruri cer atentie
+class _Rezumat extends StatelessWidget {
+  final Stare s;
+  const _Rezumat(this.s);
+
+  @override
+  Widget build(BuildContext context) {
+    final atentie = deAtentie(s);
+    final al = s.alarma;
+    final (siguranta, culoare) = switch (al.cod) {
+      0 => ('Alarma e oprită.', Culori.text),
+      1 => ('Alarma se armează.', Culori.text),
+      2 || 3 => ('Sistemul este securizat.', Culori.text),
+      4 => ('S-a deschis ușa: introduceți PIN-ul!', Culori.rosu),
+      _ => ('ALARMA SUNĂ!', Culori.rosu),
+    };
+    final stil = fontText(
+      marime: 21,
+      gros: FontWeight.w400,
+      culoare: Culori.text2,
+    ).copyWith(height: 1.3, letterSpacing: -0.1);
+    final tare = stil.copyWith(fontWeight: FontWeight.w700);
+
+    return Bloc(
+      pericol: al.pericol,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text.rich(
+            TextSpan(
+              style: stil,
+              children: [
+                TextSpan(
+                  text: '$siguranta ',
+                  style: tare.copyWith(color: culoare),
+                ),
+                if (s.tempCasa != null) ...[
+                  const TextSpan(text: 'Temperatura medie este de '),
+                  TextSpan(
+                    text: '${nr(s.tempCasa)}°C',
+                    style: tare.copyWith(color: Culori.text),
+                  ),
+                  const TextSpan(text: '. '),
+                ],
+                if (atentie.isEmpty)
+                  TextSpan(
+                    text: 'Totul e în regulă.',
+                    style: tare.copyWith(color: Culori.text),
+                  )
+                else ...[
+                  TextSpan(
+                    text: atentie.length == 1
+                        ? 'Un lucru '
+                        : '${atentie.length} lucruri ',
+                    style: tare.copyWith(color: Culori.accent),
+                  ),
+                  const TextSpan(text: 'necesită atenție.'),
+                ],
+              ],
+            ),
+          ),
+          if (atentie.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [for (final (t, ton) in atentie) Pastila(t, ton: ton)],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _RandJurnal extends StatelessWidget {
+  final Decizie d;
+  final bool ultimul;
+  const _RandJurnal(this.d, {required this.ultimul});
+
+  @override
+  Widget build(BuildContext context) => IntrinsicHeight(
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: 46,
+          child: T.cod(d.ora, marime: 12, culoare: Culori.accent),
+        ),
+        // linia timpului: un punct pe fiecare decizie
+        SizedBox(
+          width: 18,
+          child: Column(
+            children: [
+              const SizedBox(height: 5),
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: Culori.accent,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              if (!ultimul)
+                Expanded(child: Container(width: 1, color: Culori.linie)),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: ultimul ? 4 : 14),
+            child: T(d.text, marime: 14),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// cat a economisit casa azi: cifra mare, apoi doua bare de comparat (casa clasica cu dungi)
+class _Economie extends StatelessWidget {
+  final Stare s;
+  final VoidCallback onTap;
+  const _Economie(this.s, {required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final en = s.energie;
+    return Bloc(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: T('Economie azi', marime: 16, gros: FontWeight.w700),
+              ),
+              Pastila(
+                s.smart ? 'Smart' : 'Clasic',
+                ton: s.smart ? Ton.verde : Ton.gri,
+                icon: s.smart ? Icons.eco_outlined : null,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (!s.smart)
+            const T.mic(
+              'Casa e în modul clasic: merge ca o casă obișnuită, fără să economisească.',
+            )
+          else ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                T.mare(nr(en.kwhEconomisiti), marime: 52),
+                const SizedBox(width: 6),
+                const T('kWh', marime: 18, gros: FontWeight.w600),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: T(
+                    '≈ ${nr(en.kwhEconomisiti * s.pretKwh)} lei',
+                    marime: 15,
+                    gros: FontWeight.w600,
+                    culoare: Culori.verde,
+                    aliniere: TextAlign.right,
+                    randuri: 1,
+                  ),
+                ),
+              ],
+            ),
+            const T.mic('față de o casă obișnuită, în aceleași condiții'),
+            const SizedBox(height: 16),
+            _RandCompara('Casă clasică', en.whClasic, 100, dungi: true),
+            const SizedBox(height: 10),
+            _RandCompara(
+              'NEPHA',
+              en.whAzi,
+              en.whClasic > 0 ? en.whAzi / en.whClasic * 100 : 0,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _RandCompara extends StatelessWidget {
   final String nume;
   final double wh, procent;
-  final Color culoare;
-  const _RandCompara(this.nume, this.wh, this.procent, this.culoare);
+  final bool dungi;
+  const _RandCompara(this.nume, this.wh, this.procent, {this.dungi = false});
 
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      SizedBox(width: 94, child: T.mic(nume, culoare: Culori.text)),
+      SizedBox(width: 92, child: T.mic(nume, culoare: Culori.text)),
       Expanded(
-        child: Bara(procent, culoare: culoare, fundal: Culori.moale),
+        child: Bara(
+          procent,
+          inaltime: 12,
+          dungi: dungi,
+          culoare: dungi ? Culori.text2 : Culori.verde,
+        ),
       ),
       SizedBox(
-        width: 70,
+        width: 72,
         child: T.mic(
           '${nr(wh / 1000)} kWh',
           culoare: Culori.text,
