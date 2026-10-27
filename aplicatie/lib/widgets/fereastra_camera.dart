@@ -100,8 +100,15 @@ class _FereastraCamera extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            const T('Scene', gros: FontWeight.w700),
-            const SizedBox(height: 10),
+            const Row(
+              children: [
+                T('Scene', gros: FontWeight.w700),
+                Info(
+                  'Aleasă de aici, lumina rămâne așa o oră. Apoi decide casa.',
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
             // ca in poza: o capsula cu scenele, cea aleasa e un cerc portocaliu
             Container(
               padding: const EdgeInsets.all(6),
@@ -135,10 +142,6 @@ class _FereastraCamera extends StatelessWidget {
                 icon: Icons.auto_awesome_outlined,
                 onTap: () => app.comanda('LUMINA $i AUTO'),
               ),
-            ),
-            const SizedBox(height: 8),
-            const T.mic(
-              'Aprinsă sau stinsă de aici, lumina rămâne așa o oră. Apoi o preia din nou casa.',
             ),
           ],
         ),

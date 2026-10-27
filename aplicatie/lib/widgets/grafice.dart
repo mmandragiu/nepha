@@ -1,7 +1,6 @@
-// grafice - graficul de energie (fl_chart, plat) si harta rutinei
+// grafice - productia pe ore (bare) si harta rutinei
 import 'dart:math';
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show OverflowBoxFit;
 
@@ -9,151 +8,220 @@ import '../models/api_models.dart';
 import '../theme/nepha_theme.dart';
 import 'ui.dart';
 
-// media pe cateva puncte vecine: caloriferul porneste si se opreste des, iar linia zimtata nu se citeste
-List<double> _netezeste(List<double> v, [int k = 3]) => [
-  for (var i = 0; i < v.length; i++)
-    () {
-      final b = v.sublist(max(0, i - k), min(v.length, i + k + 1));
-      return b.reduce((a, x) => a + x) / b.length;
-    }(),
-];
-
 const _zileSapt = ['lun', 'mar', 'mie', 'joi', 'vin', 'sâm', 'dum'];
 
-class GraficEnergie extends StatelessWidget {
+// graficul productiei (soare + vant): o bara pe ora, iar la 3 zile o bara la 3 ore.
+// Atingi sau tragi cu degetul peste bare si vezi cat s-a produs atunci; la inceput
+// e aleasa ora de acum. Orele care n-au venit inca raman gri.
+class GraficEnergie extends StatefulWidget {
   final Istoric? istoric;
   // zile = true: `minut` e minutul de la 1970 (graficul pe 3 zile de pe telefon), altfel minutul zilei
   final bool zile;
-  const GraficEnergie(this.istoric, {super.key, this.zile = false});
+  final int minutAcum; // minutul zilei la casa
+  const GraficEnergie(
+    this.istoric, {
+    super.key,
+    this.zile = false,
+    required this.minutAcum,
+  });
+
+  @override
+  State<GraficEnergie> createState() => _GraficEnergieState();
+}
+
+class _GraficEnergieState extends State<GraficEnergie> {
+  int? _ales;
+
+  // cate o bara: (ce scrie in bula, Wh; null = n-a venit inca / lipsesc punctele)
+  List<(String, double?)> _bare(Istoric i) {
+    double prod(int k) => i.solar[k] + (k < i.vant.length ? i.vant[k] : 0);
+    final suma = List.filled(24, 0.0), cate = List.filled(24, 0);
+
+    if (!widget.zile) {
+      for (var k = 0; k < i.minut.length; k++) {
+        // panoul tine 24 de ore: ce e "mai tarziu" decat acum e de ieri
+        if (i.minut[k] > widget.minutAcum + 5) continue;
+        final h = (i.minut[k] ~/ 60).clamp(0, 23);
+        suma[h] += prod(k);
+        cate[h]++;
+      }
+      final oraAcum = widget.minutAcum ~/ 60;
+      // media in wati pe o ora = Wh in ora aceea
+      return [
+        for (var h = 0; h < 24; h++)
+          ('$h:00', h > oraAcum || cate[h] == 0 ? null : suma[h] / cate[h]),
+      ];
+    }
+
+    // 3 zile: 24 de bucati a cate 3 ore, ultima e cea de acum
+    final azi = DateTime.now();
+    final ultima = DateTime(
+      azi.year,
+      azi.month,
+      azi.day,
+      azi.hour - azi.hour % 3,
+    );
+    final prima = ultima.subtract(const Duration(hours: 69));
+    final m0 = prima.millisecondsSinceEpoch ~/ 60000;
+    for (var k = 0; k < i.minut.length; k++) {
+      if (i.minut[k] < m0) continue;
+      final b = (i.minut[k] - m0) ~/ 180;
+      if (b > 23) continue;
+      suma[b] += prod(k);
+      cate[b]++;
+    }
+    return [
+      for (var b = 0; b < 24; b++)
+        (
+          '${_zileSapt[prima.add(Duration(hours: 3 * b)).weekday - 1]} '
+              '${prima.add(Duration(hours: 3 * b)).hour}:00',
+          cate[b] == 0 ? null : suma[b] / cate[b] * 3,
+        ),
+    ];
+  }
+
+  void _alege(Offset p, double latime, List<(String, double?)> bare) {
+    final b = (p.dx / latime * bare.length).floor().clamp(0, bare.length - 1);
+    if (b == _ales || bare[b].$2 == null) return;
+    atingere();
+    setState(() => _ales = b);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final i = istoric;
+    final i = widget.istoric;
     if (i == null || i.minut.length < 2) {
       return const SizedBox(
         height: 160,
         child: Center(child: T.mic('graficul apare după câteva minute')),
       );
     }
-    final n = i.minut.length;
-    final prod = [
-      for (var k = 0; k < n; k++)
-        i.solar[k] + (k < i.vant.length ? i.vant[k] : 0),
-    ];
-    final consum = _netezeste(i.consum);
-    final maxim = [0.5, ...prod, ...consum].reduce(max) * 1.15;
-    // pe 3 zile: unde lipsesc puncte (aplicatia a stat inchisa mai mult de o zi) lasam gol
-    List<FlSpot> puncte(List<double> v) => [
-      for (var k = 0; k < v.length; k++) ...[
-        if (zile && k > 0 && i.minut[k] - i.minut[k - 1] > 20) FlSpot.nullSpot,
-        FlSpot(i.minut[k].toDouble(), v[k]),
-      ],
-    ];
+    final bare = _bare(i);
+    final ultima = bare.lastIndexWhere((b) => b.$2 != null);
+    if (ultima < 0) {
+      return const SizedBox(
+        height: 160,
+        child: Center(child: T.mic('graficul apare după câteva minute')),
+      );
+    }
+    final ales = _ales != null && bare[_ales!].$2 != null ? _ales! : ultima;
+    final total = bare.fold(0.0, (a, b) => a + (b.$2 ?? 0));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: 160,
-          child: LineChart(
-            LineChartData(
-              minY: 0,
-              maxY: maxim,
-              minX: i.minut.first.toDouble(),
-              maxX: i.minut.last.toDouble(),
-              gridData: const FlGridData(show: false),
-              borderData: FlBorderData(show: false),
-              lineTouchData: const LineTouchData(enabled: false),
-              titlesData: FlTitlesData(
-                leftTitles: const AxisTitles(),
-                rightTitles: const AxisTitles(),
-                topTitles: const AxisTitles(),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 20,
-                    interval: zile
-                        ? 720
-                        : 180, // din 12 in 12 ore / din 3 in 3 ore
-                    getTitlesWidget: (v, meta) {
-                      if (v == meta.min || v == meta.max) {
-                        return const SizedBox.shrink();
-                      }
-                      final String text;
-                      if (zile) {
-                        final d = DateTime.fromMillisecondsSinceEpoch(
-                          v.toInt() * 60000,
-                        );
-                        text = '${_zileSapt[d.weekday - 1]} ${d.hour}:00';
-                      } else {
-                        text = '${v ~/ 60}:00';
-                      }
-                      return SideTitleWidget(meta: meta, child: T.mic(text));
-                    },
-                  ),
-                ),
-              ),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: puncte(prod),
-                  color: Culori.verde,
-                  barWidth: 2,
-                  dotData: const FlDotData(show: false),
-                  isCurved: true,
-                  curveSmoothness: 0.2,
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: Culori.verde.withValues(alpha: 0.14),
-                  ),
-                ),
-                LineChartBarData(
-                  spots: puncte(consum),
-                  color: Culori.text,
-                  barWidth: 1.5,
-                  isCurved: true,
-                  curveSmoothness: 0.2,
-                  dashArray: const [4, 4],
-                  dotData: const FlDotData(show: false),
-                ),
-              ],
-            ),
-            duration: const Duration(milliseconds: 300),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 14,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
           children: [
-            _Legenda(Culori.verde, 'producție (soare + vânt)'),
-            _Legenda(Culori.text, 'consum'),
+            T.mare(nr(total), marime: 40),
+            const SizedBox(width: 4),
+            const T('Wh', marime: 16, gros: FontWeight.w600),
+            const SizedBox(width: 8),
+            T.mic(widget.zile ? 'produși în 3 zile' : 'produși azi'),
           ],
+        ),
+        const SizedBox(height: 10),
+        LayoutBuilder(
+          builder: (context, c) => GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (d) => _alege(d.localPosition, c.maxWidth, bare),
+            onHorizontalDragUpdate: (d) =>
+                _alege(d.localPosition, c.maxWidth, bare),
+            child: CustomPaint(
+              size: Size(c.maxWidth, 150),
+              painter: _Bare(bare, ales: ales, zile: widget.zile),
+            ),
+          ),
         ),
       ],
     );
   }
 }
 
-class _Legenda extends StatelessWidget {
-  final Color culoare;
-  final String text;
-  const _Legenda(this.culoare, this.text);
+class _Bare extends CustomPainter {
+  final List<(String, double?)> bare;
+  final int ales;
+  final bool zile;
+  // culorile le luam acum: daca se schimba tema, se redeseneaza
+  final plin = Culori.verde, gol = Culori.moale, accent = Culori.accent;
+  final text2 = Culori.text2,
+      fundalBula = Culori.text,
+      textBula = Culori.fundal;
+  _Bare(this.bare, {required this.ales, required this.zile});
+
+  static const _sus = 30.0, _jos = 18.0;
+
+  TextPainter _scrie(String t, Color c, double marime, [FontWeight? g]) =>
+      TextPainter(
+        text: TextSpan(
+          text: t,
+          style: fontText(marime: marime, culoare: c, gros: g),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Container(
-        width: 14,
-        height: 3,
-        decoration: BoxDecoration(
-          color: culoare,
-          borderRadius: BorderRadius.circular(99),
+  void paint(Canvas canvas, Size s) {
+    final n = bare.length;
+    final loc = s.width / n;
+    final lat = max(3.0, loc * 0.62);
+    final inalt = s.height - _sus - _jos;
+    final maxim = max(0.05, bare.map((b) => b.$2 ?? 0).reduce(max));
+    double cat(double? v) =>
+        v == null || v <= 0 ? 4.0 : max(4.0, v / maxim * inalt);
+    final p = Paint();
+
+    for (var b = 0; b < n; b++) {
+      final v = bare[b].$2;
+      final h = cat(v);
+      final x = b * loc + (loc - lat) / 2;
+      p.color = b == ales ? accent : (v == null || v <= 0 ? gol : plin);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x, _sus + inalt - h, lat, h),
+          Radius.circular(min(lat / 2, 4)),
         ),
+        p,
+      );
+
+      // jos: orele 0, 6, 12, 18 (la 3 zile: ziua, la miezul noptii)
+      final eticheta = zile
+          ? (bare[b].$1.endsWith(' 0:00') ? bare[b].$1.split(' ').first : null)
+          : (b % 6 == 0 ? '$b' : null);
+      if (eticheta != null) {
+        _scrie(eticheta, text2, 10).paint(canvas, Offset(x, s.height - 13));
+      }
+    }
+
+    // bula de deasupra barei alese: ora si cat s-a produs
+    final v = bare[ales].$2 ?? 0;
+    final tp = _scrie(
+      '${bare[ales].$1} · ${nr(v, 2)} Wh',
+      textBula,
+      11,
+      FontWeight.w600,
+    );
+    final lb = tp.width + 18;
+    final cx = ales * loc + loc / 2;
+    final y = max(0.0, _sus + inalt - cat(v) - 26);
+    final st = (cx - lb / 2).clamp(0.0, max(0.0, s.width - lb)).toDouble();
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(st, y, lb, 20),
+        const Radius.circular(10),
       ),
-      const SizedBox(width: 6),
-      T.mic(text),
-    ],
-  );
+      p..color = fundalBula,
+    );
+    tp.paint(canvas, Offset(st + 9, y + 10 - tp.height / 2));
+  }
+
+  @override
+  bool shouldRepaint(_Bare vechi) =>
+      vechi.ales != ales ||
+      vechi.bare != bare ||
+      vechi.plin != plin ||
+      vechi.fundalBula != fundalBula;
 }
 
 // ---------------------------------------------------------------- ce a invatat casa

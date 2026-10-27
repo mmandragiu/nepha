@@ -12,9 +12,7 @@ Future<String?> ceAPin(BuildContext context, {bool demo = false}) =>
       barrierColor: const Color(0x99050810),
       builder: (_) => _TastaturaPin(
         titlu: 'PIN-ul alarmei',
-        detaliu: demo
-            ? 'În modul demo, PIN-ul e 1234.'
-            : 'Îl verifică Arduino, nu aplicația.',
+        detaliu: demo ? 'În demo: 1234' : '',
         cifre: 4,
         buton: 'Dezarmează',
       ),
@@ -26,7 +24,7 @@ Future<String?> ceCodulPanoului(BuildContext context) => showDialog<String>(
   barrierColor: const Color(0x99050810),
   builder: (_) => const _TastaturaPin(
     titlu: 'Codul de pe panou',
-    detaliu: 'Pe panou: Setări → „Leagă telefonul”. Codul e valabil 2 minute.',
+    detaliu: 'Panou → Setări → Leagă telefonul',
     cifre: 6,
     buton: 'Leagă',
     aratCifrele: true,
@@ -92,7 +90,7 @@ class _TastaturaPinState extends State<_TastaturaPin> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           T.mediu(widget.titlu),
-          T.mic(widget.detaliu),
+          if (widget.detaliu.isNotEmpty) T.mic(widget.detaliu),
           const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

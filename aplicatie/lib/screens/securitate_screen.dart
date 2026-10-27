@@ -1,6 +1,7 @@
 // Securitate & Setari - alarma (PIN, Face ID / Touch ID sau amprenta), usile / geamurile,
 // unde e panoul, cum se poarta casa, tema de zi / noapte
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/app_state.dart';
@@ -9,12 +10,12 @@ import '../widgets/tastatura_pin.dart';
 import '../widgets/ui.dart';
 
 const _explicatieAlarma = [
-  'Când plecați, armați-o: casa știe atunci sigur că e goală și economisește.',
-  'Aveți 30 de secunde să ieșiți și să închideți ușa.',
-  'Suntem acasă și dormim: păzim doar ușile și geamurile.',
-  'Casa e păzită și economisește: lumini stinse, încălzire redusă, priza TV oprită.',
-  'S-a deschis ușa. Introduceți PIN-ul!',
-  'Alarma sună! Introduceți PIN-ul ca s-o opriți.',
+  '',
+  'Aveți 30 de secunde să ieșiți.',
+  'Doar ușile și geamurile.',
+  'Casa economisește cât e goală.',
+  'Introduceți PIN-ul.',
+  'Introduceți PIN-ul ca s-o opriți.',
 ];
 
 class SecuritateScreen extends StatefulWidget {
@@ -73,7 +74,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
           aliniere: TextAlign.center,
         ),
         content: const T.mic(
-          'Păstrăm PIN-ul criptat pe telefon și îl trimitem doar după ce telefonul vă recunoaște. PIN-ul merge în continuare.',
+          'PIN-ul rămâne criptat pe telefon.',
           aliniere: TextAlign.center,
         ),
         actions: [
@@ -97,6 +98,55 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
     );
     await app.raspundeBiometria(da ?? false);
     _intreb = false;
+  }
+
+  // telecomanda de pe usa se mai opreste singura si casa crede ca s-a inchis: aici ii
+  // spunem cum e de fapt (nu misca usa, nu porneste alarma; tine pana transmite senzorul)
+  Future<void> _corecteaza(
+    AppState app,
+    int i,
+    String nume,
+    bool deschis,
+  ) async {
+    HapticFeedback.mediumImpact();
+    final da = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        backgroundColor: Culori.card,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(coltCard),
+        ),
+        title: T(nume, marime: 20, gros: FontWeight.w700),
+        content: T.mic(
+          'De fapt e „${deschis ? 'închis' : 'deschis'}”? Ușa nu se mișcă, corectăm doar ce crede casa.',
+        ),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: Buton('Nu', onTap: () => Navigator.pop(c, false)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Buton(
+                  'Da',
+                  principal: true,
+                  onTap: () => Navigator.pop(c, true),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    if (da == true) {
+      await app.comanda(
+        'USA $i ${deschis ? 0 : 1}',
+        cheie: 'usa:$i',
+        valoare: !deschis,
+      );
+    }
   }
 
   Future<void> _leaga(AppState app) async {
@@ -159,8 +209,10 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                T.mic(_explicatieAlarma[s.alarma.cod.clamp(0, 5)]),
+                if (_explicatieAlarma[s.alarma.cod.clamp(0, 5)].isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  T.mic(_explicatieAlarma[s.alarma.cod.clamp(0, 5)]),
+                ],
                 const SizedBox(height: 16),
                 if (s.alarma.cod == 0)
                   Row(
@@ -205,10 +257,10 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                   _RandSetare(
                     titlu: 'Dezarmare cu ${app.numeBiometrie}',
                     detaliu: !app.amprentaPornita
-                        ? 'în loc de PIN, data viitoare'
+                        ? 'în loc de PIN'
                         : app.areSalvatPin
-                        ? 'gata: PIN-ul e păstrat criptat pe telefon'
-                        : 'mai trebuie o dezarmare cu PIN, apoi ajunge ${app.numeBiometrie}',
+                        ? 'pornită'
+                        : 'după încă o dezarmare cu PIN',
                     dreapta: Comutator(
                       eticheta: 'Dezarmare cu ${app.numeBiometrie}',
                       pornit: app.amprentaPornita,
@@ -229,6 +281,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                 const Eticheta(
                   'Uși și geamuri',
                   iconita: Icons.sensor_door_outlined,
+                  info: 'Dacă o stare nu e cea reală, țineți apăsat pe ea.',
                 ),
                 for (var i = 0; i < s.alarma.senzori.length; i++)
                   Builder(
@@ -238,40 +291,40 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                         cheie,
                         s.alarma.senzori[i].deschis,
                       );
-                      return Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          border: i > 0
-                              ? Border(
-                                  top: BorderSide(
-                                    color: Culori.linie,
-                                    width: 0.6,
-                                  ),
-                                )
-                              : null,
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onLongPress: () => _corecteaza(
+                          app,
+                          i,
+                          s.alarma.senzori[i].nume,
+                          deschis,
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(child: T(s.alarma.senzori[i].nume)),
-                            Pastila(
-                              deschis ? 'deschis' : 'închis',
-                              ton: deschis ? Ton.cald : Ton.gri,
-                              asteapta: app.asteapta(cheie),
-                              onTap: () => app.comanda(
-                                'USA $i ${deschis ? 0 : 1}',
-                                cheie: cheie,
-                                valoare: !deschis,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            border: i > 0
+                                ? Border(
+                                    top: BorderSide(
+                                      color: Culori.linie,
+                                      width: 0.6,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(child: T(s.alarma.senzori[i].nume)),
+                              Pastila(
+                                deschis ? 'deschis' : 'închis',
+                                ton: deschis ? Ton.cald : Ton.gri,
+                                asteapta: app.asteapta(cheie),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
                   ),
-                const SizedBox(height: 6),
-                const T.mic(
-                  'Dacă o stare nu e cea reală (telecomanda de pe ușă s-a oprit singură), atingeți-o ca s-o schimbați. Rămâne așa până transmite senzorul din nou și nu pornește alarma.',
-                ),
               ],
             ),
           ),
@@ -281,11 +334,11 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Eticheta('Panoul casei', iconita: Icons.router_outlined),
-              const T.mic(
-                'Adresa e scrisă pe ecranul panoului, la Setări (de exemplu 192.168.1.42). Telefonul trebuie să fie în aceeași rețea Wi-Fi.',
+              const Eticheta(
+                'Panoul casei',
+                iconita: Icons.router_outlined,
+                info: 'Adresa e pe ecranul panoului, la Setări.',
               ),
-              const SizedBox(height: 12),
               TextField(
                 controller: _adresa,
                 keyboardType: TextInputType.url,
@@ -333,10 +386,10 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                     ? 'Telefonul e legat de casă'
                     : 'Leagă telefonul de casă',
                 detaliu: !app.legat
-                    ? 'o dată, acasă, ca să meargă și de pe date mobile'
+                    ? 'ca să meargă și de pe date mobile'
                     : app.poatePrinInternet
-                    ? 'merge și de pe date mobile · ${app.server}'
-                    : 'încă fără cont pentru internet: legați-l din nou',
+                    ? 'merge și de pe date mobile'
+                    : 'fără acces prin internet',
                 dreapta: Buton(
                   app.legat ? 'Din nou' : 'Leagă',
                   onTap: () => _leaga(app),
@@ -345,7 +398,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
               const SizedBox(height: 14),
               _RandSetare(
                 titlu: 'Mod demo',
-                detaliu: 'o seară simulată, fără panou (pentru prezentări)',
+                detaliu: 'o seară simulată, fără panou',
                 dreapta: Comutator(
                   eticheta: 'Mod demo',
                   pornit: app.demo,
@@ -372,7 +425,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
               const SizedBox(height: 16),
               _RandSetare(
                 titlu: 'Temperatura de confort',
-                detaliu: 'cât de cald să fie când e cineva acasă',
+                detaliu: 'când e cineva acasă',
                 dreapta: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -409,16 +462,8 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                 ales: app.tema,
                 onAlege: (t) => app.schimbaSetari(tema: t),
               ),
-              const SizedBox(height: 8),
-              const T.mic(
-                'Noaptea, ecranul e închis la culoare și nu mai luminează camera.',
-              ),
             ],
           ),
-        ),
-        const T.mic(
-          'NEPHA · casa care se gândește singură cum să economisească energie',
-          aliniere: TextAlign.center,
         ),
       ],
     );
@@ -448,34 +493,20 @@ class _ModCasa extends StatelessWidget {
     final smart = s == null
         ? null
         : app.arata('mod', s.smart); // fara date nu stim modul
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Alegere(
-          optiuni: {
-            'smart': 'Smart${smart == true && app.asteapta('mod') ? '…' : ''}',
-            'clasic':
-                'Clasic${smart == false && app.asteapta('mod') ? '…' : ''}',
-          },
-          ales: smart == null ? null : (smart ? 'smart' : 'clasic'),
-          onAlege: (m) {
-            if (smart == null) return;
-            app.comanda(
-              m == 'smart' ? 'MOD SMART' : 'MOD CLASIC',
-              cheie: 'mod',
-              valoare: m == 'smart',
-            );
-          },
-        ),
-        const SizedBox(height: 8),
-        T.mic(
-          smart == null
-              ? 'Modul apare când aplicația vorbește cu casa.'
-              : smart
-              ? 'Casa ia singură deciziile care economisesc energie.'
-              : 'Casa merge ca una obișnuită (pentru comparație).',
-        ),
-      ],
+    return Alegere(
+      optiuni: {
+        'smart': 'Smart${smart == true && app.asteapta('mod') ? '…' : ''}',
+        'clasic': 'Clasic${smart == false && app.asteapta('mod') ? '…' : ''}',
+      },
+      ales: smart == null ? null : (smart ? 'smart' : 'clasic'),
+      onAlege: (m) {
+        if (smart == null) return;
+        app.comanda(
+          m == 'smart' ? 'MOD SMART' : 'MOD CLASIC',
+          cheie: 'mod',
+          valoare: m == 'smart',
+        );
+      },
     );
   }
 }

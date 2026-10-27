@@ -14,13 +14,14 @@ rămâne Arduino.
 Patru file:
 
 - **Acasă** — un rezumat într-o frază (alarma, temperatura medie, ce cere atenție), economia de
-  azi față de o casă clasică, cardurile cu cifrele casei, **automatizările** (regulile casei,
+  azi față de o casă clasică (atinsă, deschide ziua de test: clasic vs NEPHA pe consumatori), cardurile cu cifrele casei, **automatizările** (regulile casei,
   colorate când lucrează) și jurnalul deciziilor;
 - **Camere** — câte un card pe cameră (lumina se aprinde de aici; atins, deschide camera cu
   „Noapte / Relax / Citit / Plin”), priza TV, grădina cu „Udă acum” și ce a învățat casa;
 - **Energie** — cât din consumul de acum vine din soare și vânt (semicercul), bateria în căsuțe,
-  graficul zilei și ziua de test (clasic vs smart);
-- **Securitate & Setări** — alarma (PIN, Face ID / Touch ID sau amprentă), ușile și geamurile, adresa panoului, modul
+  producția pe ore (bare; cu degetul alegi ora și vezi cât s-a produs atunci);
+- **Securitate & Setări** — alarma (PIN, Face ID / Touch ID sau amprentă), ușile și geamurile (ținute
+  apăsat, le corectezi starea dacă telecomanda de pe ușă s-a oprit singură), adresa panoului, modul
   demo, Smart / Clasic, temperatura de confort și tema (ca telefonul, zi sau noapte).
 
 ## Cum o pornim
@@ -139,7 +140,7 @@ contul de dezvoltator Apple (99 $ pe an) merge un an și se poate da și altora,
 | `lib/widgets/fereastra_camera.dart` | fereastra unei camere: lumina și scenele |
 | `lib/widgets/carduri.dart` | cardurile de pe Acasă și „Date avansate” |
 | `lib/widgets/automatizari.dart` | regulile casei, ca noduri „Dacă → Atunci” |
-| `lib/widgets/` (restul) | graficul de energie, harta rutinei, tastatura PIN |
+| `lib/widgets/` (restul) | graficul de energie, harta rutinei, tastatura PIN, ziua de test |
 | `lib/screens/` | cele patru ecrane |
 
 Înainte de a urca modificări: `flutter analyze` și `flutter test`.

@@ -197,7 +197,7 @@ class Ecran extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: T.mic(
-                        'Mod demo: o seară simulată. Adresa panoului se pune la Securitate & Setări.',
+                        'Mod demo · o seară simulată',
                         culoare: Culori.text,
                       ),
                     ),
@@ -217,16 +217,20 @@ class Ecran extends StatelessWidget {
 // titlul unei sectiuni, intre carduri
 class Sectiune extends StatelessWidget {
   final String text;
+  final String? info;
   final Widget? dreapta;
-  const Sectiune(this.text, {super.key, this.dreapta});
+  const Sectiune(this.text, {super.key, this.info, this.dreapta});
 
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
     child: Row(
       children: [
-        Expanded(child: T(text, marime: 20, gros: FontWeight.w700)),
-        if (dreapta != null) Flexible(child: dreapta!),
+        T(text, marime: 20, gros: FontWeight.w700),
+        if (info != null) Info(info!),
+        Expanded(
+          child: Align(alignment: Alignment.centerRight, child: dreapta),
+        ),
       ],
     ),
   );
@@ -441,8 +445,9 @@ class Iconita extends StatelessWidget {
 class Eticheta extends StatelessWidget {
   final IconData? iconita;
   final String text;
+  final String? info;
   final Widget? dreapta;
-  const Eticheta(this.text, {super.key, this.iconita, this.dreapta});
+  const Eticheta(this.text, {super.key, this.iconita, this.info, this.dreapta});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -456,11 +461,42 @@ class Eticheta extends StatelessWidget {
             const SizedBox(width: 10),
           ],
           Expanded(
-            child: T(text, marime: 16, gros: FontWeight.w700, randuri: 1),
+            child: Row(
+              children: [
+                Flexible(
+                  child: T(text, marime: 16, gros: FontWeight.w700, randuri: 1),
+                ),
+                if (info != null) Info(info!),
+              ],
+            ),
           ),
           ?dreapta,
         ],
       ),
+    ),
+  );
+}
+
+// un (i) mic langa titlu: explicatia apare doar daca o ceri (atingi iconita)
+class Info extends StatelessWidget {
+  final String text;
+  const Info(this.text, {super.key});
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: text,
+    triggerMode: TooltipTriggerMode.tap,
+    showDuration: const Duration(seconds: 5),
+    margin: const EdgeInsets.symmetric(horizontal: 32),
+    padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+    decoration: BoxDecoration(
+      color: Culori.text,
+      borderRadius: BorderRadius.circular(14),
+    ),
+    textStyle: fontText(marime: 13, culoare: Culori.fundal),
+    child: Padding(
+      padding: const EdgeInsets.all(6),
+      child: Icon(Icons.info_outline_rounded, size: 17, color: Culori.text2),
     ),
   );
 }

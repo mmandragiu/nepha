@@ -9,6 +9,7 @@ import '../theme/nepha_theme.dart';
 import '../widgets/automatizari.dart';
 import '../widgets/carduri.dart';
 import '../widgets/ui.dart';
+import '../widgets/ziua_de_test.dart';
 
 String salut(int minut) {
   final h = minut ~/ 60;
@@ -75,13 +76,10 @@ class _AcasaScreenState extends State<AcasaScreen> {
       titluTare: 'pe scurt',
       copii: [
         _Rezumat(s),
-        _Economie(s, onTap: () => widget.mergiLa(2)),
+        _Economie(s, onTap: () => arataZiuaDeTest(context)),
         const Sectiune(
           'Casa acum',
-          dreapta: T.mic(
-            'ține apăsat pentru detalii',
-            aliniere: TextAlign.right,
-          ),
+          info: 'Țineți apăsat pe un card pentru date avansate.',
         ),
         GrilaCarduri(carduriCasa(app), mergiLa: widget.mergiLa),
         Sectiune(
@@ -98,19 +96,9 @@ class _AcasaScreenState extends State<AcasaScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        T(
-                          s.smart ? 'Casa decide singură' : 'Modul clasic',
-                          gros: FontWeight.w700,
-                        ),
-                        T.mic(
-                          s.smart
-                              ? 'Regulile sunt în Arduino. Se aprind cele care lucrează acum.'
-                              : 'Casa merge ca una obișnuită: regulile smart stau.',
-                        ),
-                      ],
+                    child: T(
+                      s.smart ? 'Casa decide singură' : 'Modul clasic',
+                      gros: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -150,10 +138,7 @@ class _AcasaScreenState extends State<AcasaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (decizii.isEmpty)
-                const T.mic(
-                  'Încă nimic. Aici apar deciziile casei, cu motivul lor.',
-                ),
+              if (decizii.isEmpty) const T.mic('Nicio decizie încă.'),
               for (var i = 0; i < decizii.length; i++)
                 _RandJurnal(decizii[i], ultimul: i == decizii.length - 1),
               if (app.jurnal.length > 3) ...[
@@ -177,12 +162,16 @@ class _AcasaScreenState extends State<AcasaScreen> {
 
   Widget _faraDate(AppState app) {
     final c = app.conexiune;
-    final text = switch (c) {
-      Conexiune.faraAdresa =>
-        'Aplicația nu știe încă unde e panoul. Puneți-i adresa la Securitate & Setări (o vedeți pe ecranul panoului), sau porniți modul demo.',
-      Conexiune.deconectat =>
-        'Panoul nu răspunde. Telefonul trebuie să fie în aceeași rețea Wi-Fi cu casa (sau în rețeaua NEPHA-casa).',
-      _ => 'Se conectează la casă...',
+    final (text, detaliu) = switch (c) {
+      Conexiune.faraAdresa => (
+        'Niciun panou legat',
+        'Adresa e pe ecranul panoului.',
+      ),
+      Conexiune.deconectat => (
+        'Panoul nu răspunde',
+        'Telefonul e pe Wi-Fi-ul casei?',
+      ),
+      _ => ('Se conectează...', null),
     };
     return Ecran(
       titlu: 'NEPHA',
@@ -193,7 +182,8 @@ class _AcasaScreenState extends State<AcasaScreen> {
             children: [
               Iconita(Icons.router_outlined, culoare: c.culoare, marime: 48),
               const SizedBox(height: 14),
-              T(text),
+              T(text, marime: 18, gros: FontWeight.w700),
+              if (detaliu != null) T.mic(detaliu),
               if (c == Conexiune.faraAdresa || c == Conexiune.deconectat) ...[
                 const SizedBox(height: 16),
                 SizedBox(
@@ -333,7 +323,8 @@ class _RandJurnal extends StatelessWidget {
   );
 }
 
-// cat a economisit casa azi: cifra mare, apoi doua bare de comparat (casa clasica cu dungi)
+// cat a economisit casa azi: cifra mare, apoi doua bare de comparat (casa clasica cu dungi);
+// atins, deschide ziua de test
 class _Economie extends StatelessWidget {
   final Stare s;
   final VoidCallback onTap;
@@ -361,9 +352,7 @@ class _Economie extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           if (!s.smart)
-            const T.mic(
-              'Casa e în modul clasic: merge ca o casă obișnuită, fără să economisească.',
-            )
+            const T.mic('În modul clasic casa nu economisește.')
           else ...[
             Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -385,7 +374,6 @@ class _Economie extends StatelessWidget {
                 ),
               ],
             ),
-            const T.mic('față de o casă obișnuită, în aceleași condiții'),
             const SizedBox(height: 16),
             _RandCompara('Casă clasică', en.whClasic, 100, dungi: true),
             const SizedBox(height: 10),
@@ -395,6 +383,22 @@ class _Economie extends StatelessWidget {
               en.whClasic > 0 ? en.whAzi / en.whClasic * 100 : 0,
             ),
           ],
+          // ziua de test: tot cardul o deschide, randul asta doar arata ca se poate
+          const SizedBox(height: 14),
+          Divider(height: 1, thickness: 0.6, color: Culori.linie),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Expanded(child: T.mic('pe consumatori · ziua de test')),
+              T(
+                'Vezi',
+                marime: 13,
+                gros: FontWeight.w600,
+                culoare: Culori.accent,
+              ),
+              Icon(Icons.chevron_right_rounded, size: 18, color: Culori.accent),
+            ],
+          ),
         ],
       ),
     );

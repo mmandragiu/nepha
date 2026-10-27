@@ -1,5 +1,4 @@
-// Energie - cat din consumul de acum vine din soare si vant, bateria, graficul zilei si
-// "ziua de test" (clasic vs smart)
+// Energie - cat din consumul de acum vine din soare si vant, bateria si productia pe ore
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -11,12 +10,6 @@ import '../theme/nepha_theme.dart';
 import '../widgets/grafice.dart';
 import '../widgets/ui.dart';
 
-const _explicatie = [
-  'Energie destulă. Casa merge normal.',
-  'Bateria e plină și panoul încă produce: pornim acum ce poate aștepta.',
-  'Bateria scade și nu se produce: lumini mai slabe, un grad mai puțin.',
-  'Bateria e aproape goală: doar strictul necesar.',
-];
 const _tonMod = [Ton.verde, Ton.soare, Ton.cald, Ton.rosu];
 
 class EnergieScreen extends StatelessWidget {
@@ -41,12 +34,9 @@ class EnergieScreen extends StatelessWidget {
       Culori.soare,
       Culori.rosu,
     ][mod];
-    final avemTest =
-        s.rezultate.length == 2 && s.rezultate[0].valid && s.rezultate[1].valid;
 
     return Ecran(
       titlu: 'Energie',
-      subtitlu: 'la scara machetei, în wați',
       copii: [
         _DinSoare(en),
         // bateria
@@ -72,8 +62,6 @@ class EnergieScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               BaraCasute(en.baterie, culoare: culoareBaterie),
-              const SizedBox(height: 12),
-              T.mic(_explicatie[mod]),
             ],
           ),
         ),
@@ -85,47 +73,9 @@ class EnergieScreen extends StatelessWidget {
               if (en.estimatSolar6h != null) ...[
                 const SizedBox(height: 8),
                 T.mic(
-                  'În următoarele 6 ore casa estimează ~${nr(en.estimatSolar6h)} Wh din soare.',
+                  'Următoarele 6 ore: ~${nr(en.estimatSolar6h)} Wh din soare',
                 ),
               ],
-            ],
-          ),
-        ),
-        Bloc(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Eticheta('Ziua de test', iconita: Icons.balance_outlined),
-              const T.mic(
-                'Aceeași zi, trăită o dată ca o casă clasică și o dată ca o casă NEPHA. Aceeași familie, aceeași vreme.',
-              ),
-              const SizedBox(height: 14),
-              if (avemTest)
-                _Rezultate(s.rezultate[0], s.rezultate[1])
-              else
-                const T.mic(
-                  'Încă n-am rulat ziua de test. Apăsați „Calculează”.',
-                ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Buton(
-                      'Calculează',
-                      principal: true,
-                      onTap: () => app.comanda('TEST RAPID'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Buton(
-                      s.test == 1 ? 'Oprește testul' : 'Pe machetă',
-                      onTap: () =>
-                          app.comanda(s.test == 1 ? 'TEST STOP' : 'TEST SMART'),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -275,94 +225,6 @@ class _Cifra extends StatelessWidget {
   );
 }
 
-class _Rezultate extends StatelessWidget {
-  final RezultatTest c, s;
-  const _Rezultate(this.c, this.s);
-
-  int _pct(double a, double b) => a > 0 ? ((a - b) / a * 100).round() : 0;
-
-  @override
-  Widget build(BuildContext context) {
-    final randuri = [
-      ('Încălzire', c.incalzire, s.incalzire),
-      ('Lumini', c.lumini, s.lumini),
-      ('Priza TV (standby)', c.priza, s.priza),
-      ('Udare', c.pompa, s.pompa),
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            T.mare('−${_pct(c.total, s.total)}%', culoare: Culori.verde),
-            const SizedBox(width: 14),
-            Expanded(
-              child: T.mic(
-                '${nr(c.total / 1000)} → ${nr(s.total / 1000)} kWh pe zi\n${nr(c.litri, 0)} → ${nr(s.litri, 0)} litri de apă',
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        // fiecare consumator: casa clasica (cu dungi) deasupra, NEPHA dedesubt
-        for (final (n, a, b) in randuri)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: T(n, marime: 13, gros: FontWeight.w600)),
-                    T.mic('${nr(a, 0)} → ${nr(b, 0)} Wh  '),
-                    T(
-                      '−${_pct(a, b)}%',
-                      marime: 13,
-                      gros: FontWeight.w700,
-                      culoare: Culori.verde,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Bara(100, inaltime: 6, dungi: true, culoare: Culori.text2),
-                const SizedBox(height: 4),
-                Bara(
-                  a > 0 ? b / a * 100 : 0,
-                  inaltime: 6,
-                  culoare: Culori.verde,
-                ),
-              ],
-            ),
-          ),
-        Row(
-          children: [
-            SizedBox(
-              width: 22,
-              child: Bara(100, inaltime: 6, dungi: true, culoare: Culori.text2),
-            ),
-            const SizedBox(width: 6),
-            const T.mic('casă clasică'),
-            const SizedBox(width: 14),
-            SizedBox(
-              width: 22,
-              child: Bara(100, inaltime: 6, culoare: Culori.verde),
-            ),
-            const SizedBox(width: 6),
-            const T.mic('NEPHA'),
-          ],
-        ),
-        if (c.mwh > 0) ...[
-          const SizedBox(height: 10),
-          T.mic(
-            'Măsurat pe machetă (INA219): ${nr(c.mwh, 0)} → ${nr(s.mwh, 0)} mWh',
-          ),
-        ],
-      ],
-    );
-  }
-}
-
 // graficul: ultimele 24 de ore (de la panou) sau ultimele 3 zile (tinute pe telefon)
 class _Grafic extends StatefulWidget {
   final AppState app;
@@ -381,7 +243,7 @@ class _GraficState extends State<_Grafic> {
     children: [
       Eticheta(
         _trei ? 'Ultimele 3 zile' : 'Azi',
-        iconita: Icons.show_chart_rounded,
+        iconita: Icons.bar_chart_rounded,
         dreapta: widget.app.istoric3 == null
             ? null
             : SizedBox(
@@ -394,8 +256,17 @@ class _GraficState extends State<_Grafic> {
               ),
       ),
       _trei
-          ? GraficEnergie(widget.app.istoric3, zile: true)
-          : GraficEnergie(widget.app.istoric),
+          ? GraficEnergie(
+              widget.app.istoric3,
+              key: const ValueKey('trei'),
+              zile: true,
+              minutAcum: widget.app.stare?.minut ?? 0,
+            )
+          : GraficEnergie(
+              widget.app.istoric,
+              key: const ValueKey('azi'),
+              minutAcum: widget.app.stare?.minut ?? 0,
+            ),
     ],
   );
 }

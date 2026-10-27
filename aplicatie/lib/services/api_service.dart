@@ -377,7 +377,8 @@ class DemoCasa {
         vant = <double>[],
         consum = <double>[];
     final baterie = <int>[], tCasa = <double?>[], tAfara = <double?>[];
-    for (var m = 0; m < 1130; m += 5) {
+    // pana la ora demo-ului (care merge cu un minut pe secunda)
+    for (var m = 0; m <= max(1125, _minut); m += 5) {
       final zi = max(0.0, sin((m / 60 - 7) / 11 * pi));
       minut.add(m);
       solar.add(1.9 * zi * (m > 960 && m < 1080 ? 0.35 : 1));

@@ -30,7 +30,6 @@ class CamereScreen extends StatelessWidget {
 
     return Ecran(
       titlu: 'Camere',
-      subtitlu: 'atingeți o cameră pentru lumină și detalii',
       copii: [
         if (s == null) const T.mic('Se așteaptă datele de la casă...'),
         // camerele, cate doua pe rand
@@ -74,10 +73,10 @@ class CamereScreen extends StatelessWidget {
                       const SizedBox(height: 2),
                       T.mic(
                         s.gradina.pompa
-                            ? 'Pompa merge câteva secunde.'
+                            ? 'câteva secunde'
                             : s.vreme.oraPloaie != null
-                            ? 'Vine ploaia pe la ${s.vreme.oraPloaie}:00: casa nu udă degeaba.'
-                            : 'Casa udă singură la momentul potrivit.',
+                            ? 'plouă pe la ${s.vreme.oraPloaie}:00'
+                            : 'udare automată',
                       ),
                       const SizedBox(height: 12),
                       Buton(
@@ -98,22 +97,13 @@ class CamereScreen extends StatelessWidget {
         // ce a invatat casa
         Sectiune(
           'Ce a învățat casa',
+          info:
+              'Cât de des e cineva în fiecare cameră, pe ore. Așa știe casa când să încălzească din timp.',
           dreapta: r != null && r.valida
               ? T.mic('din $zile ${zile == 1 ? 'zi' : 'zile'}')
               : null,
         ),
-        Bloc(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              HartaRutina(r, oraAcum: s == null ? -1 : s.minut ~/ 60),
-              const SizedBox(height: 12),
-              const T.mic(
-                'Cât de probabil e să fie cineva în fiecare cameră, la fiecare oră. Din asta casa știe când să pornească încălzirea mai devreme și când să stingă lumina mai repede.',
-              ),
-            ],
-          ),
-        ),
+        Bloc(child: HartaRutina(r, oraAcum: s == null ? -1 : s.minut ~/ 60)),
       ],
     );
   }
