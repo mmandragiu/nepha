@@ -6,16 +6,19 @@ import '../theme/nepha_theme.dart';
 import 'ui.dart';
 
 // intoarce PIN-ul scris, sau null daca s-a renuntat
-Future<String?> ceAPin(BuildContext context) => showDialog<String>(
-  context: context,
-  barrierColor: const Color(0x99050810),
-  builder: (_) => const _TastaturaPin(
-    titlu: 'PIN-ul alarmei',
-    detaliu: 'Îl verifică Arduino, nu aplicația.',
-    cifre: 4,
-    buton: 'Dezarmează',
-  ),
-);
+Future<String?> ceAPin(BuildContext context, {bool demo = false}) =>
+    showDialog<String>(
+      context: context,
+      barrierColor: const Color(0x99050810),
+      builder: (_) => _TastaturaPin(
+        titlu: 'PIN-ul alarmei',
+        detaliu: demo
+            ? 'În modul demo, PIN-ul e 1234.'
+            : 'Îl verifică Arduino, nu aplicația.',
+        cifre: 4,
+        buton: 'Dezarmează',
+      ),
+    );
 
 // codul afisat pe panou la Setari -> Leaga telefonul (cifrele se vad, nu e un secret de tinut minte)
 Future<String?> ceCodulPanoului(BuildContext context) => showDialog<String>(

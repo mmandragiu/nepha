@@ -43,8 +43,60 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
       return;
     }
     if (!mounted) return;
-    final pin = await ceAPin(context);
+    final pin = await ceAPin(context, demo: app.demo);
     if (pin != null) await app.dezarmeazaCuPin(pin);
+  }
+
+  bool _intreb = false;
+
+  // dupa prima dezarmare reusita cu PIN: "Data viitoare cu Face ID?"
+  Future<void> _propuneBiometria(AppState app) async {
+    final da = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        backgroundColor: Culori.card,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(coltCard),
+        ),
+        icon: Icon(
+          app.numeBiometrie == 'Face ID'
+              ? Icons.face_retouching_natural
+              : Icons.fingerprint,
+          size: 40,
+          color: Culori.accent,
+        ),
+        title: T(
+          'Data viitoare cu ${app.numeBiometrie}?',
+          marime: 20,
+          gros: FontWeight.w700,
+          aliniere: TextAlign.center,
+        ),
+        content: const T.mic(
+          'Păstrăm PIN-ul criptat pe telefon și îl trimitem doar după ce telefonul vă recunoaște. PIN-ul merge în continuare.',
+          aliniere: TextAlign.center,
+        ),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: Buton('Nu', onTap: () => Navigator.pop(c, false)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Buton(
+                  'Da',
+                  principal: true,
+                  onTap: () => Navigator.pop(c, true),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    await app.raspundeBiometria(da ?? false);
+    _intreb = false;
   }
 
   Future<void> _leaga(AppState app) async {
@@ -70,6 +122,12 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
     final s = app.stare;
+    if (app.propunBiometria && !_intreb) {
+      _intreb = true;
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _propuneBiometria(app),
+      );
+    }
 
     return Ecran(
       titlu: 'Securitate & Setări',
@@ -141,6 +199,23 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                       onTap: () => _dezarmeaza(app),
                     ),
                   ),
+                // Face ID / Touch ID / amprenta: chiar langa butoanele alarmei, sa se vada
+                if (app.amprentaDisponibila) ...[
+                  const SizedBox(height: 16),
+                  _RandSetare(
+                    titlu: 'Dezarmare cu ${app.numeBiometrie}',
+                    detaliu: !app.amprentaPornita
+                        ? 'în loc de PIN, data viitoare'
+                        : app.areSalvatPin
+                        ? 'gata: PIN-ul e păstrat criptat pe telefon'
+                        : 'mai trebuie o dezarmare cu PIN, apoi ajunge ${app.numeBiometrie}',
+                    dreapta: Comutator(
+                      eticheta: 'Dezarmare cu ${app.numeBiometrie}',
+                      pornit: app.amprentaPornita,
+                      onSchimba: (v) => app.schimbaSetari(amprenta: v),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -315,20 +390,6 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                   ],
                 ),
               ),
-              if (app.amprentaDisponibila) ...[
-                const SizedBox(height: 14),
-                _RandSetare(
-                  titlu: 'Dezarmare cu ${app.numeBiometrie}',
-                  detaliu: app.areSalvatPin
-                      ? 'PIN-ul e păstrat criptat pe telefon'
-                      : 'după prima dezarmare cu PIN, data viitoare ajunge ${app.numeBiometrie}',
-                  dreapta: Comutator(
-                    eticheta: 'Dezarmare cu ${app.numeBiometrie}',
-                    pornit: app.amprentaPornita,
-                    onSchimba: (v) => app.schimbaSetari(amprenta: v),
-                  ),
-                ),
-              ],
             ],
           ),
         ),

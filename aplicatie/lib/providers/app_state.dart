@@ -93,6 +93,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // cum se numeste pe telefonul asta: "Face ID", "Touch ID" (iPhone) sau "amprenta" (Android)
   String numeBiometrie = 'amprenta';
   bool areSalvatPin = false;
+  bool _refuzatBiometria =
+      false; // a zis "nu" la Face ID / amprenta: nu-l mai intrebam
   bool setariGata = false;
 
   // cine suntem pe broker si cu ce casa vorbim
@@ -123,6 +125,11 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       0; // se schimba cand schimbam panoul: raspunsurile vechi nu mai conteaza
   String? _pinDeVerificat;
   DateTime? _pinTrimisLa;
+  bool _pinDinSeif =
+      false; // PIN-ul trimis dupa Face ID / amprenta (cel pastrat pe telefon)
+  // dupa o dezarmare reusita cu PIN: intrebam o data daca data viitoare vrea Face ID / amprenta
+  bool propunBiometria = false;
+  String? _pinDePastrat;
 
   Broker? _broker;
   bool _peInternet = false;
@@ -148,6 +155,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     confort = p.getDouble('confort') ?? 21.5;
     tema = p.getString('tema') ?? 'auto';
     amprentaPornita = p.getBool('amprenta') ?? false;
+    _refuzatBiometria = p.getBool('amprenta_refuzata') ?? false;
     server = p.getString('server') ?? '';
     clientId = p.getString('client') ?? '';
     // id-ul telefonului: 16 litere si cifre la intamplare (ajunge in topicuri si in numele contului).
@@ -626,12 +634,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
 
   // ---------------------------------------------------------------- alarma: PIN si amprenta
 
+  // PIN-ul il verifica Arduino; noi ne uitam doar daca alarma s-a oprit in cateva secunde
   Future<void> dezarmeazaCuPin(String pin) async {
-    if (await comanda('ALARMA OPRIT $pin') && amprentaPornita) {
-      // il pastram doar daca Arduino il accepta (alarma se dezarmeaza in cateva secunde)
-      _pinDeVerificat = pin;
-      _pinTrimisLa = DateTime.now();
-    }
+    if (await comanda('ALARMA OPRIT $pin')) _asteaptaPin(pin, dinSeif: false);
+  }
+
+  void _asteaptaPin(String pin, {required bool dinSeif}) {
+    _pinDeVerificat = pin;
+    _pinDinSeif = dinSeif;
+    _pinTrimisLa = DateTime.now();
   }
 
   void _verificaPin() {
@@ -639,14 +650,51 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (pin == null || _pinTrimisLa == null) return;
     if (stare?.alarma.cod == 0) {
       _pinDeVerificat = null;
-      _seif.write(key: 'pin', value: pin).then((_) {
-        areSalvatPin = true;
-        notifyListeners();
-      }).ignore();
+      anunta('Alarma e dezarmată');
+      if (_pinDinSeif) return;
+      if (amprentaPornita) {
+        _pastreazaPin(pin);
+      } else if (amprentaDisponibila && !_refuzatBiometria) {
+        _pinDePastrat = pin;
+        propunBiometria = true; // ecranul Securitate ne intreaba
+      }
     } else if (DateTime.now().difference(_pinTrimisLa!) >
         const Duration(seconds: 8)) {
-      _pinDeVerificat = null; // PIN gresit: nu-l tinem minte
+      // alarma e tot armata: PIN gresit (nu-l tinem minte)
+      _pinDeVerificat = null;
+      if (_pinDinSeif) {
+        uitaPin(); // PIN-ul s-a schimbat pe casa: cel de pe telefon nu mai e bun
+        anunta(
+          'PIN-ul păstrat pe telefon nu mai e bun. Folosiți PIN-ul nou.',
+          eroare: true,
+        );
+      } else {
+        anunta('PIN greșit: alarma e tot armată.', eroare: true);
+      }
     }
+  }
+
+  void _pastreazaPin(String pin) {
+    _seif.write(key: 'pin', value: pin).then((_) {
+      areSalvatPin = true;
+      notifyListeners();
+    }).ignore();
+  }
+
+  // raspunsul la "Data viitoare dezarmati cu Face ID?"
+  Future<void> raspundeBiometria(bool da) async {
+    propunBiometria = false;
+    final pin = _pinDePastrat;
+    _pinDePastrat = null;
+    if (da) {
+      await schimbaSetari(amprenta: true);
+      if (pin != null) _pastreazaPin(pin);
+    } else {
+      _refuzatBiometria = true;
+      final p = await SharedPreferences.getInstance();
+      await p.setBool('amprenta_refuzata', true);
+    }
+    notifyListeners();
   }
 
   // true daca am trimis PIN-ul salvat
@@ -665,7 +713,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       anunta('$nume nu a mers. Folosiți PIN-ul.', eroare: true);
       return false;
     }
-    await comanda('ALARMA OPRIT $pin');
+    if (await comanda('ALARMA OPRIT $pin')) _asteaptaPin(pin, dinSeif: true);
     return true;
   }
 
