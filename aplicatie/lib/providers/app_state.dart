@@ -147,8 +147,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     amprentaPornita = p.getBool('amprenta') ?? false;
     server = p.getString('server') ?? '';
     clientId = p.getString('client') ?? '';
-    // id-ul telefonului: 16 litere si cifre la intamplare (ajunge in topicuri si in numele contului)
-    if (clientId.isEmpty || clientId.startsWith('nepha-app-')) {
+    // id-ul telefonului: 16 litere si cifre la intamplare (ajunge in topicuri si in numele contului).
+    // Il facem la prima pornire, dupa instalare sau dupa ce s-au sters datele aplicatiei.
+    final idNou = clientId.isEmpty || clientId.startsWith('nepha-app-');
+    if (idNou) {
       final r = Random.secure();
       const litere = 'abcdefghijklmnopqrstuvwxyz0123456789';
       clientId = List.generate(
@@ -178,6 +180,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
         amprentaDisponibila = false;
       }
       try {
+        // aplicatie noua (reinstalata, date sterse): uitam tot ce era in seif. Pe iPhone, Keychain-ul
+        // ramane si dupa dezinstalare, iar contul vechi era pe alt id de telefon: nu mai e bun.
+        if (idNou) await _uitaLegarea();
         final c = await _seif.read(key: 'cheie');
         if (c != null) _cheie = base64.decode(c);
         final u = await _seif.read(key: 'broker_utilizator');
@@ -380,6 +385,15 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       },
     );
     if (!b.conectat && !await b.porneste()) {
+      if (b.contRespins) {
+        _opresteBroker();
+        await _uitaLegarea(pastreazaPin: true);
+        notifyListeners();
+        anunta(
+          'Contul pentru internet nu mai e valabil. Legați telefonul din nou, acasă (Securitate & Setări).',
+          eroare: true,
+        );
+      }
       throw StateError('brokerul nu raspunde');
     }
     if (g != _generatie) return;
@@ -438,13 +452,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _aflaServerul(String s) async {
     if (s.isEmpty || s == server) return;
     final p = await SharedPreferences.getInstance();
-    if (server.isNotEmpty) {
-      _cheie = null;
-      _cont = null;
-      await _seif.delete(key: 'cheie');
-      await _seif.delete(key: 'broker_utilizator');
-      await _seif.delete(key: 'broker_parola');
-    }
+    if (server.isNotEmpty) await _uitaLegarea();
     server = s;
     await p.setString('server', s);
   }
@@ -468,6 +476,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ---------------------------------------------------------------- legarea de casa
+
+  // stergem cheia casei si contul de broker (dupa reinstalare, alt panou, cont respins)
+  Future<void> _uitaLegarea({bool pastreazaPin = false}) async {
+    _cheie = null;
+    _cont = null;
+    for (final k in ['cheie', 'broker_utilizator', 'broker_parola']) {
+      await _seif.delete(key: k);
+    }
+    if (!pastreazaPin) {
+      await _seif.delete(key: 'pin');
+      areSalvatPin = false;
+    }
+  }
 
   // codul de 6 cifre de pe panou (Setari -> Leaga telefonul); merge doar pe Wi-Fi-ul casei
   Future<bool> leagaTelefonul(String cod) async {
@@ -537,12 +558,14 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
     } on StateError catch (e) {
       ok = false;
-      anunta(
-        e.message == 'fara cheie'
-            ? 'Ca să dezarmați prin internet, legați întâi telefonul de casă (o dată, acasă)'
-            : 'Panoul nu a putut fi contactat',
-        eroare: true,
-      );
+      anunta(switch (e.message) {
+        'fara cheie' =>
+          'Ca să dezarmați prin internet, legați întâi telefonul de casă (o dată, acasă)',
+        // panoul a fost resetat si si-a facut alta cheie a casei
+        'secret' =>
+          'Panoul nu mai recunoaște cheia telefonului. Legați telefonul din nou, acasă.',
+        _ => 'Panoul nu a putut fi contactat',
+      }, eroare: true);
     } catch (_) {
       ok = false;
       anunta('Panoul nu a putut fi contactat', eroare: true);

@@ -102,6 +102,21 @@ Un cod e bun pentru un singur telefon; după 5 coduri greșite, panoul îl anule
 internet în momentul ăla, telefonul primește doar cheia: merge pe Wi-Fi, iar pentru internet îl legi
 din nou mai târziu.
 
+## Când se resetează ceva
+
+| Ce s-a întâmplat | Ce face sistemul singur | Ce faci tu |
+|---|---|---|
+| Panoul a fost reprogramat (programul nou peste cel vechi) | contul, cheia casei și numele panoului rămân în memoria lui | nimic |
+| Memoria panoului a fost ștearsă de tot („Erase all flash”) | se înrolează din nou; are deja cont, deci cere parolă nouă (`reset`). Își face și o cheie a casei nouă | legi din nou telefoanele, ca să primească noua cheie (aplicația îți spune când dezarmarea prin internet nu mai merge) |
+| Brokerul nu mai primește parola panoului (cont șters sau resetat) | panoul cere singur parolă nouă (`reset`) | nimic |
+| Aplicația a fost reinstalată sau i s-au șters datele | își face un id nou și uită tot din seif (pe iPhone, Keychain-ul rămâne după dezinstalare; îl golim noi) | o legi din nou, acasă |
+| Brokerul nu mai primește contul telefonului | aplicația uită contul și îți spune | o legi din nou, acasă |
+| Legi din nou același telefon | panoul cere pentru el parolă nouă (`reset`) | nimic |
+
+Telefonul nu își poate reface singur contul: doar panoul are cheile de înrolare, deci e nevoie de
+codul de pe ecranul lui. După o reinstalare, contul vechi al telefonului rămâne pe serverul de conturi,
+nefolosit. Serverul l-ar putea șterge după o vreme.
+
 ## Unde pun cheile (pas cu pas)
 
 Singurul loc cu chei e **panoul**. Ele stau în `panou/secrete.h`, pe care git îl ignoră. În plus,

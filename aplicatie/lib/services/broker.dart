@@ -78,6 +78,10 @@ class Broker {
   bool get conectat =>
       _mqtt?.connectionStatus?.state == MqttConnectionState.connected;
 
+  // brokerul nu ne mai primeste contul (sters sau resetat pe serverul de conturi): trebuie
+  // legat telefonul din nou, ca panoul sa-i faca altul
+  bool contRespins = false;
+
   Future<bool> porneste() async {
     if (conectat) return true;
     final m = MqttServerClient.withPort(brokerServer, client, brokerPort)
@@ -90,6 +94,10 @@ class Broker {
     try {
       await m.connect(utilizator, parola);
     } catch (_) {
+      final cod = m.connectionStatus?.returnCode;
+      contRespins =
+          cod == MqttConnectReturnCode.badUsernameOrPassword ||
+          cod == MqttConnectReturnCode.notAuthorized;
       m.disconnect();
       return false;
     }
