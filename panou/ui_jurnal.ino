@@ -11,8 +11,7 @@ void desenJurnal(bool tot) {
 
   card(12, 50, 456, 216);
   if (!nrJurnal) {
-    paragraf("Încă nimic. Aici apar deciziile casei: când a pornit încălzirea mai devreme, "
-             "când a stins o lumină uitată, de ce n-a udat grădina...", 28, 66, 420, F_MIC, C_TEXT2, C_CARD, 4);
+    paragraf("Nicio decizie încă.", 28, 66, 420, F_MIC, C_TEXT2, C_CARD, 1);
     return;
   }
   for (uint8_t k = 0; k < PE_PAGINA; k++) {

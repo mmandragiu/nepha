@@ -359,8 +359,7 @@ static void desenSugestie() {
   card(40, 60, 400, 196);
   iconScut(76, 98, C_VERDE, C_CARD);
   scrie("Casa pare goală", 100, 98, F_TITLU, C_TEXT, C_CARD, textdatum_t::middle_left);
-  paragraf("Nu e nimeni acasă și, după rutină, nu se întoarce nimeni curând. Armez alarma? "
-           "Așa casa știe sigur că poate economisi.", 64, 124, 352, F_MIC, C_TEXT2, C_CARD, 3);
+  paragraf("Nu e nimeni acasă și nu se întoarce nimeni curând. Armez alarma?", 64, 124, 352, F_MIC, C_TEXT2, C_CARD, 3);
   buton("Nu acum", 64, 200, 168, 40, 121);
   buton("Armează", 248, 200, 168, 40, 120, true);
 }

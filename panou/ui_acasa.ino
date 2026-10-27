@@ -156,7 +156,7 @@ static void cardAcum() {
   int mijloc = R3_Y + R3_H / 2;
   card(12, R3_Y, 456, R3_H);
   if (!nrJurnal) {
-    scrie("Aici apare ce decide casa, și de ce.", 28, mijloc, F_MIC, ap(C_TEXT2), C_CARD, textdatum_t::middle_left);
+    scrie("Nicio decizie încă.", 28, mijloc, F_MIC, ap(C_TEXT2), C_CARD, textdatum_t::middle_left);
   } else {
     scrie(oraText(jurnal[0].minut), 28, mijloc, F_MIC, ap(C_VERDE), C_CARD, textdatum_t::middle_left);
     font(F_MIC);

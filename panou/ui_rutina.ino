@@ -16,7 +16,7 @@ void desenRutina(bool tot) {
   card(12, 50, 456, 216);
   if (!rutina.valida) {
     scrie("Când e lume prin casă", 28, 62, F_TEXT, C_TEXT, C_CARD);
-    paragraf("Încă n-am primit rutina de la Arduino. Apare după câteva secunde de la pornire.", 28, 96, 420, F_MIC, C_TEXT2, C_CARD, 2);
+    paragraf("Se încarcă...", 28, 96, 420, F_MIC, C_TEXT2, C_CARD, 2);
     return;
   }
   uint8_t zile = 0;
@@ -39,7 +39,7 @@ void desenRutina(bool tot) {
     scrie(String(h), GRILA_X + h * CELULA + CELULA / 2 - 1, 98 + 30 * NR_CAMERE + 8, F_MIC, C_TEXT2, C_CARD, textdatum_t::top_center);
 
   if (!isnan(casa.rata) && casa.rata > 0)
-    paragraf("Casa se încălzește cu " + zecimal(casa.rata, 1) + " °C pe oră, așa că știe cu cât timp înainte să pornească.",
+    paragraf("Se încălzește cu " + zecimal(casa.rata, 1) + " °C pe oră.",
              28, 216, 290, F_MIC, C_TEXT2, C_CARD, 2);
   buton("Uită rutina", 330, 218, 126, 36, 40);
 }

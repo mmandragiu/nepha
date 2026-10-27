@@ -3,11 +3,11 @@
 
 static const char *explicatieEnergie(uint8_t mod) {
   switch (mod) {
-    case 1: return "Bateria e plină și panoul încă produce: pornim acum ce poate aștepta.";
-    case 2: return "Bateria scade și nu se produce: lumini mai slabe, un grad mai puțin.";
-    case 3: return "Bateria e aproape goală: doar strictul necesar.";
+    case 1: return "Baterie plină: pornim ce poate aștepta.";
+    case 2: return "Lumini mai slabe, un grad mai puțin.";
+    case 3: return "Doar strictul necesar.";
   }
-  return "Energie destulă. Casa merge normal.";
+  return "Energie destulă.";
 }
 
 static void cardAcumEnergie() {
@@ -46,7 +46,7 @@ static void cardAcumEnergie() {
   paragraf(explicatieEnergie(casa.modEnergie), 28, 184, 204, F_MIC, C_TEXT, C_CARD, 2);
   float estimat = productieEstimata(6);
   if (!isnan(estimat))
-    scrie("Soare estimat: ~" + zecimal(estimat, 1) + " Wh / 6 h", 28, 252, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_left);
+    scrie("Soare în 6 ore: ~" + zecimal(estimat, 1) + " Wh", 28, 252, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_left);
 }
 
 static void randTest(const char *nume, float wh, float procent, int y, uint16_t culoare) {
@@ -65,7 +65,7 @@ static void cardTest() {
 
   if (casa.test == 1) {
     scrie("Rulează pe machetă", 266, 92, F_TEXT, C_TEXT, C_CARD);
-    paragraf("O zi întreagă în vreo 6 minute. Urmăriți luminile și jurnalul casei.", 266, 118, 186, F_MIC, C_TEXT2, C_CARD, 4);
+    paragraf("O zi întreagă în ~6 minute.", 266, 118, 186, F_MIC, C_TEXT2, C_CARD, 4);
     buton("Oprește", 262, 224, 196, 34, 32);
     return;
   }
@@ -75,10 +75,9 @@ static void cardTest() {
     scrie("energie", 346, 92, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_left);
     scrie("într-o zi", 346, 108, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_left);
     randTest("Clasic", c.total, 100, 130, C_TEXT2);
-    randTest("Smart", s.total, s.total * 100 / c.total, 162, C_VERDE);
+    randTest("NEPHA", s.total, s.total * 100 / c.total, 162, C_VERDE);
   } else {
-    paragraf("Aceeași zi, trăită ca o casă obișnuită și ca o casă NEPHA. Cât se economisește?",
-             266, 88, 186, F_MIC, C_TEXT, C_CARD, 5);
+    paragraf("Clasic vs NEPHA: aceeași zi, aceeași vreme.", 266, 88, 186, F_MIC, C_TEXT2, C_CARD, 3);
   }
   buton("Calculează", 262, 190, 196, 32, 30, true);
   buton("Pe machetă (6 min)", 262, 228, 196, 32, 31);

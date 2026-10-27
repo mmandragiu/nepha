@@ -9,13 +9,13 @@ String mesajPin;
 
 static const char *explicatieAlarma(uint8_t s) {
   switch (s) {
-    case 1: return "Aveți 30 de secunde să ieșiți și să închideți ușa.";
-    case 2: return "Suntem acasă și dormim: păzim doar ușile și geamurile.";
-    case 3: return "Casa e păzită. Și pentru că știe că e goală: lumini stinse, încălzire redusă, priza TV oprită.";
-    case 4: return "S-a deschis ușa. Introduceți PIN-ul!";
-    case 5: return "Alarma sună! Introduceți PIN-ul ca s-o opriți.";
+    case 1: return "Aveți 30 de secunde să ieșiți.";
+    case 2: return "Doar ușile și geamurile.";
+    case 3: return "Casa economisește cât e goală.";
+    case 4: return "Introduceți PIN-ul.";
+    case 5: return "Introduceți PIN-ul ca s-o opriți.";
   }
-  return "Când plecați, armați-o: casa știe atunci sigur că e goală și economisește.";
+  return "";
 }
 
 static void cardStareAlarma() {

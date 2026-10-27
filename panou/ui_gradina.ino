@@ -42,9 +42,9 @@ void desenGradina(bool tot) {
   if (d >= 0) scrie(oraText(jurnal[d].minut), 452, 62, F_MIC, C_VERDE, C_CARD, textdatum_t::top_right);
   String text;
   if (d >= 0) text = textEveniment(jurnal[d]);
-  else if (!casa.mod) text = "Mod clasic: programatorul udă în fiecare zi la ora 12, indiferent de vreme.";
-  else if (casa.sol >= 35) text = "Pământul e destul de umed. Nu e nevoie de apă.";
-  else text = "Pământul e uscat. Aștept o oră bună (dimineața sau seara) ori soare din belșug.";
+  else if (!casa.mod) text = "Mod clasic: udă zilnic la 12, indiferent de vreme.";
+  else if (casa.sol >= 35) text = "Pământul e umed. Nu ud.";
+  else text = "Pământul e uscat. Aștept o oră bună.";
   paragraf(text, 236, 88, 220, F_TEXT, C_TEXT, C_CARD, 3);
 
   String ploaie = "Prognoza: necunoscută";
