@@ -11,8 +11,9 @@ import 'ui.dart';
 const _zileSapt = ['lun', 'mar', 'mie', 'joi', 'vin', 'sâm', 'dum'];
 
 // graficul productiei (soare + vant): o bara pe ora, iar la 3 zile o bara la 3 ore.
-// Atingi sau tragi cu degetul peste bare si vezi cat s-a produs atunci; la inceput
-// e aleasa ora de acum. Orele care n-au venit inca raman gri.
+// Cifra unei ore apare doar cand o ceri: atingi bara (inca o atingere o ascunde) sau
+// tii degetul pe grafic si il plimbi peste ore; cand ridici degetul, dispare.
+// Orele care n-au venit inca raman gri.
 class GraficEnergie extends StatefulWidget {
   final Istoric? istoric;
   // zile = true: `minut` e minutul de la 1970 (graficul pe 3 zile de pe telefon), altfel minutul zilei
@@ -80,12 +81,26 @@ class _GraficEnergieState extends State<GraficEnergie> {
     ];
   }
 
-  void _alege(Offset p, double latime, List<(String, double?)> bare) {
-    final b = (p.dx / latime * bare.length).floor().clamp(0, bare.length - 1);
+  int _bara(Offset p, double latime, int n) =>
+      (p.dx / latime * n).floor().clamp(0, n - 1);
+
+  // cu degetul tinut pe grafic: bula merge dupa deget
+  void _plimba(Offset p, double latime, List<(String, double?)> bare) {
+    final b = _bara(p, latime, bare.length);
     if (b == _ales || bare[b].$2 == null) return;
     atingere();
     setState(() => _ales = b);
   }
+
+  // o atingere: arata bara; inca una pe aceeasi (sau pe o ora goala) o ascunde
+  void _atinge(Offset p, double latime, List<(String, double?)> bare) {
+    final b = _bara(p, latime, bare.length);
+    final nou = b == _ales || bare[b].$2 == null ? null : b;
+    if (nou != null) atingere();
+    setState(() => _ales = nou);
+  }
+
+  void _ascunde() => setState(() => _ales = null);
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +119,7 @@ class _GraficEnergieState extends State<GraficEnergie> {
         child: Center(child: T.mic('graficul apare după câteva minute')),
       );
     }
-    final ales = _ales != null && bare[_ales!].$2 != null ? _ales! : ultima;
+    final ales = _ales != null && bare[_ales!].$2 != null ? _ales : null;
     final total = bare.fold(0.0, (a, b) => a + (b.$2 ?? 0));
 
     return Column(
@@ -125,9 +140,16 @@ class _GraficEnergieState extends State<GraficEnergie> {
         LayoutBuilder(
           builder: (context, c) => GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTapDown: (d) => _alege(d.localPosition, c.maxWidth, bare),
+            onTapUp: (d) => _atinge(d.localPosition, c.maxWidth, bare),
+            onLongPressStart: (d) => _plimba(d.localPosition, c.maxWidth, bare),
+            onLongPressMoveUpdate: (d) =>
+                _plimba(d.localPosition, c.maxWidth, bare),
+            onLongPressEnd: (_) => _ascunde(),
+            onHorizontalDragStart: (d) =>
+                _plimba(d.localPosition, c.maxWidth, bare),
             onHorizontalDragUpdate: (d) =>
-                _alege(d.localPosition, c.maxWidth, bare),
+                _plimba(d.localPosition, c.maxWidth, bare),
+            onHorizontalDragEnd: (_) => _ascunde(),
             child: CustomPaint(
               size: Size(c.maxWidth, 150),
               painter: _Bare(bare, ales: ales, zile: widget.zile),
@@ -141,7 +163,7 @@ class _GraficEnergieState extends State<GraficEnergie> {
 
 class _Bare extends CustomPainter {
   final List<(String, double?)> bare;
-  final int ales;
+  final int? ales; // null = nicio bula
   final bool zile;
   // culorile le luam acum: daca se schimba tema, se redeseneaza
   final plin = Culori.verde, gol = Culori.moale, accent = Culori.accent;
@@ -195,15 +217,17 @@ class _Bare extends CustomPainter {
     }
 
     // bula de deasupra barei alese: ora si cat s-a produs
-    final v = bare[ales].$2 ?? 0;
+    final a = ales;
+    if (a == null) return;
+    final v = bare[a].$2 ?? 0;
     final tp = _scrie(
-      '${bare[ales].$1} · ${nr(v, 2)} Wh',
+      '${bare[a].$1} · ${nr(v, 2)} Wh',
       textBula,
       11,
       FontWeight.w600,
     );
     final lb = tp.width + 18;
-    final cx = ales * loc + loc / 2;
+    final cx = a * loc + loc / 2;
     final y = max(0.0, _sus + inalt - cat(v) - 26);
     final st = (cx - lb / 2).clamp(0.0, max(0.0, s.width - lb)).toDouble();
     canvas.drawRRect(
