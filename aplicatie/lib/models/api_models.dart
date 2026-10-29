@@ -319,6 +319,9 @@ class Stare {
 
   bool get smart => mod == 'smart';
 
+  // are senzori de miscare in camere (fara ei, "e cineva acasa" vine de la alarma)
+  bool get areMiscare => senzori & 512 != 0;
+
   // Arduino vorbeste cu panoul (a trimis ceva in ultimele 10 secunde)
   bool get arduinoVorbeste => primit && vechime >= 0 && vechime < 10;
 
@@ -391,5 +394,19 @@ class Rutina {
     camere: _lista(j['camere']).map(_text).toList(),
     p: _lista(j['p']).map((r) => _lista(r).map(_int).toList()).toList(),
     zile: _lista(j['zile']).map(_int).toList(),
+  );
+
+  // fara senzori de miscare camerele invata toate acelasi lucru: aratam un singur rand,
+  // cu cea mai mare sansa la fiecare ora (ca termostatul)
+  Rutina caAcasa() => Rutina(
+    valida: valida,
+    camere: const ['Acasă'],
+    p: [
+      [
+        for (var h = 0; h < 24; h++)
+          p.fold(0, (m, r) => h < r.length && r[h] > m ? r[h] : m),
+      ],
+    ],
+    zile: zile,
   );
 }

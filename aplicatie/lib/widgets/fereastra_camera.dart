@@ -41,7 +41,7 @@ class _FereastraCamera extends StatelessWidget {
     final c = s.camere[i];
     final cheie = 'lumina:$i';
     final nivel = app.arata(cheie, c.lumina);
-    final pir = s.senzori & 512 != 0; // are senzori de miscare
+    final pir = s.areMiscare;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -94,21 +94,24 @@ class _FereastraCamera extends StatelessWidget {
                 Expanded(
                   child: _Valoare('Lumină', '$nivel%', Icons.lightbulb_outline),
                 ),
-                const SizedBox(width: 10),
-                // in camera cu DHT11 umiditatea; daca e cineva scrie oricum sus
-                Expanded(
-                  child: c.umiditate != null
-                      ? _Valoare(
-                          'Umiditate',
-                          '${c.umiditate}%',
-                          Icons.water_drop_outlined,
-                        )
-                      : _Valoare(
-                          'Mișcare',
-                          !pir ? '—' : (c.prezenta ? 'da' : 'nu'),
-                          Icons.sensors,
-                        ),
-                ),
+                // in camera cu DHT11 umiditatea; daca e cineva scrie oricum sus.
+                // Fara senzori de miscare si fara DHT11, raman doar doua
+                if (c.umiditate != null || pir) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: c.umiditate != null
+                        ? _Valoare(
+                            'Umiditate',
+                            '${c.umiditate}%',
+                            Icons.water_drop_outlined,
+                          )
+                        : _Valoare(
+                            'Mișcare',
+                            c.prezenta ? 'da' : 'nu',
+                            Icons.sensors,
+                          ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 20),

@@ -22,21 +22,32 @@ class Regula {
   });
 }
 
-List<Regula> regulileCasei() => [
-  Regula(
-    dacaIcon: Icons.directions_walk,
-    daca: 'Mișcare în cameră',
-    atunciIcon: Icons.lightbulb_outline,
-    atunci: 'Aprinde lumina',
-    acum: (s) => s.camere.any((c) => c.prezenta && c.lumina > 0),
-  ),
-  Regula(
-    dacaIcon: Icons.person_off_outlined,
-    daca: 'Camera rămâne goală',
-    atunciIcon: Icons.lightbulb_outline,
-    atunci: 'Stinge lumina',
-    acum: (s) => s.camere.any((c) => !c.prezenta && c.lumina == 0),
-  ),
+// miscare = casa are senzori de miscare; fara ei luminile le aprindeti voi, iar casa le
+// stinge cand plecati
+List<Regula> regulileCasei({required bool miscare}) => [
+  if (miscare) ...[
+    Regula(
+      dacaIcon: Icons.directions_walk,
+      daca: 'Mișcare în cameră',
+      atunciIcon: Icons.lightbulb_outline,
+      atunci: 'Aprinde lumina',
+      acum: (s) => s.camere.any((c) => c.prezenta && c.lumina > 0),
+    ),
+    Regula(
+      dacaIcon: Icons.person_off_outlined,
+      daca: 'Camera rămâne goală',
+      atunciIcon: Icons.lightbulb_outline,
+      atunci: 'Stinge lumina',
+      acum: (s) => s.camere.any((c) => !c.prezenta && c.lumina == 0),
+    ),
+  ] else
+    Regula(
+      dacaIcon: Icons.logout,
+      daca: 'Plecați de acasă',
+      atunciIcon: Icons.lightbulb_outline,
+      atunci: 'Stinge toate luminile',
+      acum: (s) => s.alarma.cod == 3,
+    ),
   Regula(
     dacaIcon: Icons.window_outlined,
     daca: 'Geam deschis',

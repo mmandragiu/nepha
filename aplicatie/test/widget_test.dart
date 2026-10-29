@@ -72,6 +72,27 @@ void main() {
       expect(s.alarma.senzori.single.nume, 'Ușa de la intrare');
       expect(s.vreme.oraPloaie, isNull);
       expect(s.rezultate[1].total, 13681);
+      expect(s.areMiscare, isFalse);
+    },
+  );
+
+  test(
+    'fara senzori de miscare rutina e un singur rand, cu maximul pe ore',
+    () {
+      final r = Rutina(
+        valida: true,
+        camere: const ['Sufragerie', 'Dormitor', 'Bucătărie'],
+        p: [
+          List.filled(24, 20),
+          List.filled(24, 70),
+          List.generate(24, (h) => h == 8 ? 90 : 10),
+        ],
+        zile: List.filled(24, 3),
+      ).caAcasa();
+      expect(r.camere, ['Acasă']);
+      expect(r.p.single[0], 70);
+      expect(r.p.single[8], 90);
+      expect(r.zile.first, 3);
     },
   );
 }

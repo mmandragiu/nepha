@@ -18,7 +18,8 @@ class CamereScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
     final s = app.stare;
-    final r = app.rutina;
+    final faraMiscare = s != null && !s.areMiscare;
+    final r = faraMiscare ? app.rutina?.caAcasa() : app.rutina;
     final zile = r == null || r.zile.isEmpty ? 0 : r.zile.reduce(max);
 
     final carduri = <Widget>[
@@ -103,8 +104,9 @@ class CamereScreen extends StatelessWidget {
         // ce a invatat casa
         Sectiune(
           'Ce a învățat casa',
-          info:
-              'Cât de des e cineva în fiecare cameră, pe ore. Așa știe casa când să încălzească din timp.',
+          info: faraMiscare
+              ? 'Cât de des e lumea acasă, pe ore (după alarmă: „Plecat” = nu e nimeni). Așa știe casa când să încălzească din timp.'
+              : 'Cât de des e cineva în fiecare cameră, pe ore. Așa știe casa când să încălzească din timp.',
           dreapta: r != null && r.valida
               ? T.mic('din $zile ${zile == 1 ? 'zi' : 'zile'}')
               : null,

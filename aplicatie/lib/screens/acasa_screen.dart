@@ -61,7 +61,7 @@ class _AcasaScreenState extends State<AcasaScreen> {
     final s = app.stare;
     if (s == null) return _faraDate(app);
 
-    final reguli = regulileCasei()
+    final reguli = regulileCasei(miscare: s.areMiscare)
       ..sort((a, b) {
         // cele care lucreaza acum, primele
         bool merge(Regula r) => (!r.doarSmart || s.smart) && r.acum(s);
