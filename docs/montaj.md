@@ -32,8 +32,8 @@ exemplu un senzor de lumină BH1750): se leagă tot pe A4 / A5.
 ## Livolo — întrerupătoarele din dormitor
 
 Arduino se preface că e telecomanda Livolo, prin emițătorul de pe D8 (receptorul de pe D2 doar
-ascultă, nu poate trimite). Lumina Dormitorului din program e și lumina Livolo: orice nivel peste
-0 înseamnă aprins. Legarea, o singură dată, pe rând la fiecare întrerupător (la cap de scară, la
+ascultă, nu poate trimite). Lumina Dormitorului din program e și lumina Livolo: de la 30% în sus
+înseamnă aprins; mai jos (lumina de noapte, când te miști noaptea) Livolo rămâne stins. Legarea, o singură dată, pe rând la fiecare întrerupător (la cap de scară, la
 amândouă):
 1. țineți degetul pe întrerupător până piuie (~5 secunde);
 2. în aplicație: Camere → Dormitor → **Leagă întrerupătorul Livolo** (sau `LIVOLO LEAGA` în
@@ -46,9 +46,9 @@ următoarea schimbare trimite iar „stinge tot” (+ „aprinde”) și se potr
 
 | GPIO | Ce e legat | Observații |
 |---|---|---|
-| 4 | senzorul de ploaie, DO (modulul cu LM393) | VCC 3,3 V; pragul din potențiometru (LED-ul de pe modul = ud) |
-| 1 | senzorul de ploaie, AO | doar pentru calibrare (apare pe Serial) |
-| 5, 6, 7, 15 | IN1 … IN4 pe modulul cu 4 relee (electrovalvele zonelor) | releele se activează pe LOW; VCC 5 V dintr-o sursă separată de 1,5-2 A, GND comun |
+| 1 | senzorul de ploaie, DO (plăcuța VAR34 + modulul cu LM393) | VCC 3,3 V; pragul din potențiometru (LED-ul de pe modul = ud) |
+| 2 | senzorul de ploaie, AO | doar pentru calibrare (apare pe Serial) |
+| 6, 4, 15, 7 | IN1, IN2, IN3, IN4 pe modulul cu 4 relee (zonele 1-4) | releele se activează pe LOW; VCC 5 V dintr-o sursă separată de 1,5-2 A, GND comun |
 
 Placa în Arduino IDE: **ESP32S3 Dev Module**. Nu are nevoie de biblioteci și nici de Wi-Fi: își
 găsește singură panoul, prin ESP-NOW. Cât se udă fiecare zonă: `SECUNDE_ZONA` în program.

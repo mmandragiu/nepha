@@ -51,6 +51,12 @@ void usiSeteaza(uint8_t slot, bool deschis) {
   if (senzorDeschis(slot) != deschis) schimbaSenzor(slot, deschis, true);
 }
 
+// Arduino a fost ocupat (a trimis la Livolo) si n-a auzit senzorii: nu inseamna ca s-au inchis usile
+void usiDupaPauza() {
+  for (uint8_t i = 0; i < NR_SENZORI_RF; i++)
+    if (senzorDeschis(i)) ultimulCod[i] = millis();
+}
+
 void usiSterge(uint8_t slot) {
   if (slot >= NR_SENZORI_RF) return;
   coduriRF[slot] = 0;

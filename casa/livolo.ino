@@ -8,7 +8,8 @@
 // Ca sa fim siguri de rezultat:
 //   stins   = butonul "stinge tot"
 //   aprins  = "stinge tot", apoi butonul nostru (din stins devine aprins)
-// Livolo e doar aprins / stins: orice nivel peste 0 la becul dormitorului inseamna aprins.
+// Livolo e doar aprins / stins: de la LIVOLO_PRAG in sus e aprins. Mai jos (lumina de noapte,
+// 20% cand te misti noaptea) ramane stins, ca sa nu aprinda lustra peste cei care dorm.
 // Daca cineva apasa intrerupatorul de mana, casa nu afla; ne potrivim la urmatoarea schimbare.
 //
 // Legarea (o singura data, pentru fiecare intrerupator, la cap de scara pe amandoua):
@@ -43,6 +44,7 @@ static void livoloTrimite(uint8_t buton) {
     interrupts();
   }
   digitalWrite(PIN_LIVOLO, LOW);
+  usiDupaPauza();
 }
 
 void livoloLeaga() {
@@ -52,7 +54,7 @@ void livoloLeaga() {
 
 // o trimitere dureaza ~1 s, asa ca trimitem doar cand se schimba ceva
 void livoloPas() {
-  uint8_t vrem = casa.camere[CAMERA_LIVOLO].luminaTinta > 0;
+  uint8_t vrem = casa.camere[CAMERA_LIVOLO].luminaTinta >= LIVOLO_PRAG;
   if (vrem == livoloAprins) return;
   livoloAprins = vrem;
   livoloTrimite(LIVOLO_STINGE_TOT);

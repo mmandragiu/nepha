@@ -81,6 +81,7 @@ static bool areSenzorGeam(uint8_t camera) {
 // Fereastra deschisa iarna = aer rece = temperatura scade mult mai repede
 // decat de obicei. Comparam temperatura de acum cu media ultimelor ~5 minute:
 // daca e cu peste 0.5 grade sub medie, aproape sigur e un geam deschis.
+// (in camera cu DHT11, care masoara din grad in grad, cerem 1.5 grade)
 void detecteazaFerestre(uint32_t dt) {
   for (uint8_t i = 0; i < NR_CAMERE; i++) {
     Camera &c = casa.camere[i];
@@ -90,7 +91,7 @@ void detecteazaFerestre(uint32_t dt) {
     c.medieLenta += a * (c.temp - c.medieLenta);
 
     bool inainte = c.fereastra;
-    bool dedusa = c.medieLenta - c.temp >= 0.5;
+    bool dedusa = c.medieLenta - c.temp >= (i == CAMERA_DHT && casa.umiditateAer ? 1.5 : 0.5);
     if (dedusa) c.fereastraPanaLa = acum() + 15 * 60;   // pauza 15 minute
     bool dinSenzor = c.geamDeschis && areSenzorGeam(i);
     c.fereastra = dinSenzor || acum() < c.fereastraPanaLa;

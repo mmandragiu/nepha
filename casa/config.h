@@ -72,6 +72,7 @@ const int8_t LOC_SENZOR_T[] = {0, 1, 2, -1};
 #define CAMERA_LIVOLO CAMERA_DORMITOR
 #define LIVOLO_TELECOMANDA 6400  // "numele" telecomenzii noastre (orice numar 1..65535)
 #define LIVOLO_BUTON 0           // butonul 1 de pe telecomanda
+#define LIVOLO_PRAG 30           // de la cat la suta aprindem (Livolo nu se poate regla mai slab)
 
 // ---------------------------------------------------------------
 // Senzori wireless 433 MHz pe usi si geamuri

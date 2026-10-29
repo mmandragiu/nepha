@@ -201,6 +201,7 @@ void usiVerifica();
 void usiInvata(uint8_t slot);
 void usiSterge(uint8_t slot);
 void usiSeteaza(uint8_t slot, bool deschis);
+void usiDupaPauza();
 bool senzorDeschis(uint8_t slot);
 
 // alarma

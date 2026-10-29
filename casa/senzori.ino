@@ -100,7 +100,9 @@ void senzoriCiteste() {
     float t;
     uint8_t u;
     if (dhtCiteste(PIN_DHT, t, u)) {
-      casa.camere[CAMERA_DHT].temp = t;
+      // DHT11 masoara din grad in grad: netezim, altfel 20 / 21 / 20 ar parea un geam deschis
+      float &tc = casa.camere[CAMERA_DHT].temp;
+      tc = isnan(tc) ? t : tc * 0.8 + t * 0.2;
       casa.umiditateAer = u;
       camereCuSenzor |= 1 << CAMERA_DHT;
       casa.senzori |= SENZ_TEMP_CAMERE;

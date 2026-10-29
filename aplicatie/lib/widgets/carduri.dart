@@ -262,7 +262,7 @@ List<DateCard> carduriCasa(AppState app) {
         if (s.gradina.ploua != null)
           (
             'Senzor ploaie',
-            'LM393 · GPIO4 · ${s.gradina.ploua! ? 'ud' : 'uscat'}',
+            'LM393 · GPIO1 · ${s.gradina.ploua! ? 'ud' : 'uscat'}',
           ),
         if (s.gradina.ploua != null)
           (
