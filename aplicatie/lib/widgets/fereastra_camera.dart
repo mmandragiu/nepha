@@ -115,11 +115,13 @@ class _FereastraCamera extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            const Row(
+            Row(
               children: [
-                T('Scene', gros: FontWeight.w700),
+                const T('Scene', gros: FontWeight.w700),
                 Info(
-                  'Aleasă de aici, lumina rămâne așa o oră. Apoi decide casa.',
+                  pir
+                      ? 'Aleasă de aici, lumina rămâne așa o oră. Apoi decide casa.'
+                      : 'Lumina rămâne cum ați ales-o. Când plecați de acasă, casa o stinge.',
                 ),
               ],
             ),
@@ -149,15 +151,18 @@ class _FereastraCamera extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: Buton(
-                'Lasă casa să decidă',
-                icon: Icons.auto_awesome_outlined,
-                onTap: () => app.comanda('LUMINA $i AUTO'),
+            // fara senzori de miscare casa nu aprinde singura, deci n-are ce decide
+            if (pir) ...[
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: Buton(
+                  'Lasă casa să decidă',
+                  icon: Icons.auto_awesome_outlined,
+                  onTap: () => app.comanda('LUMINA $i AUTO'),
+                ),
               ),
-            ),
+            ],
             if (c.livolo) ...[
               const SizedBox(height: 4),
               Center(

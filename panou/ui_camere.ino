@@ -1,6 +1,7 @@
 // ui_camere - cate un card pentru fiecare camera: temperatura, daca e cineva,
-// geamul, lumina. Butonul de jos aprinde / stinge becul de mana (Arduino
-// respecta alegerea noastra o ora, apoi revine pe automat).
+// geamul, lumina. Butonul de jos aprinde / stinge becul de mana (cu senzori de miscare,
+// Arduino respecta alegerea noastra o ora, apoi revine pe automat; fara ei, ramane asa
+// pana o schimbam sau plecam de acasa).
 
 void desenCamere(bool tot) {
   for (uint8_t i = 0; i < NR_CAMERE; i++) {
