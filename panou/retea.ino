@@ -23,6 +23,7 @@ void reteaInit() {
   longitudine = setariRetea.getFloat("lon", LONGITUDINE);
 
   WiFi.mode(WIFI_STA);
+  WiFi.setSleep(false);          // altfel radioul "doarme" si pierde mesajele de la gradina
   WiFi.setHostname(NUME_RETEA);
   if (wifiNume.length()) WiFi.begin(wifiNume.c_str(), wifiParola.c_str());
   inceputConectare = millis();

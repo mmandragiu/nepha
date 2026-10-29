@@ -47,7 +47,8 @@ const _bitCamere = 1,
     _bitAfara = 2,
     _bitSolar = 4,
     _bitVant = 8,
-    _bitConsum = 16;
+    _bitConsum = 16,
+    _bitSol = 64;
 
 List<DateCard> carduriCasa(AppState app) {
   final s = app.stare!;
@@ -57,6 +58,7 @@ List<DateCard> carduriCasa(AppState app) {
   bool are(int bit) => s.senzori & bit != 0;
   final bun = s.arduinoVorbeste ? Culori.verde : Culori.soare;
   final deschise = al.senzori.where((x) => x.deschis).toList();
+  final dht = s.camere.where((c) => c.umiditate != null).firstOrNull;
   final culoareMod = [
     Culori.verde,
     Culori.apa,
@@ -76,15 +78,24 @@ List<DateCard> carduriCasa(AppState app) {
           ? 'încălzește → ${grade(s.incalzire.tinta)}'
           : 'țintă ${grade(s.incalzire.tinta)}',
       aprins: s.incalzire.pornita,
-      semn: are(_bitCamere) ? (bun, '1-Wire') : (Culori.soare, 'model'),
+      semn: dht != null
+          ? (bun, 'DHT11')
+          : are(_bitCamere)
+          ? (bun, '1-Wire')
+          : (Culori.soare, 'model'),
       grafic: i?.tCasa,
       unitate: '°',
       fila: 1,
       tehnic: [
         (
           'Senzori',
-          are(_bitCamere) ? 'DS18B20 · 1-Wire · D4' : 'lipsă: model termic',
+          dht != null
+              ? 'DHT11 · D3 · ${dht.nume}'
+              : are(_bitCamere)
+              ? 'DS18B20 · 1-Wire · D4'
+              : 'lipsă: model termic',
         ),
+        if (dht != null) ('Umiditate aer', '${dht.umiditate}%'),
         ('Încălzire', 'MOSFET · D11 · ${onOff(s.incalzire.pornita)}'),
         ('De ce', '#${s.incalzire.motivCod} ${s.incalzire.motiv}'),
         ('Rată învățată', '${nr(s.incalzire.rata)} °C/h'),
@@ -224,17 +235,40 @@ List<DateCard> carduriCasa(AppState app) {
       culoare: Culori.apa,
       titlu: 'Grădină',
       valoare: '${s.gradina.umiditate}%',
-      detaliu: s.gradina.pompa
+      detaliu: s.gradina.zona > 0
+          ? 'zona ${s.gradina.zona} din 4'
+          : s.gradina.pompa
           ? 'se udă acum'
+          : s.gradina.ploua == true
+          ? 'plouă acum'
           : s.gradina.umiditate >= 35
           ? 'pământ umed'
           : 'pământ uscat',
-      aprins: s.gradina.pompa,
-      semn: (bun, 'A0'),
+      aprins: s.gradina.pompa || s.gradina.zona > 0,
+      semn: are(_bitSol) ? (bun, 'A0') : (Culori.soare, 'model'),
       fila: 1,
       tehnic: [
-        ('Senzor', 'capacitiv · A0 analog'),
+        (
+          'Pământ',
+          are(_bitSol)
+              ? 'capacitiv · A0 analog'
+              : 'calculat: soare, udat, ploaie',
+        ),
         ('Pompă', 'MOSFET · D10 · ${onOff(s.gradina.pompa)}'),
+        (
+          'Placa din grădină',
+          s.gradina.ploua == null ? 'nu răspunde' : 'ESP32-S3 · ESP-NOW',
+        ),
+        if (s.gradina.ploua != null)
+          (
+            'Senzor ploaie',
+            'LM393 · GPIO4 · ${s.gradina.ploua! ? 'ud' : 'uscat'}',
+          ),
+        if (s.gradina.ploua != null)
+          (
+            'Electrovalve',
+            '4 relee · ${s.gradina.zona > 0 ? 'zona ${s.gradina.zona}' : 'închise'}',
+          ),
         if (s.vreme.oraPloaie != null)
           ('Ploaie', '${s.vreme.ploaie}% pe la ${s.vreme.oraPloaie}:00'),
       ],

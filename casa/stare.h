@@ -120,6 +120,8 @@ struct Vreme {
   uint8_t soare;            // 0..100 cat soare se anunta in urmatoarele 6 ore
   float tempAfara;          // de la prognoza (daca nu avem senzor afara)
   uint32_t primitaLa;       // millis()
+  bool ploua;               // senzorul de ploaie din gradina (prin panou): ploua acum
+  uint32_t plouaLa;         // millis() cand am aflat
 };
 
 struct Setari {
@@ -133,6 +135,7 @@ struct Casa {
   ModCasa mod;
   Camera camere[NR_CAMERE];
   float tempAfara;
+  uint8_t umiditateAer;     // % de la DHT11 (0 = nu avem senzor)
   uint8_t luminaNaturala;   // 0..100
   Energie energie;
   Incalzire incalzire;
@@ -158,6 +161,7 @@ struct RezultatTest {
 #define SENZ_VANT        0x08
 #define SENZ_CONSUM      0x10
 #define SENZ_PRIZA       0x20
+#define SENZ_SOL         0x40   // senzor in pamant (altfel umiditatea e calculata)
 #define SENZ_CEAS        0x80   // ora a venit de la panou (internet)
 
 // --- variabile folosite in mai multe tab-uri ---
@@ -240,6 +244,13 @@ void reseteazaContoare();
 // gradina
 void decideGradina();
 void pornestePompa(uint8_t motiv);
+void solPas(float &sol, uint32_t dt, bool ploua);
+bool plouaAcum();
+extern float solCalculat;
+
+// livolo
+void livoloPas();
+void livoloLeaga();
 
 // panou
 void panouInit();

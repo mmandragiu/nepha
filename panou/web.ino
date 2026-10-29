@@ -55,6 +55,8 @@ void jsonStare(JsonObject doc) {
     c["lumina"] = casa.camere[i].lumina;
     c["prezenta"] = casa.camere[i].prezenta;
     c["fereastra"] = casa.camere[i].fereastra;
+    if (i == CAMERA_DHT && casa.umiditateAer) c["umiditate"] = casa.umiditateAer;
+    if (i == CAMERA_LIVOLO) c["livolo"] = true;
   }
   doc["afara"] = casa.tempAfara;
   doc["luminaNaturala"] = casa.luminaNat;
@@ -65,6 +67,7 @@ void jsonStare(JsonObject doc) {
   inc["motiv"] = textMotiv(casa.motiv);
   inc["motivCod"] = casa.motiv;
   inc["rata"] = casa.rata;
+  if (casa.confort > 0) inc["confort"] = casa.confort;
 
   JsonObject en = doc["energie"].to<JsonObject>();
   en["baterie"] = casa.baterie;
@@ -91,6 +94,10 @@ void jsonStare(JsonObject doc) {
 
   doc["gradina"]["umiditate"] = casa.sol;
   doc["gradina"]["pompa"] = casa.pompa;
+  if (gradina.aici) {             // placa din gradina e pornita
+    doc["gradina"]["ploua"] = gradina.ploua;
+    doc["gradina"]["zona"] = gradina.zona;
+  }
   doc["priza"] = casa.priza;
   doc["senzori"] = casa.senzori;
 
@@ -208,7 +215,7 @@ static void apiRutina() {
 bool comandaPermisa(String &c) {
   c.trim();
   c.toUpperCase();
-  const char *permise[] = {"MOD ", "ALARMA ", "LUMINA ", "PRIZA ", "UDA", "TEST ", "TEMP ", "RUTINA", "INVATA ", "STERGE ", "USA "};
+  const char *permise[] = {"MOD ", "ALARMA ", "LUMINA ", "PRIZA ", "UDA", "TEST ", "TEMP ", "RUTINA", "INVATA ", "STERGE ", "USA ", "LIVOLO "};
   bool ok = false;
   for (const char *p : permise) ok |= c.startsWith(p);
   return ok && c.length() <= 38;

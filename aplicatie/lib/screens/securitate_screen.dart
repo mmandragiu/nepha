@@ -433,7 +433,7 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
                     SizedBox(
                       width: 52,
                       child: T(
-                        '${nr(app.arata('confort', app.confort))}°',
+                        '${nr(app.arata('confort', _confortCasa(app)))}°',
                         marime: 17,
                         gros: FontWeight.w700,
                         aliniere: TextAlign.center,
@@ -470,7 +470,8 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
   }
 
   Future<void> _confort(AppState app, double pas) async {
-    final nou = ((app.arata('confort', app.confort) + pas) * 2).round() / 2;
+    final nou =
+        ((app.arata('confort', _confortCasa(app)) + pas) * 2).round() / 2;
     final t = nou.clamp(16, 26).toDouble();
     // o tinem minte doar daca a ajuns la casa
     if (await app.comanda(
@@ -482,6 +483,10 @@ class _SecuritateScreenState extends State<SecuritateScreen> {
     }
   }
 }
+
+// panoul spune ce temperatura are Arduino; panourile vechi nu spun, atunci ce am trimis noi
+double _confortCasa(AppState app) =>
+    app.stare?.incalzire.confort ?? app.confort;
 
 class _ModCasa extends StatelessWidget {
   final AppState app;

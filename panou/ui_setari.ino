@@ -1,11 +1,14 @@
 // ui_setari - reteaua, legarea unui telefon, modul casei (smart / clasic), temperatura de confort,
 // calibrarea ecranului
 
-float confortSetat = 21.5;     // panoul nu primeste setarea de la Arduino, o tinem minte aici
+// temperatura de confort o tine Arduino (o trimite in stare, tc=); pana o primim, 21.5
+static float confort() {
+  return casa.confort > 0 ? casa.confort : 21.5;
+}
 
 void desenSetari(bool tot) {
   uint32_t cod = codDeAfisat();
-  String semn = numeRetea() + adresaIP() + casa.mod + zecimal(confortSetat, 1) + mqttConectat() + cod +
+  String semn = numeRetea() + adresaIP() + casa.mod + zecimal(confort(), 1) + mqttConectat() + cod +
                 (cod ? secundeImperechere() / 10 : 0);
   if (!schimbat(0, semn)) return;
   for (uint8_t id = 93; id <= 99; id++) stergeZona(id);
@@ -40,7 +43,7 @@ void desenSetari(bool tot) {
 
   scrie("Temperatura de confort", 28, 196, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_left);
   buton("−", 250, 180, 44, 32, 97);
-  scrie(grade(confortSetat), 324, 197, F_TEXT, C_TEXT, C_CARD, textdatum_t::middle_center);
+  scrie(grade(confort()), 324, 197, F_TEXT, C_TEXT, C_CARD, textdatum_t::middle_center);
   buton("+", 354, 180, 44, 32, 98);
 
   buton("Jurnal", 28, 224, 108, 34, 94);
@@ -52,9 +55,9 @@ void atingeSetari(uint8_t id) {
   if (id == 95) trimiteArduino("MOD SMART");
   if (id == 96) trimiteArduino("MOD CLASIC");
   if (id == 97 || id == 98) {
-    confortSetat = constrain(confortSetat + (id == 98 ? 0.5 : -0.5), 17.0, 25.0);
+    casa.confort = constrain(confort() + (id == 98 ? 0.5 : -0.5), 16.0, 26.0);   // ca in aplicatie
     char cmd[24];
-    snprintf(cmd, sizeof(cmd), "TEMP CONFORT %d", (int)lroundf(confortSetat * 10));
+    snprintf(cmd, sizeof(cmd), "TEMP CONFORT %d", (int)lroundf(casa.confort * 10));
     trimiteArduino(cmd);
     dateNoiUI = true;
   }

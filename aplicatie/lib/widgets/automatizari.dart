@@ -63,7 +63,9 @@ List<Regula> regulileCasei() => [
     daca: 'Vine ploaia',
     atunciIcon: Icons.water_drop_outlined,
     atunci: 'Nu udă grădina',
-    acum: (s) => s.vreme.oraPloaie != null && !s.gradina.pompa,
+    acum: (s) =>
+        (s.vreme.oraPloaie != null || s.gradina.ploua == true) &&
+        !s.gradina.pompa,
   ),
   Regula(
     dacaIcon: Icons.grass_outlined,

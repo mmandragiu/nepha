@@ -8,24 +8,50 @@ Dacă mutați un fir, schimbați acolo și atât.
 | Pin | Ce e legat | Observații |
 |---|---|---|
 | D2 | receptor 433 MHz SYN480R (DATA) | trebuie D2: biblioteca RCSwitch folosește întreruperea 0 |
-| D3 | bec (LED) Bucătărie | PWM, prin rezistență 220 Ω |
-| D4 | firul comun al senzorilor DS18B20 | rezistență 4,7 kΩ între D4 și 5 V |
+| D3 | DHT11 (DATA): temperatura și umiditatea din Dormitor | modulul are deja rezistența; VCC 5 V, GND |
+| D4 | (opțional) firul comun al senzorilor DS18B20 | rezistență 4,7 kΩ între D4 și 5 V; `ARE_DS18B20` în `config.h` |
 | D5 | bec Sufragerie | PWM |
 | D6 | bec Dormitor | PWM |
 | D7 | PIR Sufragerie | |
+| D8 | emițător 433 MHz FS1000A (DATA), pentru Livolo | VCC 5 V, GND; antenă: un fir drept de 17,3 cm |
+| D9 | bec (LED) Bucătărie | PWM, prin rezistență 220 Ω |
 | D10 | MOSFET pompă | |
 | D11 | MOSFET încălzire (rezistența) | |
 | D12 | releu priza TV | releele chinezești se activează pe LOW (`RELEU_PORNIT`) |
 | D13 | buzzer activ (sirena) | prin tranzistor sau modul de buzzer |
-| A0 | senzor capacitiv umiditate sol (AOUT) | |
+| A0 | (opțional) senzor capacitiv umiditate sol (AOUT) | `ARE_SENZOR_SOL` în `config.h`; fără el, umiditatea e calculată |
 | A1 | fotorezistența (modul, ieșirea AO) | |
 | A2 | PIR Dormitor | |
 | A3 | PIR Bucătărie | |
 | A4 / A5 | SDA / SCL: panoul (prin translator) și modulele INA219 | toate pe aceleași două fire |
 | D0 / D1 | USB | rămân libere, ca să putem urca programul și citi Serial Monitor fără să scoatem fire |
 
-Mai sunt liberi D8 și D9. Pentru încă un senzor, cel mai simplu e unul pe I2C (de exemplu un
-senzor de lumină BH1750): se leagă tot pe A4 / A5.
+Nu mai e niciun pin digital liber. Pentru încă un senzor, cel mai simplu e unul pe I2C (de
+exemplu un senzor de lumină BH1750): se leagă tot pe A4 / A5.
+
+## Livolo — întrerupătoarele din dormitor
+
+Arduino se preface că e telecomanda Livolo, prin emițătorul de pe D8 (receptorul de pe D2 doar
+ascultă, nu poate trimite). Lumina Dormitorului din program e și lumina Livolo: orice nivel peste
+0 înseamnă aprins. Legarea, o singură dată, pe rând la fiecare întrerupător (la cap de scară, la
+amândouă):
+1. țineți degetul pe întrerupător până piuie (~5 secunde);
+2. în aplicație: Camere → Dormitor → **Leagă întrerupătorul Livolo** (sau `LIVOLO LEAGA` în
+   Serial Monitor), în câteva secunde.
+
+Livolo nu spune înapoi dacă e aprins. Dacă cineva apasă întrerupătorul de mână, casa nu află; la
+următoarea schimbare trimite iar „stinge tot” (+ „aprinde”) și se potrivesc din nou.
+
+## Placa din grădină (ESP32-S3)
+
+| GPIO | Ce e legat | Observații |
+|---|---|---|
+| 4 | senzorul de ploaie, DO (modulul cu LM393) | VCC 3,3 V; pragul din potențiometru (LED-ul de pe modul = ud) |
+| 1 | senzorul de ploaie, AO | doar pentru calibrare (apare pe Serial) |
+| 5, 6, 7, 15 | IN1 … IN4 pe modulul cu 4 relee (electrovalvele zonelor) | releele se activează pe LOW; VCC 5 V dintr-o sursă separată de 1,5-2 A, GND comun |
+
+Placa în Arduino IDE: **ESP32S3 Dev Module**. Nu are nevoie de biblioteci și nici de Wi-Fi: își
+găsește singură panoul, prin ESP-NOW. Cât se udă fiecare zonă: `SECUNDE_ZONA` în program.
 
 ### Consumatorii mari: prin MOSFET, nu direct din pin
 
@@ -47,12 +73,13 @@ se întoarcă vârful de tensiune în MOSFET.
 ### Încălzirea pe machetă
 
 Pe machetă „caloriferul” e o rezistență de ~25 Ω / 2 W la 5 V (încălzește puțin, consumă ~1 W).
-Dacă vreți ca temperatura să crească de-adevăratelea pe senzor, lipiți senzorul DS18B20 din
-sufragerie aproape de rezistență. Camerele fără senzor folosesc oricum modelul termic din program.
+Dacă vreți ca temperatura să crească de-adevăratelea pe senzor, puneți senzorul de temperatură
+aproape de rezistență. Camerele fără senzor folosesc oricum modelul termic din program.
 
-## Senzorii de temperatură DS18B20
+## Senzorii de temperatură DS18B20 (opțional)
 
-Toți pe același fir (D4), fiecare cu VCC la 5 V și GND. O singură rezistență de 4,7 kΩ între
+Programul îi citește doar cu `#define ARE_DS18B20` în `casa/config.h` (ocupă 1,5 KB, iar programul
+trece atunci de 30 KB: merge pe Uno original, nu pe clonele cu bootloader vechi). Toți pe același fir (D4), fiecare cu VCC la 5 V și GND. O singură rezistență de 4,7 kΩ între
 fir și 5 V. Pentru afară, varianta în capsulă metalică, cu cablu.
 
 La pornire, Arduino îi găsește într-o ordine fixă. Ca să știe care e în ce cameră:

@@ -70,6 +70,7 @@ extern uint32_t simMillis;
 inline uint32_t millis() { return simMillis; }
 inline uint32_t micros() { return simMillis * 1000; }
 inline void delay(uint32_t) {}
+inline void delayMicroseconds(uint32_t) {}
 inline void noInterrupts() {}
 inline void interrupts() {}
 // cand Arduino asteapta ceva (de ex. sa ia panoul ce are de spus), sim.cpp lasa timpul sa curga

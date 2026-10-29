@@ -77,4 +77,26 @@ void main() {
     expect(find.text('INA219 · I2C 0x44'), findsOneWidget);
     expect(find.text('42 ms'), findsOneWidget);
   });
+
+  testWidgets('Uda acum deschide zonele gradinii, pe rand', (tester) async {
+    final demo = DemoCasa()..comanda('UDA');
+    final s = demo.generateMockStare();
+    expect(s.gradina.zona, 1);
+    expect(s.camere[1].umiditate, isNotNull);
+    tester.view.physicalSize = const Size(400, 5000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: _casaDemo()..stare = s,
+        child: MaterialApp(
+          theme: temaNepha(),
+          home: const Scaffold(body: CamereScreen()),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('Se udă zona 1 din 4'), findsOneWidget);
+    expect(find.text('48%'), findsOneWidget);
+  });
 }

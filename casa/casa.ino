@@ -13,6 +13,7 @@
     ceas      - ora casei (de la panou, sau accelerata in ziua de test)
     energie   - baterie, solar + vant, moduri de economie, priza TV, contoare
     gradina   - cand udam si cand nu
+    livolo    - intrerupatoarele Livolo din dormitor (emitator 433 MHz)
     lumini    - luminile din camere
     memorie   - ce pastram in EEPROM (setari, coduri senzori, rutina)
     panou     - mesajele schimbate cu ESP32 (si comenzile din Serial Monitor)
@@ -22,7 +23,7 @@
     termostat - incalzirea si ferestrele deschise
     usi       - senzorii wireless 433 MHz de pe usi si geamuri
 
-  Biblioteci (Library Manager): rc-switch, OneWire
+  Biblioteci (Library Manager): rc-switch (si OneWire, doar cu senzori DS18B20)
 
   Memoria: unele placi Uno (clone, bootloader vechi) primesc doar 30720 de
   octeti de program, nu 32256 cat zice Arduino IDE. Daca la urcare apare
@@ -34,7 +35,9 @@
 #include <Wire.h>
 #include <EEPROM.h>
 #include <RCSwitch.h>
+#if defined(ARE_DS18B20)
 #include <OneWire.h>
+#endif
 #if !defined(FARA_PANOU)
 #include "legatura.h"
 #endif
@@ -72,6 +75,7 @@ void setup() {
   pinMode(PIN_POMPA, OUTPUT);
   pinMode(PIN_SIRENA, OUTPUT);
   pinMode(PIN_PRIZA, OUTPUT);
+  pinMode(PIN_LIVOLO, OUTPUT);
   digitalWrite(PIN_PRIZA, RELEU_PORNIT);
 
   panouInit();          // intai firul I2C (il folosesc si modulele INA219)
@@ -101,12 +105,16 @@ void loop() {
     secundaDecizie = acum();
 
     if (inScenariu()) scenariuPas(dt);
+#if !defined(ARE_SENZOR_SOL)
+    else solPas(solCalculat, dt, plouaAcum());
+#endif
     decide(dt);
     contorizeaza(dt, dtReal);
   }
 
   alarmaPas();
   aplicaIesiri();
+  livoloPas();
 }
 
 // toate camerele "goale": fara miscare, lumini stinse, geamuri inchise

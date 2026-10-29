@@ -18,7 +18,7 @@ Așa, de o parte și de alta, programul citește și scrie linii ca pe un port s
 ### `S` — starea casei (o dată pe secundă)
 
 ```
-S h=1132 m=1 sc=0 t=21.6,19.4,21.1 te=7.5 ln=12 p=5 l=80,0,45 f=2 i=1 ti=21.5 mi=2 rt=3.4
+S h=1132 m=1 sc=0 t=21.6,19.4,21.1 te=7.5 ua=48 ln=12 p=5 l=80,0,45 f=2 i=1 ti=21.5 tc=215 mi=2 rt=3.4
   b=78 ps=0.12 pv=0.34 pc=1.28 e=0 a=0 u=4 sol=31 pm=0 pr=1 wh=5230,7480 mwh=0 ok=159
 ```
 
@@ -29,11 +29,13 @@ S h=1132 m=1 sc=0 t=21.6,19.4,21.1 te=7.5 ln=12 p=5 l=80,0,45 f=2 i=1 ti=21.5 mi
 | `sc` | ziua de test: 0 nu, 1 rulează pe machetă, 2 test rapid |
 | `t` | temperaturile camerelor (`-` = nu știm) |
 | `te` | temperatura de afară |
+| `ua` | umiditatea aerului de la DHT11, % (0 = fără senzor) |
 | `ln` | lumina naturală, 0-100 |
 | `p` | prezența: bitul *i* = e cineva în camera *i* |
 | `l` | cât de aprins e becul în fiecare cameră, 0-100 |
 | `f` | ferestre deschise (bit pe cameră; de la senzor sau deduse) |
 | `i`, `ti` | merge încălzirea? spre ce temperatură |
+| `tc` | temperatura de confort setată, x10 (215 = 21,5°) |
 | `mi` | de ce: 0 clasic, 1 e cineva, 2 preîncălzire, 3 plecați, 4 nu e nimeni, 5 noapte, 6 fereastră |
 | `rt` | cu câte grade pe oră se încălzește casa (învățat) |
 | `b` | bateria, % |
@@ -45,7 +47,7 @@ S h=1132 m=1 sc=0 t=21.6,19.4,21.1 te=7.5 ln=12 p=5 l=80,0,45 f=2 i=1 ti=21.5 mi
 | `pr` | priza TV pornită |
 | `wh` | energia de azi, în Wh pentru o casă adevărată: NEPHA, casa clasică „geamănă” |
 | `mwh` | energia măsurată cu INA219 pe machetă, în mWh |
-| `ok` | ce senzori a găsit (biți: 1 temp. camere, 2 temp. afară, 4 solar, 8 vânt, 16 consum, 32 priză, 128 oră de la panou) |
+| `ok` | ce senzori a găsit (biți: 1 temp. camere, 2 temp. afară, 4 solar, 8 vânt, 16 consum, 32 priză, 64 senzor în pământ, 128 oră de la panou) |
 
 ### `E` — s-a întâmplat ceva (jurnalul casei)
 
@@ -63,7 +65,7 @@ S h=1132 m=1 sc=0 t=21.6,19.4,21.1 te=7.5 ln=12 p=5 l=80,0,45 f=2 i=1 ti=21.5 mi
 | 8 | priza TV oprită | minute de standby | |
 | 9 | priza TV pornită la loc | | |
 | 10 | udare | motivul: 1 surplus, 2 oră bună, 3 pământ foarte uscat, 4 programator, 5 manual | umiditatea |
-| 11 | udare amânată, vine ploaia | șansa de ploaie | ora |
+| 11 | udare amânată: vine ploaia (sau plouă acum) | șansa de ploaie (255 = plouă acum) | ora |
 | 12 | modul de energie s-a schimbat | modul | bateria % |
 | 13 | alarma | starea nouă | senzorul (0-3 uși/geamuri, 100+cameră = mișcare, 255 = nimic) |
 | 14 | ușă / geam | senzorul | 1 deschis, 0 închis |
@@ -99,6 +101,8 @@ Linii care încep cu `#` (de exemplu tabelul de la `TEST RAPID`). Panoul doar le
 | `LUMINA <camera> <0-100>` / `LUMINA <camera> AUTO` | aprinde/stinge de mână (o oră), sau înapoi pe automat |
 | `PRIZA 1` / `PRIZA 0` / `PRIZA AUTO` | priza TV |
 | `UDA` | pornește pompa acum |
+| `PLOAIE 1` / `PLOAIE 0` | plouă acum (de la placa din grădină, prin panou); dacă nu mai vine 3 minute, Arduino uită |
+| `LIVOLO LEAGA` | trimite butonul Livolo o dată: întrerupătorul ținut în modul de legare îl învață |
 | `INVATA <senzor>` / `STERGE <senzor>` | învață / uită codul radio al unui senzor de ușă/geam |
 | `USA <senzor> <0\|1>` | „ușa e de fapt închisă / deschisă”: o punem de mână (nu pornește alarma); rămâne așa până transmite senzorul din nou |
 | `TEST RAPID` | ziua de test, calculată pe loc, cu tabelul de rezultate |
@@ -106,7 +110,23 @@ Linii care încep cu `#` (de exemplu tabelul de la `TEST RAPID`). Panoul doar le
 | `RUTINA` / `RUTINA STERGE` | trimite rutina / o uită |
 | `SCAN` | ce senzori vede Arduino și ce citește (pentru montaj și calibrare) |
 | `STARE` | linia `S` de acum, pe Serial |
-| `AJUTOR` | lista scurtă de comenzi |
+
+## Panoul și placa din grădină (ESP-NOW)
+
+Placa din grădină ([`gradina/gradina.ino`](../gradina/gradina.ino)) și panoul își trimit direct,
+prin radio, un mesaj de 8 octeți (`MesajGradina`):
+
+| Octeți | Ce |
+|---|---|
+| 0-3 | `NPH1` (ca să nu luăm în seamă alte plăci) |
+| 4 | `G` de la grădină, `P` de la panou |
+| 5 | G: plouă acum (0 / 1) |
+| 6 | G: ce zonă se udă acum (0 = niciuna, 1-4) |
+| 7 | P: 1 = începe udarea |
+
+Grădina trimite la 2 secunde; panoul răspunde la fiecare mesaj. Grădina caută panoul pe canalele
+Wi-Fi 1-13 (câte un mesaj pe canal) până primește răspuns. Panoul cere udarea când vede că Arduino
+a pornit pompa (`pm` trece pe 1) și se oprește din cerut când grădina raportează o zonă.
 
 ## Telefonul și panoul
 

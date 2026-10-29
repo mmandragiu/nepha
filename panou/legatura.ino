@@ -75,6 +75,8 @@ static void citesteStare(char *linie) {
       for (uint8_t i = 0; i < NR_CAMERE; i++) c.camere[i].temp = valori[i];
     } else if (!strcmp(k, "te")) c.tempAfara = numar(v);
     else if (!strcmp(k, "ln")) c.luminaNat = n;
+    else if (!strcmp(k, "ua")) c.umiditateAer = n;
+    else if (!strcmp(k, "tc")) c.confort = n / 10.0;
     else if (!strcmp(k, "p")) for (uint8_t i = 0; i < NR_CAMERE; i++) c.camere[i].prezenta = n & (1 << i);
     else if (!strcmp(k, "l")) {
       listaNumere(v, valori, NR_CAMERE);

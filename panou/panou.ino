@@ -16,6 +16,7 @@
     mqtt      - API-ul prin internet          imperechere - numele panoului si cheia casei
     inrolare  - conturile pe broker (pentru panou si pentru telefoane)
     istoric   - puncte pentru grafice         texte   - jurnalul in cuvinte
+    gradina   - placa din gradina (ploaia, zonele de udat), prin ESP-NOW
     sunet     - difuzor si LED                ui_*    - ecranele
 
   Placa: "ESP32 Dev Module", Partition Scheme: "Huge APP (3MB No OTA/1MB SPIFFS)"
@@ -26,6 +27,7 @@
 #include "config.h"
 #include "stare.h"
 #include <WiFi.h>
+#include <esp_now.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
 #include <Preferences.h>
@@ -64,6 +66,7 @@ void setup() {
   uiInit();          // ecranul primul, ca sa se vada ca am pornit
   legaturaInit();
   reteaInit();
+  gradinaInit();     // ESP-NOW, dupa ce a pornit Wi-Fi-ul
   imperechereInit(); // dupa Wi-Fi: numerele intamplatoare pentru cheie vin din radio
   webInit();
   mqttInit();
@@ -73,6 +76,7 @@ void loop() {
   // datele casei se schimba doar aici; cat timp le schimbam, brokerul (alt nucleu) asteapta
   xSemaphoreTake(lacatCasa, portMAX_DELAY);
   legaturaPas();
+  gradinaPas();
   istoricPas();
   xSemaphoreGive(lacatCasa);
   mqttPas();

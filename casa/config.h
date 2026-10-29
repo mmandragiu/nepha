@@ -11,8 +11,8 @@
 #define CAMERA_TV 0          // in ce camera e televizorul (priza inteligenta)
 #define CAMERA_DORMITOR 1
 
-// becul (LED-ul) din fiecare camera - trebuie pini PWM (3, 5, 6, 11)
-const uint8_t PIN_LUMINA[NR_CAMERE] = {5, 6, 3};
+// becul (LED-ul) din fiecare camera - trebuie pini PWM (3, 5, 6, 9, 10, 11)
+const uint8_t PIN_LUMINA[NR_CAMERE] = {5, 6, 9};
 // senzorii de miscare PIR (HC-SR501 sau AM312)
 const uint8_t PIN_PIR[NR_CAMERE] = {7, A2, A3};
 
@@ -30,11 +30,19 @@ const uint8_t PIN_PIR[NR_CAMERE] = {7, A2, A3};
 // Senzori
 // ---------------------------------------------------------------
 #define PIN_RF       2       // receptorul 433 MHz (SYN480R). Trebuie pe D2 (intreruperea 0)
-#define PIN_ONEWIRE  4       // toti senzorii DS18B20 pe acelasi fir (+ 4.7k spre 5V)
+#define PIN_ONEWIRE  4       // (optional) toti senzorii DS18B20 pe acelasi fir (+ 4.7k spre 5V)
 #define PIN_SOL      A0      // senzor capacitiv de umiditate a solului
+#define PIN_DHT      3       // DHT11: temperatura si umiditatea aerului (in cutia ecranului)
+#define CAMERA_DHT   CAMERA_DORMITOR
+// Fara senzor in pamant, umiditatea solului e calculata (se usuca, creste la udat si la ploaie).
+// Daca legati senzorul pe A0, decomentati linia:
+// #define ARE_SENZOR_SOL
 #define PIN_LDR      A1      // fotorezistenta: lumina naturala
 // I2C: A4 = SDA, A5 = SCL -> modulele INA219
 
+// Senzori DS18B20 pe un fir (D4)? Decomentati linia. Ocupa 1,5 KB: programul trece
+// atunci de 30 KB si merge doar pe Uno cu bootloader nou (vezi casa.ino).
+// #define ARE_DS18B20
 // Senzorii DS18B20 sunt gasiti la pornire intr-o ordine fixa (dupa adresa).
 // Scrieti aici unde e montat fiecare: 0..NR_CAMERE-1 = camera, -1 = afara.
 // Comanda SCAN pe Serial arata ce temperatura are fiecare (tineti unul in mana).
@@ -56,6 +64,14 @@ const int8_t LOC_SENZOR_T[] = {0, 1, 2, -1};
 // calibrare senzor sol (citire in aer uscat / in pahar cu apa)
 #define SOL_USCAT 560
 #define SOL_UD    270
+
+// ---------------------------------------------------------------
+// Intrerupatoarele Livolo (vezi livolo.ino)
+// ---------------------------------------------------------------
+#define PIN_LIVOLO 8             // DATA de la emitatorul 433 MHz (FS1000A)
+#define CAMERA_LIVOLO CAMERA_DORMITOR
+#define LIVOLO_TELECOMANDA 6400  // "numele" telecomenzii noastre (orice numar 1..65535)
+#define LIVOLO_BUTON 0           // butonul 1 de pe telecomanda
 
 // ---------------------------------------------------------------
 // Senzori wireless 433 MHz pe usi si geamuri

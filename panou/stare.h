@@ -31,9 +31,19 @@ struct CasaP {
   uint8_t usi;          // bitul i = senzorul i deschis
   uint8_t sol;
   bool pompa;
+  uint8_t umiditateAer; // % de la DHT11 (0 = fara senzor)
+  float confort;        // temperatura de confort setata pe Arduino
   bool priza;
   float whAzi, whClasic, mwh;
   uint8_t senzori;
+};
+
+// placa din gradina (ESP-NOW, vezi gradina.ino)
+struct GradinaP {
+  bool aici;            // o auzim (mesaj in ultimele 30 s)
+  uint32_t la;          // millis() la ultimul mesaj
+  bool ploua;
+  uint8_t zona;         // ce zona se uda acum, 0 = niciuna
 };
 
 struct EvenimentP {
@@ -75,6 +85,7 @@ struct PunctIstoric {
 #define NR_ISTORIC 288        // 24 de ore x 12 puncte pe ora
 
 extern CasaP casa;
+extern GradinaP gradina;
 extern VremeP vreme;
 extern RutinaP rutina;
 extern RezultatTest rezultate[2];
@@ -108,6 +119,10 @@ void invataPanou();
 
 // istoric
 void istoricPas();
+
+// gradina (placa cu senzorul de ploaie si releele)
+void gradinaInit();
+void gradinaPas();
 
 // imperechere si broker (folosite si de ecran si de legatura cu Arduino)
 extern String idServer;

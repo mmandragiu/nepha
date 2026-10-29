@@ -27,12 +27,14 @@ Arduino nu are ceas cu baterie: ora vine de la panou (`ORA 1290`). Până atunci
 07:00. `ceasViteza` permite ca o zi întreagă să treacă în 6 minute (ziua de test).
 Rutina învață doar după ce știe ora adevărată.
 
-### 3. Senzorii — [`senzori.ino`](../casa/senzori.ino), [`ds18b20.h`](../casa/ds18b20.h), [`ina219.h`](../casa/ina219.h)
+### 3. Senzorii — [`senzori.ino`](../casa/senzori.ino), [`dht11.h`](../casa/dht11.h), [`ds18b20.h`](../casa/ds18b20.h), [`ina219.h`](../casa/ina219.h)
 
 La pornire vede ce senzori există (`casa.senzori`). Ce lipsește e completat de un model: de
 exemplu temperatura unei camere fără senzor o calculează `modelTermic()`. Prezența: un PIR
-care a „văzut” mișcare în ultimele 2 minute. Am scris citirea DS18B20 și INA219 direct, în
-câteva rânduri, pentru că bibliotecile întregi nu mai încăpeau în memoria lui Uno.
+care a „văzut” mișcare în ultimele 2 minute. Am scris citirea DHT11, DS18B20 și INA219 direct,
+în câteva rânduri, pentru că bibliotecile întregi nu mai încăpeau în memoria lui Uno. DHT11 (din
+Dormitor) dă și umiditatea aerului. Fără senzor în pământ, umiditatea solului e calculată
+(`solPas()` din `gradina.ino`): scade încet peste zi, crește la udat și când plouă.
 
 *Cum îl arătăm:* `SCAN` — arată fiecare termometru și valorile brute ale fotorezistenței și
 senzorului de sol (pentru calibrare).
@@ -138,6 +140,22 @@ realitate vine de aici; deciziile sunt exact cele din restul programului.
 Setările, PIN-ul, codurile senzorilor și rutina, în EEPROM. Scriem doar ce s-a schimbat
 (`EEPROM.update`), ca să nu-l tocim.
 
+### 13. Livolo — [`livolo.ino`](../casa/livolo.ino)
+
+Arduino trimite prin emițătorul de 433 MHz (D8) aceleași semnale ca telecomanda Livolo: 16 biți
+„numele” telecomenzii, 7 biți butonul (protocolul e din biblioteca LivoloTx, licență MIT).
+Butonul doar comută, iar întrerupătorul nu spune cum e, așa că pentru „stins” trimitem „stinge
+tot”, iar pentru „aprins” „stinge tot” + butonul. Se trimite doar când lumina Dormitorului trece
+din stins în aprins sau invers (o trimitere durează ~1 secundă).
+
+---
+
+## Placa din grădină (`gradina/`)
+
+Un ESP32-S3 cu senzorul de ploaie (DO pe GPIO4) și 4 relee (GPIO 5, 6, 7, 15). Nu ia decizii:
+spune la 2 secunde dacă plouă și, la cererea panoului, deschide zonele pe rând, câte
+`SECUNDE_ZONA`. Își caută singură panoul pe canalele Wi-Fi 1-13; vorbesc prin ESP-NOW, fără router.
+
 ---
 
 ## Panoul ESP32 (`panou/`)
@@ -152,6 +170,7 @@ Setările, PIN-ul, codurile senzorilor și rutina, în EEPROM. Scriem doar ce s-
 | [`istoric.ino`](../panou/istoric.ino) | câte un punct la 5 minute, pentru grafic |
 | [`ui.ino`](../panou/ui.ino) + `ui_*.ino` | ecranele; fiecare are `desen...()` și `atinge...()`; se redesenează doar cardurile care s-au schimbat. Animațiile (o stare nouă apare în 200 ms, bara bateriei alunecă în 0,5 s, punctul din „Smart” pulsează) sunt cadre scurte, desenate la ~30 ms, așa că nu opresc citirea mesajelor de la Arduino |
 | [`sunet.ino`](../panou/sunet.ino) | bipuri, sirena, LED-ul RGB |
+| [`gradina.ino`](../panou/gradina.ino) | ESP-NOW cu placa din grădină: află dacă plouă (îi spune lui Arduino `PLOAIE 1/0`) și, când Arduino pornește pompa, îi cere grădinii să ude zonele pe rând |
 
 Fonturile cu diacritice sunt făcute din Nunito cu [`unelte/fonturi_vlw.py`](../unelte/fonturi_vlw.py).
 Pagina web e în [`web/index.html`](../web/index.html); după ce o modificați rulați

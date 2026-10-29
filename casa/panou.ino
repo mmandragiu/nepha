@@ -7,7 +7,7 @@
 // Panoul trimite comenzi simple, una pe linie, de exemplu:
 //     ORA 1290            VREME 80 16 40 85         ALARMA PLECAT
 // Aceleasi comenzi merg si din Serial Monitor (115200 baud, "Newline").
-// Lista completa: comanda AJUTOR sau docs/protocol.md
+// Lista completa: docs/protocol.md
 
 // pe ce vorbim cu panoul se alege in config.h (LEGATURA)
 #if !defined(FARA_PANOU)
@@ -87,6 +87,7 @@ void trimiteStare(Print &p) {
     scrieTemp(p, casa.camere[i].temp);
   }
   campF(p, PSTR(" te="), !isnan(casa.tempAfara) || !casa.vreme.valida ? casa.tempAfara : casa.vreme.tempAfara, 1);
+  camp(p, PSTR(" ua="), casa.umiditateAer);
   camp(p, PSTR(" ln="), casa.luminaNaturala);
   camp(p, PSTR(" p="), prezenta);
   p.print(F(" l="));
@@ -97,6 +98,7 @@ void trimiteStare(Print &p) {
   camp(p, PSTR(" f="), ferestre);
   camp(p, PSTR(" i="), casa.incalzire.pornita);
   campF(p, PSTR(" ti="), casa.incalzire.tinta, 1);
+  camp(p, PSTR(" tc="), setari.confort);
   camp(p, PSTR(" mi="), casa.incalzire.motiv);
   campF(p, PSTR(" rt="), casa.incalzire.rata, 1);
   camp(p, PSTR(" b="), (int)e.soc);
@@ -116,27 +118,27 @@ void trimiteStare(Print &p) {
   p.println();
 }
 
+static void scrieEveniment(Print &p, uint8_t cod, uint8_t a, uint8_t b) {
+  p.print(F("E "));
+  p.print(cod);
+  p.print(' ');
+  p.print(a);
+  p.print(' ');
+  p.println(b);
+}
+
 void trimiteEveniment(uint8_t cod, uint8_t a, uint8_t b) {
   if (stareScenariu() == 2) return;     // in testul rapid nu umplem jurnalul
 #if !defined(FARA_PANOU)
-  LEGATURA.print(F("E "));
-  LEGATURA.print(cod);
-  LEGATURA.print(' ');
-  LEGATURA.print(a);
-  LEGATURA.print(' ');
-  LEGATURA.println(b);
+  scrieEveniment(LEGATURA, cod, a, b);
 #endif
 
   // si pe Serial, cu ora (ce inseamna fiecare cod: docs/protocol.md, in cuvinte pe panou).
   // Numele evenimentelor nu mai incap: pe unele placi Uno raman doar 30 KB pentru program.
   Serial.print('[');
   scrieOra(Serial);
-  Serial.print(F("] E "));
-  Serial.print(cod);
-  Serial.print(' ');
-  Serial.print(a);
-  Serial.print(' ');
-  Serial.println(b);
+  Serial.print(F("] "));
+  scrieEveniment(Serial, cod, a, b);
 }
 
 // pentru panou: C mod lumini incalzire pompa priza total mWh_masurat litri
@@ -217,6 +219,13 @@ void executaComanda(char *linie, Print &raspuns) {
     else if (a1) casa.priza.manual = atoi(a1) ? 1 : 0;
   } else if (este(cmd, PSTR("UDA"))) {
     pornestePompa(MU_MANUAL);
+  } else if (este(cmd, PSTR("PLOAIE"))) {
+    if (a1) {
+      casa.vreme.ploua = atoi(a1);
+      casa.vreme.plouaLa = millis();
+    }
+  } else if (este(cmd, PSTR("LIVOLO"))) {
+    if (este(a1, PSTR("LEAGA"))) livoloLeaga();
   } else if (este(cmd, PSTR("INVATA"))) {
     if (a1) usiInvata(atoi(a1));
   } else if (este(cmd, PSTR("STERGE"))) {
@@ -235,8 +244,6 @@ void executaComanda(char *linie, Print &raspuns) {
     senzoriScan();
   } else if (este(cmd, PSTR("STARE"))) {
     trimiteStare(Serial);
-  } else if (este(cmd, PSTR("AJUTOR"))) {
-    Serial.println(F("vezi docs/protocol.md"));
   } else {
     raspuns.print(F("# ? "));
     raspuns.println(cmd);

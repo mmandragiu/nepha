@@ -1,4 +1,5 @@
-// ui_gradina - cat de umed e pamantul si ce a hotarat casa despre udat (si de ce)
+// ui_gradina - cat de umed e pamantul si ce a hotarat casa despre udat (si de ce);
+// daca e pornita placa din gradina: ploua acum? ce zona se uda?
 
 // arc intre doua unghiuri (grade, 0 = la ora 3, in sensul acelor de ceas); trece si peste 360
 static void arc(int cx, int cy, int r0, int r1, float a0, float a1, uint16_t c) {
@@ -19,7 +20,8 @@ static int8_t ultimaDecizieGradina() {
 
 void desenGradina(bool tot) {
   int8_t d = ultimaDecizieGradina();
-  String semn = String(casa.sol) + casa.pompa + d + (d >= 0 ? jurnal[d].minut : 0) + vreme.ploaie + vreme.oraPloaie + casa.mod;
+  String semn = String(casa.sol) + casa.pompa + d + (d >= 0 ? jurnal[d].minut : 0) + vreme.ploaie + vreme.oraPloaie + casa.mod +
+                gradina.aici + gradina.ploua + gradina.zona;
   if (!schimbat(0, semn)) return;
 
   // stanga: "ceasul" umiditatii
@@ -34,7 +36,8 @@ void desenGradina(bool tot) {
   tft.drawWideLine(cx + cos(prag) * 52, cy + sin(prag) * 52, cx + cos(prag) * 74, cy + sin(prag) * 74, 1.5, C_TEXT2);
   scrie(String(casa.sol) + "%", cx, cy - 4, F_TITLU, C_TEXT, C_CARD, textdatum_t::middle_center);
   scrie("umiditate", cx, cy + 22, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_center);
-  if (casa.pompa) pastila("se udă acum", cx, 236, C_APA, C_APA_D, textdatum_t::top_center);
+  if (gradina.zona) pastila("zona " + String(gradina.zona) + " din " + String(NR_ZONE), cx, 236, C_APA, C_APA_D, textdatum_t::top_center);
+  else if (casa.pompa) pastila("se udă acum", cx, 236, C_APA, C_APA_D, textdatum_t::top_center);
 
   // dreapta: decizia
   card(220, 50, 248, 216);
@@ -48,7 +51,8 @@ void desenGradina(bool tot) {
   paragraf(text, 236, 88, 220, F_TEXT, C_TEXT, C_CARD, 3);
 
   String ploaie = "Prognoza: necunoscută";
-  if (vreme.valida) {
+  if (gradina.aici && gradina.ploua) ploaie = "Plouă acum";
+  else if (vreme.valida) {
     if (vreme.oraPloaie != 255) ploaie = "Ploaie: " + String(vreme.ploaie) + "% pe la " + String(vreme.oraPloaie) + ":00";
     else ploaie = "Fără ploaie în 12 ore";
   }

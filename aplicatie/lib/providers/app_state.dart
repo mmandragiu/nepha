@@ -85,7 +85,8 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // setari
   String adresa = '';
   bool demo = true;
-  double confort = 21.5;
+  double confort =
+      21.5; // ultima trimisa de pe telefonul asta (cand panoul nu spune)
   String tema = 'auto'; // 'auto' (ca telefonul), 'zi' sau 'noapte'
   bool amprentaPornita = false; // utilizatorul vrea sa dezarmeze cu amprenta
   bool amprentaDisponibila =

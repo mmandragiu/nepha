@@ -62,7 +62,9 @@ class CamereScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       T(
-                        s.gradina.pompa
+                        s.gradina.zona > 0
+                            ? 'Se udă zona ${s.gradina.zona} din 4'
+                            : s.gradina.pompa
                             ? 'Se udă acum'
                             : s.gradina.umiditate >= 35
                             ? 'Pământul e umed'
@@ -72,7 +74,11 @@ class CamereScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       T.mic(
-                        s.gradina.pompa
+                        s.gradina.ploua == true
+                            ? 'plouă acum'
+                            : s.gradina.zona > 0
+                            ? 'pe rând, fiecare zonă'
+                            : s.gradina.pompa
                             ? 'câteva secunde'
                             : s.vreme.oraPloaie != null
                             ? 'plouă pe la ${s.vreme.oraPloaie}:00'
@@ -82,7 +88,7 @@ class CamereScreen extends StatelessWidget {
                       Buton(
                         'Udă acum',
                         icon: Icons.water_drop_outlined,
-                        onTap: s.gradina.pompa
+                        onTap: s.gradina.pompa || s.gradina.zona > 0
                             ? null
                             : () => app.comanda('UDA'),
                       ),
@@ -151,6 +157,8 @@ class _CardCamera extends StatelessWidget {
             runSpacing: 6,
             children: [
               Pastila(grade(c.temp), icon: Icons.thermostat_outlined),
+              if (c.umiditate != null)
+                Pastila('${c.umiditate}%', icon: Icons.water_drop_outlined),
               if (c.prezenta) const Pastila('e cineva', ton: Ton.cald),
               if (c.fereastra) const Pastila('geam deschis', ton: Ton.cald),
             ],

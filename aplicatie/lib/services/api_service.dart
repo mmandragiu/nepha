@@ -108,6 +108,8 @@ class DemoCasa {
   int _alarma = 0;
   DateTime? _armatLa;
   DateTime? _pompaPanaLa;
+  DateTime? _udaLa; // placa din gradina: 4 zone, cate 3 secunde
+  double _confort = 21.5;
   final _lumini = [80, 0, 45];
   final _usi = [false, false, false, false];
   bool _priza = true;
@@ -222,7 +224,10 @@ class DemoCasa {
     }
     if (c == 'UDA') {
       _pompaPanaLa = DateTime.now().add(const Duration(seconds: 8));
+      _udaLa = DateTime.now();
     }
+    final t = RegExp(r'^TEMP CONFORT (\d+)$').firstMatch(c);
+    if (t != null) _confort = int.parse(t[1]!) / 10;
     final l = RegExp(r'^LUMINA (\d) (\d+)$').firstMatch(c);
     if (l != null) _lumini[int.parse(l[1]!)] = int.parse(l[2]!);
     if (c == 'PRIZA 1' || c == 'PRIZA AUTO') _priza = true;
@@ -237,6 +242,9 @@ class DemoCasa {
     if (_alarma == 1 && DateTime.now().isAfter(_armatLa!)) _alarma = 3;
     final pompa =
         _pompaPanaLa != null && DateTime.now().isBefore(_pompaPanaLa!);
+    final udat = _udaLa == null
+        ? 99
+        : DateTime.now().difference(_udaLa!).inSeconds;
     return Stare(
       primit: true,
       vechime: 0,
@@ -258,6 +266,8 @@ class DemoCasa {
           lumina: _lumini[1],
           prezenta: false,
           fereastra: _usi[2],
+          umiditate: 48,
+          livolo: true,
         ),
         Camera(
           nume: 'Bucătărie',
@@ -271,10 +281,11 @@ class DemoCasa {
       luminaNaturala: 8,
       incalzire: Incalzire(
         pornita: sin(u / 15) > 0,
-        tinta: 21.5,
+        tinta: _confort,
         motiv: 'e cineva acasă',
         motivCod: 1,
         rata: 3.4,
+        confort: _confort,
       ),
       energie: Energie(
         baterie: (78 + sin(u / 40) * 2).round(),
@@ -299,9 +310,14 @@ class DemoCasa {
           SenzorUsa(nume: 'Geam sufragerie', deschis: _usi[3]),
         ],
       ),
-      gradina: Gradina(umiditate: pompa ? 34 : 31, pompa: pompa),
+      gradina: Gradina(
+        umiditate: pompa ? 34 : 31,
+        pompa: pompa,
+        ploua: false,
+        zona: udat < 12 ? udat ~/ 3 + 1 : 0,
+      ),
       priza: _priza,
-      senzori: 159,
+      senzori: 157, // ca in camera reala: DHT11, fara termometru afara
       vreme: const Vreme(
         valida: true,
         temp: 7.8,

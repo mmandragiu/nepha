@@ -5,7 +5,8 @@
 void desenCamere(bool tot) {
   for (uint8_t i = 0; i < NR_CAMERE; i++) {
     CameraP &c = casa.camere[i];
-    String semn = zecimal(c.temp, 1) + c.lumina + c.prezenta + c.fereastra + casa.primit;
+    uint8_t umid = i == CAMERA_DHT ? casa.umiditateAer : 0;
+    String semn = zecimal(c.temp, 1) + c.lumina + c.prezenta + c.fereastra + casa.primit + umid;
     if (!schimbat(i, semn)) continue;
     int x = 12 + i * 155;
     card(x, 50, 145, 216);
@@ -14,6 +15,7 @@ void desenCamere(bool tot) {
     else pastila("liber", x + 14, 90, C_TEXT2, C_GRI_D);
     scrie(grade(c.temp), x + 14, 136, F_TITLU, C_TEXT, C_CARD, textdatum_t::middle_left);
     if (c.fereastra) scrie("geam deschis", x + 14, 164, F_MIC, C_CALD, C_CARD, textdatum_t::middle_left);
+    else if (umid) scrie("umiditate " + String(umid) + "%", x + 14, 164, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_left);
 
     bool aprins = c.lumina > 0;
     iconBec(x + 26, 192, aprins ? C_SOARE : C_MARGINE, C_CARD);

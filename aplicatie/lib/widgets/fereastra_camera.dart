@@ -1,5 +1,5 @@
 // fereastra unei camere (se deschide de jos cand atingi camera): lumina, temperatura, cine e
-// acolo si scenele de lumina, ca la un bec inteligent
+// acolo si scenele de lumina, ca la un bec inteligent. In camera cu Livolo: legarea intrerupatorului
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -90,12 +90,19 @@ class _FereastraCamera extends StatelessWidget {
                   child: _Valoare('Lumină', '$nivel%', Icons.lightbulb_outline),
                 ),
                 const SizedBox(width: 10),
+                // in camera cu DHT11 umiditatea; daca e cineva scrie oricum sus
                 Expanded(
-                  child: _Valoare(
-                    'Mișcare',
-                    c.prezenta ? 'da' : 'nu',
-                    Icons.sensors,
-                  ),
+                  child: c.umiditate != null
+                      ? _Valoare(
+                          'Umiditate',
+                          '${c.umiditate}%',
+                          Icons.water_drop_outlined,
+                        )
+                      : _Valoare(
+                          'Mișcare',
+                          c.prezenta ? 'da' : 'nu',
+                          Icons.sensors,
+                        ),
                 ),
               ],
             ),
@@ -143,10 +150,47 @@ class _FereastraCamera extends StatelessWidget {
                 onTap: () => app.comanda('LUMINA $i AUTO'),
               ),
             ),
+            if (c.livolo) ...[
+              const SizedBox(height: 4),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => _leagaLivolo(context, app),
+                  icon: Icon(Icons.link_rounded, size: 18, color: Culori.text2),
+                  label: T.mic('Leagă întrerupătorul Livolo'),
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+}
+
+// intrerupatorul invata "telecomanda" casei cat timp e in modul de legare
+Future<void> _leagaLivolo(BuildContext context, AppState app) async {
+  final da = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Leagă întrerupătorul'),
+      content: const Text(
+        'Țineți degetul pe întrerupător până piuie, apoi apăsați Leagă. '
+        'La cap de scară, pe rând, la amândouă.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Nu acum'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Leagă'),
+        ),
+      ],
+    ),
+  );
+  if (da == true && await app.comanda('LIVOLO LEAGA')) {
+    app.anunta('Trimis. Dacă a piuit din nou, e legat.');
   }
 }
 

@@ -35,7 +35,10 @@ List<(String, Ton)> deAtentie(Stare s) => [
     if (u.deschis) ('${u.nume}: deschis', Ton.cald),
   if (s.energie.modCod == 3) ('Baterie aproape goală', Ton.rosu),
   if (s.energie.modCod == 2) ('Baterie slabă', Ton.soare),
-  if (s.gradina.umiditate < 25 && !s.gradina.pompa && s.vreme.oraPloaie == null)
+  if (s.gradina.umiditate < 25 &&
+      !s.gradina.pompa &&
+      s.vreme.oraPloaie == null &&
+      s.gradina.ploua != true)
     ('Grădina e uscată', Ton.soare),
 ];
 

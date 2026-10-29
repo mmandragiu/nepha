@@ -16,6 +16,8 @@ class Camera {
   final int lumina; // 0-100
   final bool prezenta; // e cineva in camera
   final bool fereastra; // geam deschis
+  final int? umiditate; // % aer, doar in camera cu DHT11
+  final bool livolo; // lumina e pe un intrerupator Livolo
 
   const Camera({
     required this.nume,
@@ -23,6 +25,8 @@ class Camera {
     required this.lumina,
     required this.prezenta,
     required this.fereastra,
+    this.umiditate,
+    this.livolo = false,
   });
 
   factory Camera.fromJson(Map<String, dynamic> j) => Camera(
@@ -31,6 +35,8 @@ class Camera {
     lumina: _int(j['lumina']),
     prezenta: _bool(j['prezenta']),
     fereastra: _bool(j['fereastra']),
+    umiditate: j['umiditate'] is num ? _int(j['umiditate']) : null,
+    livolo: _bool(j['livolo']),
   );
 }
 
@@ -41,6 +47,7 @@ class Incalzire {
   final int
   motivCod; // 0 clasic, 1 e cineva, 2 preincalzire, 3 plecati, 4 nu e nimeni, 5 noapte, 6 fereastra
   final double rata; // grade pe ora, invatat
+  final double? confort; // temperatura de confort tinuta de Arduino
 
   const Incalzire({
     required this.pornita,
@@ -48,6 +55,7 @@ class Incalzire {
     required this.motiv,
     required this.motivCod,
     required this.rata,
+    this.confort,
   });
 
   factory Incalzire.fromJson(Map<String, dynamic> j) => Incalzire(
@@ -56,6 +64,7 @@ class Incalzire {
     motiv: _text(j['motiv']),
     motivCod: _int(j['motivCod']),
     rata: _nr0(j['rata']),
+    confort: _nr(j['confort']),
   );
 }
 
@@ -135,11 +144,23 @@ class Alarma {
 class Gradina {
   final int umiditate; // %
   final bool pompa;
+  // de la placa din gradina; lipsesc daca nu e pornita
+  final bool? ploua;
+  final int zona; // ce zona se uda acum (0 = niciuna)
 
-  const Gradina({required this.umiditate, required this.pompa});
+  const Gradina({
+    required this.umiditate,
+    required this.pompa,
+    this.ploua,
+    this.zona = 0,
+  });
 
-  factory Gradina.fromJson(Map<String, dynamic> j) =>
-      Gradina(umiditate: _int(j['umiditate']), pompa: _bool(j['pompa']));
+  factory Gradina.fromJson(Map<String, dynamic> j) => Gradina(
+    umiditate: _int(j['umiditate']),
+    pompa: _bool(j['pompa']),
+    ploua: j['ploua'] is bool ? j['ploua'] as bool : null,
+    zona: _int(j['zona']),
+  );
 }
 
 // prognoza; daca nu e valida, restul campurilor lipsesc

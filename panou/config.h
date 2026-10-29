@@ -75,6 +75,9 @@
 // ---------------------------------------------------------------
 #define NR_CAMERE 3
 const char *const NUME_CAMERE[NR_CAMERE] = {"Sufragerie", "Dormitor", "Bucătărie"};
+#define CAMERA_DHT 1         // camera cu DHT11 (umiditatea aerului), la fel ca in casa/config.h
+#define CAMERA_LIVOLO 1      // camera cu intrerupatorul Livolo (aplicatia arata butonul de legare)
+#define NR_ZONE 4            // zonele de udat ale placii din gradina
 #define NR_SENZORI_RF 4
 const char *const NUME_SENZORI[NR_SENZORI_RF] = {"Ușa de la intrare", "Ușa spre curte", "Geam dormitor", "Geam sufragerie"};
 

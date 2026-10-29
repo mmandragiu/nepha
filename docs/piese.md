@@ -9,15 +9,18 @@ folosesc”). Prețurile sunt orientative (sigmanortec, drot, optimus).
 |---|:---:|---|
 | Arduino Uno (R3) | 1 | „creierul” casei: citește senzorii, ia toate deciziile, ține minte rutina |
 | Placă ESP32 cu ecran tactil 3,5" (ESP32-3248S035) | 1 | panoul de pe perete: ecranul, Wi-Fi, ora, prognoza, pagina pentru telefon |
+| ESP32-S3 | 1 | placa din grădină: senzorul de ploaie și releele electrovalvelor, legată de panou prin ESP-NOW |
 
 ## Senzori
 
 | Componentă | Buc. | La ce folosește |
 |---|:---:|---|
-| DS18B20 (unul în capsulă metalică, pentru afară) | 4 | temperatura în fiecare cameră și afară, toți pe un singur fir |
+| DHT11 | 1 | temperatura și umiditatea aerului în dormitor (în cutia ecranului) |
+| DS18B20 (opțional; unul în capsulă metalică, pentru afară) | 4 | temperatura în fiecare cameră și afară, toți pe un singur fir |
 | Senzor de mișcare PIR (HC-SR501 sau AM312) | 3 | cine e în ce cameră; din asta învață casa rutina |
 | Modul cu fotorezistență | 1 | cât de luminos e afară: becurile completează doar ce lipsește |
-| Senzor capacitiv de umiditate a solului (v1.2) | 1 | când are nevoie grădina de apă (cel capacitiv nu ruginește ca cel cu doi electrozi) |
+| Senzor capacitiv de umiditate a solului (v1.2, opțional) | 1 | când are nevoie grădina de apă; fără el, umiditatea e calculată |
+| Senzor de ploaie cu modul LM393 (cu potențiometru) | 1 | plouă acum → nu udăm |
 | INA219 | 3-4 | curent și tensiune: cât dă panoul solar, cât dă turbina, cât consumă casa (și priza TV) |
 | Receptor 433 MHz SYN480R | 1 | primește codurile de la senzorii de pe uși și geamuri |
 | Emițător 433 MHz SYN115 + EV1527/PT2262 (sau senzori de ușă gata făcuți) | 4 | câte unul pe fiecare ușă / geam |
@@ -34,6 +37,9 @@ folosesc”). Prețurile sunt orientative (sigmanortec, drot, optimus).
 | Diodă 1N4007 | 1 | protejează MOSFET-ul pompei |
 | Modul releu 5 V | 1 | „priza inteligentă” a televizorului |
 | Buzzer activ 5 V | 1 | sirena alarmei |
+| Emițător 433 MHz FS1000A + antenă de 17,3 cm | 1 | aprinde / stinge întrerupătoarele Livolo, ca o telecomandă |
+| Întrerupătoare Livolo (cap de scară) | 2 | lumina din dormitor, comandată de casă |
+| Modul cu 4 relee 5 V + sursă 5 V / 2 A | 1 | cele 4 electrovalve ale grădinii |
 
 ## Energie
 

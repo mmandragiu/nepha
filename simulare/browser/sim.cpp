@@ -18,11 +18,13 @@ std::deque<CodRadio> RCSwitch::coada;
 // ---------------------------------------------------------------- Arduino Uno
 namespace uno {
 SimSerial Serial;
+#define ARE_SENZOR_SOL           // in simulator umiditatea solului vine din glisor
 #include "../../casa/casa.ino"
 #include "../../casa/alarma.ino"
 #include "../../casa/ceas.ino"
 #include "../../casa/energie.ino"
 #include "../../casa/gradina.ino"
+#include "../../casa/livolo.ino"
 #include "../../casa/lumini.ino"
 #include "../../casa/memorie.ino"
 #include "../../casa/panou.ino"
@@ -74,6 +76,10 @@ uint32_t codDeAfisat() { return 0; }
 uint8_t secundeImperechere() { return 0; }
 void mqttEveniment(const EvenimentP &) {}
 bool mqttConectat() { return false; }
+// fara placa din gradina
+GradinaP gradina;
+void gradinaInit() {}
+void gradinaPas() {}
 
 // soarele din urmatoarele ore, dupa ora din zi (prognoza simulata)
 float productieEstimata(uint8_t ore) {

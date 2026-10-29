@@ -158,6 +158,7 @@ static void revino() {
   casa.priza.pornita = true;
   casa.priza.standbyDin = ceasSecunde;
   casa.gradina.pompa = false;
+  casa.gradina.umiditate = solCalculat;   // pamantul adevarat (fara senzor, cel calculat)
   casa.tempAfara = NAN;
   camereLaZero(NAN);                  // temperaturile le citim din nou de la senzori
 }
@@ -210,13 +211,8 @@ void scenariuPas(uint32_t dt) {
     alarmaSchimba(ALARMA_OPRITA, 255);
   }
 
-  // pamantul: se usuca peste zi, se uda cand ploua
-  float ore = dt / 3600.0;
-  if (casa.gradina.umiditate > solTest + 1) solTest = casa.gradina.umiditate;   // tocmai am udat
-  if (m >= 960 && m < 1080) solTest += 12 * ore;
-  else solTest -= (m >= 480 && m < 1080 ? 0.6 : 0.2) * ore;
-  solTest = constrain(solTest, 0.0, 100.0);
-  casa.gradina.umiditate = (uint8_t)solTest;
+  // pamantul: ploua intre 16 si 18
+  solPas(solTest, dt, m >= 960 && m < 1080);
 }
 
 void scenariuPorneste(ModCasa mod) {

@@ -39,6 +39,7 @@ Ne-am întrebat ce ar face o casă care își observă locuitorii, vremea și ba
 | Afară e încă destul de lumină | aprinde becul doar cât lipsește | fotorezistența |
 | TV-ul stă în standby și nu e nimeni în sufragerie | taie priza; o pornește la loc când intră cineva | INA219 pe priză + mișcare |
 | Pământul e uscat, dar vine ploaia | nu udă | umiditatea solului + prognoza meteo |
+| Plouă chiar acum | nu udă | senzorul de ploaie din grădină |
 | Bateria e plină și panoul încă produce | pornește acum ce poate aștepta (udatul) | INA219 pe panou și baterie |
 | Bateria scade și nu se produce nimic | lumini mai slabe, un grad mai puțin | INA219 + prognoza (dacă vine vreme înnorată, economisește de mai devreme) |
 
@@ -91,19 +92,23 @@ machetei.
 ## Cum e făcută
 
 ```
- panou solar ─┐                                   ┌─ senzori DS18B20 (camere + afară)
+ panou solar ─┐                                   ┌─ DHT11 (temperatură + umiditate)
  turbină ─────┼─ încărcare ─ baterie 18650        ├─ PIR în fiecare cameră
-              │      INA219 x3-4 (I2C)            ├─ fotorezistență, umiditate sol
+              │      INA219 x3-4 (I2C)            ├─ fotorezistență
               └──────────────┐                    ├─ receptor 433 MHz (uși, geamuri)
                              ▼                    │
                     ┌──────────────────┐          │
                     │   Arduino Uno    │◄─────────┘
-                    │ "creierul" casei │──► becuri (PWM), încălzire, pompă,
-                    └────────┬─────────┘    priza TV, sirenă
+                    │ "creierul" casei │──► becuri (PWM), încălzire, pompă, priza TV, sirenă,
+                    └────────┬─────────┘    emițător 433 MHz → întrerupătoarele Livolo
                              │ I2C (A4/A5)
                     ┌────────▼─────────┐
-                    │ ESP32 + ecran 3,5"│──► Wi-Fi: oră, prognoză, pagina web
+                    │ ESP32 + ecran 3,5"│──► Wi-Fi: oră, prognoză, pagina web, aplicația
                     │     (panoul)      │
+                    └────────┬─────────┘
+                             │ ESP-NOW (radio direct, fără router)
+                    ┌────────▼─────────┐
+                    │ ESP32-S3 grădină │──► senzor de ploaie, 4 electrovalve (relee)
                     └──────────────────┘
 ```
 
@@ -121,6 +126,7 @@ Dacă nu are Wi-Fi, face el o rețea, `NEPHA-casa`.
 |---|---|
 | [`casa/`](casa) | programul pentru Arduino Uno — fiecare parte în tab-ul ei (alarmă, termostat, lumini, energie, grădină, rutină...) |
 | [`panou/`](panou) | programul pentru panoul ESP32: ecranele, Wi-Fi, prognoza, pagina web |
+| [`gradina/`](gradina) | programul pentru placa din grădină (ESP32-S3): senzorul de ploaie și zonele de udat |
 | [`web/`](web) | pagina casei (un singur fișier HTML; se poate deschide și direct în browser, atunci arată o zi demo) |
 | [`aplicatie/`](aplicatie) | aplicația de telefon (Flutter, Android și iPhone): aceleași ecrane ca pagina casei, plus un mod demo |
 | [`simulare/`](simulare) | casa virtuală (tot proiectul, în browser) și schema pentru simulatorul Wokwi |
@@ -132,16 +138,20 @@ Dacă nu are Wi-Fi, face el o rețea, `NEPHA-casa`.
 Avem nevoie de Arduino IDE 2.
 
 **Arduino Uno** (`casa/casa.ino`)
-1. Library Manager: instalăm `rc-switch`, `OneWire`.
+1. Library Manager: instalăm `rc-switch` (și `OneWire`, doar pentru senzori DS18B20).
 2. Placa: *Arduino Uno*. Upload.
-3. Serial Monitor la 115200, cu „Newline”. Scriem `AJUTOR`, `SCAN` sau `TEST RAPID`.
+3. Serial Monitor la 115200, cu „Newline”. Scriem `STARE`, `SCAN` sau `TEST RAPID`.
 
 **Panoul** (`panou/panou.ino`)
-1. Boards Manager: `esp32` (Espressif). Library Manager: `LovyanGFX`, `ArduinoJson`.
+1. Boards Manager: `esp32` (Espressif). Library Manager: `LovyanGFX`, `ArduinoJson`, `PubSubClient`.
 2. Placa: *ESP32 Dev Module*, Partition Scheme: **Huge APP (3MB No OTA/1MB SPIFFS)**. Upload.
 3. La prima pornire ecranul cere calibrarea: atingem vârful fiecărei săgeți.
 4. Telefonul pe rețeaua `NEPHA-casa` (parola `casa2026`), apoi `http://192.168.4.1/wifi` ca să-i
    dăm rețeaua casei.
+
+**Placa din grădină** (`gradina/gradina.ino`)
+1. Placa: *ESP32S3 Dev Module*. Upload. Nu are nevoie de biblioteci.
+2. Pornește singură și caută panoul (pe Serial: „Am găsit panoul, pe canalul …”).
 
 Legăturile dintre plăci și senzori sunt în [docs/montaj.md](docs/montaj.md).
 

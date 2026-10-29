@@ -87,6 +87,7 @@ String textEveniment(const EvenimentP &e) {
         default: return "Udare pornită de mână.";
       }
     case 11:
+      if (a == 255) return "Nu ud grădina: plouă.";
       return "Nu ud grădina: vine ploaia (" + String(a) + "% pe la ora " + String(b) + ").";
     case 12:
       switch (a) {
