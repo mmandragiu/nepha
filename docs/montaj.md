@@ -76,9 +76,9 @@ pompa, rezistența de încălzire și benzile LED trebuie comandate printr-un MO
 La pompă (motor) puneți și o diodă 1N4007 în paralel cu ea, invers (catodul la +), ca să nu
 se întoarcă vârful de tensiune în MOSFET.
 
-### Încălzirea pe machetă
+### Încălzirea (dacă o legați)
 
-Pe machetă „caloriferul” e o rezistență de ~25 Ω / 2 W la 5 V (încălzește puțin, consumă ~1 W).
+Deocamdată încălzirea e doar decizia din program. Ca să se vadă și fizic, „caloriferul” poate fi o rezistență de ~25 Ω / 2 W la 5 V (încălzește puțin, consumă ~1 W).
 Dacă vreți ca temperatura să crească de-adevăratelea pe senzor, puneți senzorul de temperatură
 aproape de rezistență. Camerele fără senzor folosesc oricum modelul termic din program.
 

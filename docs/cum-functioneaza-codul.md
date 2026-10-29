@@ -93,7 +93,7 @@ lumină: LED-ul se aprinde; după câteva minute fără mișcare se stinge și �
 - Priza TV (`decidePriza()`): dacă TV-ul doar stă în standby și nu e nimeni în sufragerie de
   15 minute, o taie; când intră cineva, o pornește la loc.
 - `contorizeaza()` adună energia pe categorii, la scara unei case adevărate (bec 12 W, calorifer
-  2000 W...), și pe cea măsurată cu INA219 pe machetă.
+  2000 W...), și, dacă e legat un INA219, pe cea măsurată.
 
 ### 8. Grădina — [`gradina.ino`](../casa/gradina.ino)
 

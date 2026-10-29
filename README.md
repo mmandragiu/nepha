@@ -2,17 +2,25 @@
 
 Proiectul nostru pentru **Competiția Națională Arduino 2026** (tema „Inovație Smart Energy”).
 
-NEPHA e o machetă de casă cu trei camere, o grădină, un panou solar și o turbină eoliană mică.
-Casa are un panou cu ecran tactil pe perete și o pagină pe care o deschidem de pe telefon,
+NEPHA e o casă cu trei camere și o grădină, condusă de un Arduino Uno. Are un panou cu ecran
+tactil pe perete, o placă separată în grădină și o aplicație de telefon (Android și iPhone),
 dar partea importantă nu se vede: **Arduino ia singur deciziile care economisesc energie** și
 spune de fiecare dată *de ce* a făcut ce a făcut.
+
+**Ce e real și ce e calculat.** Montate și legate avem: lumina din dormitor (două întrerupătoare
+Livolo, comandate prin radio), senzorul de temperatură și umiditate DHT11, senzorii wireless de pe
+uși și geamuri cu alarma și sirena, placa din grădină cu senzorul de ploaie și cele 3 electrovalve
+pe relee, panoul cu ecran și aplicația. Restul casei e **virtual**, calculat de Arduino cu un model
+simplu: temperatura din celelalte două camere, becurile din sufragerie și bucătărie, caloriferul,
+priza TV, soarele, vântul și bateria. Deciziile sunt aceleași ca într-o casă adevărată, iar
+energia e socotită pentru o casă adevărată.
 
 <p>
   <img src="docs/imagini/panou-acasa.png" width="400" alt="Panoul: ecranul Acasă">
   <img src="docs/imagini/panou-rutina.png" width="400" alt="Panoul: ce a învățat casa">
 </p>
 
-*(capturi din simulatorul ecranului; pozele cu macheta adevărată le punem în [docs/imagini](docs/imagini))*
+*(capturi din simulatorul ecranului; pozele cu montajul adevărat le punem în [docs/imagini](docs/imagini))*
 
 ## De la ce am pornit
 
@@ -46,6 +54,9 @@ Ne-am întrebat ce ar face o casă care își observă locuitorii, vremea și ba
 \* Programul le are, dar le pornim doar cu senzorii de mișcare și fotorezistența legate (`ARE_PIR`,
 `ARE_LDR` în `casa/config.h`). Acum nu-i avem, așa că luminile le aprindeți voi, iar casa le
 stinge când plecați; în ziua de test le vedem cu oamenii virtuali. E următoarea îmbunătățire.
+La fel, priza TV, bateria și panoul solar sunt deocamdată virtuale (fără INA219, casa ghicește
+când e televizorul pornit, după oră și după cine e acasă). Un panou solar avem deja; legarea lui
+cu un INA219 e tot la „mai târziu”.
 
 Și, pe lângă toate astea, **alarma**: senzori wireless pe uși și geamuri, armare de pe panou,
 PIN, sirenă. Am legat-o de energie: când armați „Plecat”, casa știe *sigur* că e goală.
@@ -87,24 +98,25 @@ Rezultatul (comanda `TEST RAPID`, energie socotită pentru o casă adevărată):
 | **Total pe zi** | **16,8 kWh** | **13,7 kWh** | **19%** |
 | Apă la udat | 80 l | 0 l | |
 
-Adică ~3 kWh pe zi, ~4 lei pe zi la 1,40 lei/kWh, în sezonul rece. Pe machetă putem rula aceeași
-zi în ~6 minute (`TEST CLASIC`, apoi `TEST SMART`) și atunci INA219 măsoară și consumul real al
-machetei.
+Adică ~3 kWh pe zi, ~4 lei pe zi la 1,40 lei/kWh, în sezonul rece. Cifrele vin din modelul casei
+(o familie virtuală, aceeași vreme), nu dintr-o măsurătoare pe o casă adevărată. Aceeași zi se
+poate trăi și în ~6 minute (`TEST CLASIC`, apoi `TEST SMART`): atunci lumina din dormitor (Livolo)
+și udatul lucrează de-adevăratelea, după oamenii virtuali. Cu un INA219 legat, casa ar măsura și
+consumul real.
 
 <img src="docs/imagini/panou-energie.png" width="400" alt="Panoul: energie și ziua de test">
 
 ## Cum e făcută
 
 ```
- panou solar ─┐                                   ┌─ DHT11 (temperatură + umiditate)
- turbină ─────┼─ încărcare ─ baterie 18650        ├─ PIR în fiecare cameră (opțional)
-              │      INA219 x3-4 (I2C)            ├─ fotorezistență (opțional)
-              └──────────────┐                    ├─ receptor 433 MHz (uși, geamuri)
-                             ▼                    │
+ (pentru mai târziu:                              ┌─ DHT11 (temperatură + umiditate)
+  panou solar, turbină,                           ├─ receptor 433 MHz (uși, geamuri)
+  baterie, INA219)                                ├─ (opțional) PIR, fotorezistență
+                                                  │
                     ┌──────────────────┐          │
                     │   Arduino Uno    │◄─────────┘
-                    │ "creierul" casei │──► becuri (PWM), încălzire, pompă, priza TV, sirenă,
-                    └────────┬─────────┘    emițător 433 MHz → întrerupătoarele Livolo
+                    │ "creierul" casei │──► emițător 433 MHz → întrerupătoarele Livolo, sirenă
+                    └────────┬─────────┘    (virtual: becuri, încălzire, pompă, priza TV)
                              │ I2C (A4/A5)
                     ┌────────▼─────────┐
                     │ ESP32 + ecran 3,5"│──► Wi-Fi: oră, prognoză, pagina web, aplicația
@@ -164,7 +176,8 @@ Legăturile dintre plăci și senzori sunt în [docs/montaj.md](docs/montaj.md).
 Tot proiectul se poate încerca fără nicio componentă: deschideți
 [`simulare/casa-virtuala.html`](simulare/casa-virtuala.html) în browser. Acolo rulează codul
 adevărat al ambelor plăci: ecranul panoului se atinge cu mouse-ul, macheta se aprinde, iar
-senzorii sunt butoane. Programul pentru Arduino merge și singur în [Wokwi](https://wokwi.com).
+senzorii sunt butoane. (Casa virtuală e construită pe 25 octombrie: nu are încă DHT11, Livolo și
+placa din grădină.) Programul pentru Arduino merge și singur în [Wokwi](https://wokwi.com).
 Detalii în [simulare/README.md](simulare/README.md).
 
 ## Echipa
@@ -172,7 +185,9 @@ Detalii în [simulare/README.md](simulare/README.md).
 - David Stan
 - Mihai Mandragiu
 - Daria Stan
-- Profesor coordonator: Carmen Minca
+- Profesor coordonator: Carmen Mincă
+
+Colegiul Național de Informatică „Tudor Vianu”, București.
 
 Codul e liber de folosit ([MIT](LICENSE)); fontul Nunito de pe ecran are licența lui
 ([OFL](panou/LICENTA-Nunito.txt)).
