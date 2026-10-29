@@ -108,7 +108,7 @@ class DemoCasa {
   int _alarma = 0;
   DateTime? _armatLa;
   DateTime? _pompaPanaLa;
-  DateTime? _udaLa; // placa din gradina: 4 zone, cate 3 secunde
+  DateTime? _udaLa; // placa din gradina: 3 zone, cate 3 secunde
   double _confort = 21.5;
   final _lumini = [80, 0, 45];
   final _usi = [false, false, false, false];
@@ -314,10 +314,11 @@ class DemoCasa {
         umiditate: pompa ? 34 : 31,
         pompa: pompa,
         ploua: false,
-        zona: udat < 12 ? udat ~/ 3 + 1 : 0,
+        zona: udat < 9 ? udat ~/ 3 + 1 : 0,
       ),
       priza: _priza,
-      senzori: 157, // ca in camera reala: DHT11, fara termometru afara
+      senzori:
+          925, // demo: casa cu toti senzorii (si miscare, si fotorezistenta), fara termometru afara
       vreme: const Vreme(
         valida: true,
         temp: 7.8,

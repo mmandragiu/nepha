@@ -97,6 +97,7 @@ void jsonStare(JsonObject doc) {
   if (gradina.aici) {             // placa din gradina e pornita
     doc["gradina"]["ploua"] = gradina.ploua;
     doc["gradina"]["zona"] = gradina.zona;
+    doc["gradina"]["zone"] = NR_ZONE;
   }
   doc["priza"] = casa.priza;
   doc["senzori"] = casa.senzori;

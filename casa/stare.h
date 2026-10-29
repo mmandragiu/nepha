@@ -144,7 +144,7 @@ struct Casa {
   Priza priza;
   Vreme vreme;
   uint8_t usiDeschise;      // bitul i = senzorul RF i e deschis
-  uint8_t senzori;          // ce senzori reali am gasit (vezi SENZ_*)
+  uint16_t senzori;         // ce senzori reali am gasit (vezi SENZ_*)
 };
 
 // rezultatul unei zile de test (Wh la scara unei case adevarate)
@@ -163,6 +163,8 @@ struct RezultatTest {
 #define SENZ_PRIZA       0x20
 #define SENZ_SOL         0x40   // senzor in pamant (altfel umiditatea e calculata)
 #define SENZ_CEAS        0x80   // ora a venit de la panou (internet)
+#define SENZ_LDR         0x100  // fotorezistenta (altfel lumina de afara e estimata)
+#define SENZ_PIR         0x200  // senzori de miscare (altfel "acasa" vine de la alarma)
 
 // --- variabile folosite in mai multe tab-uri ---
 extern Casa casa;
@@ -234,6 +236,7 @@ bool pasGeaman(uint32_t dt);
 // lumini
 void decideLumini();
 bool cinevaAcasa();
+bool areMiscare();
 
 // energie
 void energieVirtuala(uint32_t dt);

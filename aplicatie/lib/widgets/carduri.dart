@@ -48,7 +48,8 @@ const _bitCamere = 1,
     _bitSolar = 4,
     _bitVant = 8,
     _bitConsum = 16,
-    _bitSol = 64;
+    _bitSol = 64,
+    _bitLdr = 256;
 
 List<DateCard> carduriCasa(AppState app) {
   final s = app.stare!;
@@ -125,7 +126,12 @@ List<DateCard> carduriCasa(AppState app) {
           'Senzor',
           are(_bitAfara) ? 'DS18B20 · capsulă · D4' : 'lipsă: din prognoză',
         ),
-        ('Lumină naturală', 'fotorezistență · A1 · ${s.luminaNaturala}%'),
+        (
+          'Lumină naturală',
+          are(_bitLdr)
+              ? 'fotorezistență · A1 · ${s.luminaNaturala}%'
+              : 'după oră și prognoză · ${s.luminaNaturala}%',
+        ),
         (
           'Prognoză',
           s.vreme.valida
@@ -236,7 +242,7 @@ List<DateCard> carduriCasa(AppState app) {
       titlu: 'Grădină',
       valoare: '${s.gradina.umiditate}%',
       detaliu: s.gradina.zona > 0
-          ? 'zona ${s.gradina.zona} din 4'
+          ? 'zona ${s.gradina.zona} din ${s.gradina.zone}'
           : s.gradina.pompa
           ? 'se udă acum'
           : s.gradina.ploua == true
@@ -267,7 +273,7 @@ List<DateCard> carduriCasa(AppState app) {
         if (s.gradina.ploua != null)
           (
             'Electrovalve',
-            '4 relee · ${s.gradina.zona > 0 ? 'zona ${s.gradina.zona}' : 'închise'}',
+            '${s.gradina.zone} relee · ${s.gradina.zona > 0 ? 'zona ${s.gradina.zona}' : 'închise'}',
           ),
         if (s.vreme.oraPloaie != null)
           ('Ploaie', '${s.vreme.ploaie}% pe la ${s.vreme.oraPloaie}:00'),

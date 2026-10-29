@@ -35,7 +35,7 @@ struct CasaP {
   float confort;        // temperatura de confort setata pe Arduino
   bool priza;
   float whAzi, whClasic, mwh;
-  uint8_t senzori;
+  uint16_t senzori;     // biti: vezi SENZ_* in casa/stare.h (0x100 fotorezistenta, 0x200 PIR)
 };
 
 // placa din gradina (ESP-NOW, vezi gradina.ino)

@@ -13,7 +13,10 @@
 
 // becul (LED-ul) din fiecare camera - trebuie pini PWM (3, 5, 6, 9, 10, 11)
 const uint8_t PIN_LUMINA[NR_CAMERE] = {5, 6, 9};
-// senzorii de miscare PIR (HC-SR501 sau AM312)
+// senzorii de miscare PIR (HC-SR501 sau AM312). Daca ii legati, decomentati ARE_PIR.
+// Fara ei, casa afla daca e cineva acasa dupa alarma (armata "Plecat" = nu e nimeni):
+// luminile le aprindeti voi, iar casa le stinge cand plecati.
+// #define ARE_PIR
 const uint8_t PIN_PIR[NR_CAMERE] = {7, A2, A3};
 
 // ---------------------------------------------------------------
@@ -38,6 +41,9 @@ const uint8_t PIN_PIR[NR_CAMERE] = {7, A2, A3};
 // Daca legati senzorul pe A0, decomentati linia:
 // #define ARE_SENZOR_SOL
 #define PIN_LDR      A1      // fotorezistenta: lumina naturala
+// Daca e legata fotorezistenta, decomentati linia. Fara ea, lumina de afara o estimam
+// dupa ora (o zi de toamna) si dupa cat soare spune prognoza.
+// #define ARE_LDR
 // I2C: A4 = SDA, A5 = SCL -> modulele INA219
 
 // Senzori DS18B20 pe un fir (D4)? Decomentati linia. Ocupa 1,5 KB: programul trece

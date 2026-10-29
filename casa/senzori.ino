@@ -24,7 +24,13 @@ uint32_t ultimaCitireDHT = 0;
 float ldrFiltrat = -1, solFiltrat = -1;
 
 void senzoriInit() {
+#if defined(ARE_PIR)
   for (uint8_t i = 0; i < NR_CAMERE; i++) pinMode(PIN_PIR[i], INPUT);
+  casa.senzori |= SENZ_PIR;
+#endif
+#if defined(ARE_LDR)
+  casa.senzori |= SENZ_LDR;
+#endif
 #if defined(ARE_SENZOR_SOL)
   casa.senzori |= SENZ_SOL;
 #endif
@@ -63,6 +69,7 @@ void senzoriInit() {
 void senzoriCiteste() {
   uint32_t m = millis();
 
+#if defined(ARE_PIR)
   // miscare - verificam la fiecare trecere, alarma trebuie sa reactioneze repede.
   // Senzorii PIR dau alarme false in primele ~30 s dupa alimentare, le ignoram.
   if (m > 30000) {
@@ -77,6 +84,7 @@ void senzoriCiteste() {
       }
     }
   }
+#endif
 
 #if defined(ARE_DS18B20)
   // temperaturi, la 2 secunde (senzorii au masurat intre timp)
@@ -109,13 +117,20 @@ void senzoriCiteste() {
     }
   }
 
-  // lumina naturala (si umiditatea solului, daca avem senzor), filtrate ca sa nu "sara"
+  // lumina naturala si umiditatea solului (de la senzori, filtrate ca sa nu "sara")
   if (m - ultimaCitireAnalog >= 200) {
     ultimaCitireAnalog = m;
     // map() merge si cand capetele sunt "invers" (valoare mai mica = mai multa lumina)
+#if defined(ARE_LDR)
     float ldr = constrain(map(analogRead(PIN_LDR), LDR_INTUNERIC, LDR_SOARE, 0, 100), 0, 100);
     ldrFiltrat = ldrFiltrat < 0 ? ldr : ldrFiltrat * 0.9 + ldr * 0.1;
     casa.luminaNaturala = (uint8_t)(ldrFiltrat + 0.5);
+#else
+    // fara fotorezistenta: lumina unei zile de toamna (tabelul din ziua de test), mai slaba
+    // daca prognoza spune ca e innorat
+    float f = casa.vreme.valida ? 0.4 + casa.vreme.soare * 0.006 : 1;
+    casa.luminaNaturala = dinTabel(LUMINA_AFARA, minutulZilei()) * f;
+#endif
 #if defined(ARE_SENZOR_SOL)
     float sol = constrain(map(analogRead(PIN_SOL), SOL_USCAT, SOL_UD, 0, 100), 0, 100);
     solFiltrat = solFiltrat < 0 ? sol : solFiltrat * 0.95 + sol * 0.05;

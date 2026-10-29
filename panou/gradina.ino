@@ -1,11 +1,11 @@
 // gradina - placa din gradina (ESP32-S3, programul din gradina/): senzorul de ploaie si
-// cele 4 relee ale electrovalvelor. Vorbim cu ea prin ESP-NOW: radio direct intre doua ESP32,
+// releele electrovalvelor (3 zone). Vorbim cu ea prin ESP-NOW: radio direct intre doua ESP32,
 // fara router si fara parole. Merge si cand panoul e pe Wi-Fi-ul casei, si pe NEPHA-casa.
 //
 // Placa din gradina ne trimite la 2 secunde cum e: ploua sau nu, ce zona se uda acum.
 // Noi ii raspundem de fiecare data; asa ne gaseste (incearca pe rand canalele Wi-Fi pana
 // raspundem). In raspuns ii spunem si cand sa ude: cand Arduino porneste pompa (automat sau
-// "Uda acum"), ea deschide pe rand cele 4 zone.
+// "Uda acum"), ea deschide pe rand zonele (NR_ZONE).
 // Ce aflam de la ea ii spunem lui Arduino: PLOAIE 1 / PLOAIE 0.
 
 // acelasi mesaj si in gradina/gradina.ino

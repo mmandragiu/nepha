@@ -15,6 +15,7 @@
 // Din model scoatem doua lucruri:
 //   - in cate minute vine cineva acasa (termostatul porneste inainte)
 //   - cat sa astepte lumina dupa ultima miscare (luminile)
+// Fara senzori de miscare (ARE_PIR), "e cineva" inseamna: alarma nu e armata pe "Plecat".
 
 uint8_t rutinaZile[24];
 uint8_t rutinaOcupat[NR_CAMERE][24];
@@ -46,8 +47,10 @@ void rutinaPas(uint32_t dt) {
   }
   if (dt > 3600) dt = 3600;
   secundeObservate = min(3600UL, secundeObservate + dt);
+  // fara PIR, toate camerele invata acelasi lucru: e lumea acasa sau nu
+  bool acasa = !areMiscare() && cinevaAcasa();
   for (uint8_t i = 0; i < NR_CAMERE; i++)
-    if (casa.camere[i].prezenta) secundePrezenta[i] = min(3600UL, secundePrezenta[i] + dt);
+    if (casa.camere[i].prezenta || acasa) secundePrezenta[i] = min(3600UL, secundePrezenta[i] + dt);
 }
 
 // ceasul a sarit (a venit ora de la panou): ora curenta nu mai e una "curata"

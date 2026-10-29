@@ -152,7 +152,7 @@ pragul de 30% (sub el, lumina de noapte nu aprinde lustra; o trimitere durează 
 
 ## Placa din grădină (`gradina/`)
 
-Un ESP32-S3 cu senzorul de ploaie (DO pe GPIO1) și 4 relee (GPIO 6, 4, 15, 7). Nu ia decizii:
+Un ESP32-S3 cu senzorul de ploaie (DO pe GPIO1) și 3 relee (GPIO 6, 4, 15). Nu ia decizii:
 spune la 2 secunde dacă plouă și, la cererea panoului, deschide zonele pe rând, câte
 `SECUNDE_ZONA`. Își caută singură panoul pe canalele Wi-Fi 1-13; vorbesc prin ESP-NOW, fără router.
 

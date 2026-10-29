@@ -39,7 +39,7 @@ folosesc”). Prețurile sunt orientative (sigmanortec, drot, optimus).
 | Buzzer activ 5 V | 1 | sirena alarmei |
 | Emițător 433 MHz FS1000A + antenă de 17,3 cm | 1 | aprinde / stinge întrerupătoarele Livolo, ca o telecomandă |
 | Întrerupătoare Livolo (cap de scară) | 2 | lumina din dormitor, comandată de casă |
-| Modul cu 4 relee 5 V + sursă 5 V / 2 A | 1 | cele 4 electrovalve ale grădinii |
+| Modul cu 4 relee 5 V + sursă 5 V / 2 A | 1 | cele 3 electrovalve ale grădinii (al 4-lea releu e liber) |
 
 ## Energie
 

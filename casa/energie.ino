@@ -104,17 +104,18 @@ void decideEnergie(uint32_t dt) {
 // sta in standby de 15 minute, taiem priza. Cand intra cineva, o pornim la loc.
 void decidePriza() {
   Priza &p = casa.priza;
-  Camera &c = casa.camere[CAMERA_TV];
+  // e cineva in sufragerie? (fara PIR: e cineva acasa)
+  bool cineva = areMiscare() ? casa.camere[CAMERA_TV].prezenta : cinevaAcasa();
 
   if (!inScenariu()) {
     if (!isnan(p.putere)) p.tvPornit = p.pornita && p.putere > PRAG_TV_W;
-    else p.tvPornit = p.pornita && c.prezenta && oraZilei() >= 19 && oraZilei() < 23;  // ghicim
+    else p.tvPornit = p.pornita && cineva && oraZilei() >= 19 && oraZilei() < 23;  // ghicim
   }
 
   if (p.manual >= 0) { p.pornita = p.manual; return; }
   if (casa.mod == CLASIC) { p.pornita = true; return; }
 
-  bool cineva = c.prezenta && casa.alarma.stare != ALARMA_PLECAT;
+  cineva = cineva && casa.alarma.stare != ALARMA_PLECAT;
   if (p.tvPornit || cineva) {
     if (!p.pornita) trimiteEveniment(EV_PRIZA_PORNITA, 0, 0);
     p.pornita = true;

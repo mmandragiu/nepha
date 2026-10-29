@@ -41,6 +41,7 @@ class _FereastraCamera extends StatelessWidget {
     final c = s.camere[i];
     final cheie = 'lumina:$i';
     final nivel = app.arata(cheie, c.lumina);
+    final pir = s.senzori & 512 != 0; // are senzori de miscare
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -58,7 +59,11 @@ class _FereastraCamera extends StatelessWidget {
                     children: [
                       T(c.nume, marime: 22, gros: FontWeight.w700),
                       T.mic(
-                        '${c.prezenta ? 'e cineva acum' : 'nu e nimeni'}${c.fereastra ? ' · geam deschis' : ''}',
+                        [
+                          if (c.prezenta) 'e cineva acum',
+                          if (!c.prezenta && pir) 'nu e nimeni',
+                          if (c.fereastra) 'geam deschis',
+                        ].join(' · '),
                       ),
                     ],
                   ),
@@ -100,7 +105,7 @@ class _FereastraCamera extends StatelessWidget {
                         )
                       : _Valoare(
                           'Mișcare',
-                          c.prezenta ? 'da' : 'nu',
+                          !pir ? '—' : (c.prezenta ? 'da' : 'nu'),
                           Icons.sensors,
                         ),
                 ),

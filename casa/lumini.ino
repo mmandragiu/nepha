@@ -1,5 +1,8 @@
 // lumini - becurile din camere
 //
+// (Fara senzori de miscare - ARE_PIR in config.h - luminile le aprindeti voi din aplicatie sau
+// de pe panou; NEPHA le stinge cand armati "Plecat", casa clasica le uita aprinse.)
+//
 // CLASIC: aprindem cand intram si e intuneric, dar nu ne mai intoarcem sa
 //         stingem - lumina ramane aprinsa pana pleaca toata lumea sau ne culcam.
 // SMART:  lumina doar in camerele unde e cineva, si doar cat lipseste din
@@ -16,9 +19,19 @@ static uint32_t timpStingere(uint8_t camera) {
   return 150 + 3UL * p;
 }
 
-// e cineva acasa? (miscare in ultima jumatate de ora in vreo camera)
+// stim cine e in fiecare camera? (senzori PIR, sau oamenii virtuali din ziua de test)
+bool areMiscare() {
+#if defined(ARE_PIR)
+  return true;
+#else
+  return inScenariu();
+#endif
+}
+
+// e cineva acasa? (miscare in ultima jumatate de ora in vreo camera; fara PIR: alarma nu e pe "Plecat")
 bool cinevaAcasa() {
   if (casa.alarma.stare == ALARMA_PLECAT) return false;
+  if (!areMiscare()) return casa.alarma.stare != ALARMA_IESIRE;
   for (uint8_t i = 0; i < NR_CAMERE; i++) {
     if (casa.camere[i].prezenta) return true;
     if (acum() - casa.camere[i].ultimaMiscare < 1800 && casa.camere[i].ultimaMiscare > 0) return true;
@@ -30,6 +43,7 @@ static uint8_t luminaSmart(uint8_t i) {
   Camera &c = casa.camere[i];
   if (casa.alarma.stare == ALARMA_PLECAT) return 0;
   if (casa.alarma.stare == ALARMA_SUNA) return 100;          // aprindem tot, sa se vada
+  if (!areMiscare()) return c.luminaTinta;                   // fara PIR: lumina o aprindeti voi
   bool aprinsa = c.luminaTinta > 0;
   // histerezis: aprindem sub 35, stingem peste 45
   if (casa.luminaNaturala >= PRAG_INTUNERIC + 10) return 0;
@@ -54,6 +68,12 @@ static uint8_t luminaSmart(uint8_t i) {
 
 static uint8_t luminaClasic(uint8_t i) {
   Camera &c = casa.camere[i];
+  if (!areMiscare()) {
+    // fara PIR, casa clasica are aceleasi lumini ca voi, dar le uita aprinse cand plecati
+    if (c.luminaTinta) c.aprinsaClasic = true;
+    else if (casa.alarma.stare != ALARMA_PLECAT) c.aprinsaClasic = false;
+    return c.aprinsaClasic ? 100 : 0;
+  }
   if (!cinevaAcasa() || eOraDeSomn(oraZilei())) c.aprinsaClasic = false;
   else if (c.prezenta && casa.luminaNaturala < PRAG_INTUNERIC) c.aprinsaClasic = true;
   return c.aprinsaClasic ? 100 : 0;
@@ -64,6 +84,7 @@ void decideLumini() {
     Camera &c = casa.camere[i];
     // varianta clasica o calculam mereu, ca sa stim cat ar fi consumat o casa obisnuita
     uint8_t clasic = luminaClasic(i);
+    if (casa.mod == SMART && casa.alarma.stare == ALARMA_PLECAT) c.manual = -1;   // am plecat: se stinge tot
     if (c.manual >= 0 && acum() < c.manualPanaLa) {
       c.luminaTinta = c.manual;            // a apasat cineva pe panou - respectam o ora
       continue;

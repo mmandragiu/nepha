@@ -10,21 +10,27 @@ Dacă mutați un fir, schimbați acolo și atât.
 | D2 | receptor 433 MHz SYN480R (DATA) | trebuie D2: biblioteca RCSwitch folosește întreruperea 0 |
 | D3 | DHT11 (DATA): temperatura și umiditatea din Dormitor | modulul are deja rezistența; VCC 5 V, GND |
 | D4 | (opțional) firul comun al senzorilor DS18B20 | rezistență 4,7 kΩ între D4 și 5 V; `ARE_DS18B20` în `config.h` |
-| D5 | bec Sufragerie | PWM |
-| D6 | bec Dormitor | PWM |
-| D7 | PIR Sufragerie | |
+| D5 | (opțional) bec Sufragerie | PWM |
+| D6 | (opțional) bec Dormitor | PWM; lumina reală din dormitor e Livolo |
+| D7 | (opțional) PIR Sufragerie | `ARE_PIR` în `config.h` |
 | D8 | emițător 433 MHz FS1000A (DATA), pentru Livolo | VCC 5 V, GND; antenă: un fir drept de 17,3 cm |
-| D9 | bec (LED) Bucătărie | PWM, prin rezistență 220 Ω |
+| D9 | (opțional) bec (LED) Bucătărie | PWM, prin rezistență 220 Ω |
 | D10 | MOSFET pompă | |
 | D11 | MOSFET încălzire (rezistența) | |
 | D12 | releu priza TV | releele chinezești se activează pe LOW (`RELEU_PORNIT`) |
 | D13 | buzzer activ (sirena) | prin tranzistor sau modul de buzzer |
 | A0 | (opțional) senzor capacitiv umiditate sol (AOUT) | `ARE_SENZOR_SOL` în `config.h`; fără el, umiditatea e calculată |
-| A1 | fotorezistența (modul, ieșirea AO) | |
-| A2 | PIR Dormitor | |
-| A3 | PIR Bucătărie | |
+| A1 | (opțional) fotorezistența (modul, ieșirea AO) | `ARE_LDR`; fără ea, lumina de afară e estimată după oră și prognoză |
+| A2 | (opțional) PIR Dormitor | |
+| A3 | (opțional) PIR Bucătărie | |
 | A4 / A5 | SDA / SCL: panoul (prin translator) și modulele INA219 | toate pe aceleași două fire |
 | D0 / D1 | USB | rămân libere, ca să putem urca programul și citi Serial Monitor fără să scoatem fire |
+
+Ce avem acum (29 octombrie): DHT11, Livolo, receptorul pentru uși, buzzer-ul și placa din grădină.
+Fără senzori de mișcare, casa știe dacă e cineva acasă după alarmă (armată „Plecat” = nu e nimeni):
+luminile le aprindeți voi, iar NEPHA le stinge când plecați. Senzorii de mișcare (luminile care se
+aprind singure când intri) sunt următoarea îmbunătățire: se leagă pe D7, A2, A3 și se decomentează
+`ARE_PIR`.
 
 Nu mai e niciun pin digital liber. Pentru încă un senzor, cel mai simplu e unul pe I2C (de
 exemplu un senzor de lumină BH1750): se leagă tot pe A4 / A5.
@@ -48,7 +54,7 @@ următoarea schimbare trimite iar „stinge tot” (+ „aprinde”) și se potr
 |---|---|---|
 | 1 | senzorul de ploaie, DO (plăcuța VAR34 + modulul cu LM393) | VCC 3,3 V; pragul din potențiometru (LED-ul de pe modul = ud) |
 | 2 | senzorul de ploaie, AO | doar pentru calibrare (apare pe Serial) |
-| 6, 4, 15, 7 | IN1, IN2, IN3, IN4 pe modulul cu 4 relee (zonele 1-4) | releele se activează pe LOW; VCC 5 V dintr-o sursă separată de 1,5-2 A, GND comun |
+| 6, 4, 15 | IN1, IN2, IN3 pe modulul cu relee (zonele 1-3; IN4 rămâne liber) | releele se activează pe LOW; VCC 5 V dintr-o sursă separată de 1,5-2 A, GND comun |
 
 Placa în Arduino IDE: **ESP32S3 Dev Module**. Nu are nevoie de biblioteci și nici de Wi-Fi: își
 găsește singură panoul, prin ESP-NOW. Cât se udă fiecare zonă: `SECUNDE_ZONA` în program.

@@ -63,7 +63,7 @@ class CamereScreen extends StatelessWidget {
                     children: [
                       T(
                         s.gradina.zona > 0
-                            ? 'Se udă zona ${s.gradina.zona} din 4'
+                            ? 'Se udă zona ${s.gradina.zona} din ${s.gradina.zone}'
                             : s.gradina.pompa
                             ? 'Se udă acum'
                             : s.gradina.umiditate >= 35

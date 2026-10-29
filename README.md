@@ -31,17 +31,21 @@ Ne-am întrebat ce ar face o casă care își observă locuitorii, vremea și ba
 
 | Situația | Ce face NEPHA | De unde știe |
 |---|---|---|
-| Plecați toți de acasă | lasă temperatura să scadă, stinge luminile, taie priza TV | senzorii de mișcare + alarma armată „Plecat” |
+| Plecați toți de acasă | lasă temperatura să scadă, stinge luminile (și Livolo), taie priza TV | alarma armată „Plecat” |
 | Vă întoarceți de obicei pe la 17:30 | pornește încălzirea mai devreme, cât să fie cald când intrați | **rutina învățată** + cât de repede se încălzește casa (tot învățat) |
 | Noaptea | trece pe temperatura de noapte, iar dimineața încălzește înainte să vă treziți | rutina |
 | Deschideți un geam iarna | oprește încălzirea până se închide | senzorul de pe geam **sau** scăderea bruscă a temperaturii |
-| Ieșiți dintr-o cameră | stinge lumina după câteva minute (mai repede la orele când de obicei nu stați acolo) | senzorul de mișcare + rutina |
-| Afară e încă destul de lumină | aprinde becul doar cât lipsește | fotorezistența |
-| TV-ul stă în standby și nu e nimeni în sufragerie | taie priza; o pornește la loc când intră cineva | INA219 pe priză + mișcare |
+| Ieșiți dintr-o cameră* | stinge lumina după câteva minute (mai repede la orele când de obicei nu stați acolo) | senzorul de mișcare + rutina |
+| Afară e încă destul de lumină* | aprinde becul doar cât lipsește | fotorezistența |
+| TV-ul stă în standby și nu e nimeni acasă | taie priza; o pornește la loc când vine cineva | INA219 pe priză + alarma (sau mișcare) |
 | Pământul e uscat, dar vine ploaia | nu udă | umiditatea solului + prognoza meteo |
 | Plouă chiar acum | nu udă | senzorul de ploaie din grădină |
 | Bateria e plină și panoul încă produce | pornește acum ce poate aștepta (udatul) | INA219 pe panou și baterie |
 | Bateria scade și nu se produce nimic | lumini mai slabe, un grad mai puțin | INA219 + prognoza (dacă vine vreme înnorată, economisește de mai devreme) |
+
+\* Programul le are, dar le pornim doar cu senzorii de mișcare și fotorezistența legate (`ARE_PIR`,
+`ARE_LDR` în `casa/config.h`). Acum nu-i avem, așa că luminile le aprindeți voi, iar casa le
+stinge când plecați; în ziua de test le vedem cu oamenii virtuali. E următoarea îmbunătățire.
 
 Și, pe lângă toate astea, **alarma**: senzori wireless pe uși și geamuri, armare de pe panou,
 PIN, sirenă. Am legat-o de energie: când armați „Plecat”, casa știe *sigur* că e goală.
@@ -93,8 +97,8 @@ machetei.
 
 ```
  panou solar ─┐                                   ┌─ DHT11 (temperatură + umiditate)
- turbină ─────┼─ încărcare ─ baterie 18650        ├─ PIR în fiecare cameră
-              │      INA219 x3-4 (I2C)            ├─ fotorezistență
+ turbină ─────┼─ încărcare ─ baterie 18650        ├─ PIR în fiecare cameră (opțional)
+              │      INA219 x3-4 (I2C)            ├─ fotorezistență (opțional)
               └──────────────┐                    ├─ receptor 433 MHz (uși, geamuri)
                              ▼                    │
                     ┌──────────────────┐          │
@@ -108,7 +112,7 @@ machetei.
                     └────────┬─────────┘
                              │ ESP-NOW (radio direct, fără router)
                     ┌────────▼─────────┐
-                    │ ESP32-S3 grădină │──► senzor de ploaie, 4 electrovalve (relee)
+                    │ ESP32-S3 grădină │──► senzor de ploaie, 3 electrovalve (relee)
                     └──────────────────┘
 ```
 

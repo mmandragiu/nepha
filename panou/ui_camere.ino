@@ -12,7 +12,7 @@ void desenCamere(bool tot) {
     card(x, 50, 145, 216);
     scrie(NUME_CAMERE[i], x + 14, 62, F_TEXT, C_TEXT, C_CARD);
     if (c.prezenta) pastila("e cineva", x + 14, 90, C_VERDE, C_VERDE_D);
-    else pastila("liber", x + 14, 90, C_TEXT2, C_GRI_D);
+    else if (casa.senzori & 0x200) pastila("liber", x + 14, 90, C_TEXT2, C_GRI_D);   // fara PIR nu stim
     scrie(grade(c.temp), x + 14, 136, F_TITLU, C_TEXT, C_CARD, textdatum_t::middle_left);
     if (c.fereastra) scrie("geam deschis", x + 14, 164, F_MIC, C_CALD, C_CARD, textdatum_t::middle_left);
     else if (umid) scrie("umiditate " + String(umid) + "%", x + 14, 164, F_MIC, C_TEXT2, C_CARD, textdatum_t::middle_left);

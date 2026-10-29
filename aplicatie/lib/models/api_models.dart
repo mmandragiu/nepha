@@ -147,12 +147,14 @@ class Gradina {
   // de la placa din gradina; lipsesc daca nu e pornita
   final bool? ploua;
   final int zona; // ce zona se uda acum (0 = niciuna)
+  final int zone; // cate zone are gradina
 
   const Gradina({
     required this.umiditate,
     required this.pompa,
     this.ploua,
     this.zona = 0,
+    this.zone = 3,
   });
 
   factory Gradina.fromJson(Map<String, dynamic> j) => Gradina(
@@ -160,6 +162,7 @@ class Gradina {
     pompa: _bool(j['pompa']),
     ploua: j['ploua'] is bool ? j['ploua'] as bool : null,
     zona: _int(j['zona']),
+    zone: j['zone'] is num ? _int(j['zone']) : 3,
   );
 }
 

@@ -96,7 +96,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 600));
-    expect(find.text('Se udă zona 1 din 4'), findsOneWidget);
+    expect(find.text('Se udă zona 1 din 3'), findsOneWidget);
     expect(find.text('48%'), findsOneWidget);
   });
 }

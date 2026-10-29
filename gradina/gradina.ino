@@ -1,7 +1,7 @@
 /*
   NEPHA - placa din gradina (ESP32-S3)
   -------------------------------------
-  Senzorul de ploaie si cele 4 electrovalve (prin relee). Placa nu ia decizii: cand sa ude
+  Senzorul de ploaie si 3 electrovalve (prin relee). Placa nu ia decizii: cand sa ude
   hotaraste Arduino, iar panoul ii transmite. Ea spune doar daca ploua si deschide zonele pe rand.
 
   Vorbeste cu panoul prin ESP-NOW (radio direct intre doua ESP32): fara router, fara parole,
@@ -12,9 +12,9 @@
     senzorul de ploaie (modulul cu comparator LM393 si potentiometru):
       VCC -> 3.3V, GND -> GND, DO -> GPIO1, AO -> GPIO2 (AO doar pentru calibrare, pe Serial)
       Pragul se regleaza din potentiometru: LED-ul de pe modul se aprinde cand e ud.
-    releele (modul cu 4 relee, se activeaza pe LOW):
+    releele (modul cu 4 relee, folosim 3; se activeaza pe LOW):
       VCC -> 5V dintr-o sursa separata (1.5 - 2 A), GND comun cu placa,
-      IN1 -> GPIO6, IN2 -> GPIO4, IN3 -> GPIO15, IN4 -> GPIO7
+      IN1 -> GPIO6, IN2 -> GPIO4, IN3 -> GPIO15 (IN4 ramane liber)
 
   Placa: "ESP32S3 Dev Module". Nu are nevoie de biblioteci.
 */
@@ -25,8 +25,8 @@
 
 #define PIN_PLOAIE    1
 #define PIN_PLOAIE_AO 2
-#define NR_ZONE 4
-const uint8_t PIN_ZONA[NR_ZONE] = {6, 4, 15, 7};     // releul 1, 2, 3, 4
+#define NR_ZONE 3
+const uint8_t PIN_ZONA[NR_ZONE] = {6, 4, 15};     // releul 1, 2, 3
 #define RELEU_PORNIT LOW
 
 #define SECUNDE_ZONA 10       // cat se uda fiecare zona (la demonstratie; intr-o gradina adevarata ~10 minute)
@@ -50,7 +50,7 @@ volatile bool raspunsNou = false, cerereUdare = false;
 
 bool aPlouat = false, ploua = false;
 uint32_t ultimaPicatura = 0;
-uint8_t zona = 0;             // 0 = nu udam, 1..4 = zona deschisa acum
+uint8_t zona = 0;             // 0 = nu udam, 1..NR_ZONE = zona deschisa acum
 uint32_t zonaDin = 0;
 
 // vine din firul radioului: doar notam
